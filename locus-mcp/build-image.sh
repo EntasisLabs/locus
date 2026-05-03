@@ -5,7 +5,7 @@
 #   ./build-image.sh [IMAGE_TAG]
 #
 # Default IMAGE_TAG: ghcr.io/keryxlabs/locus-mcp:0.1.0
-# Optional features: set STTP_MCP_RS_BUILD_FEATURES (for example: candle-local)
+# Optional features: set LOCUS_MCP_BUILD_FEATURES (for example: candle-local)
 #
 # Builds the Rust binary on the host first, then packages publish output into
 # a minimal runtime image. No Rust toolchain is required inside the container.
@@ -13,9 +13,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IMAGE_TAG="${1:-ghcr.io/keryxlabs/locus-mcp:0.1.0}"
-BUILD_FEATURES="${2:-}"
+BUILD_FEATURES="${2:-${LOCUS_MCP_BUILD_FEATURES:-}}"
 PUBLISH_DIR="$SCRIPT_DIR/publish"
 
 if ! command -v cargo >/dev/null 2>&1; then

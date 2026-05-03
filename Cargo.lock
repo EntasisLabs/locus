@@ -3183,6 +3183,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "locus-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "clap",
+ "locus-core",
+ "locus-sdk",
+ "serde_json",
+ "surrealdb",
+ "tokio",
+]
+
+[[package]]
 name = "locus-core"
 version = "0.2.0"
 dependencies = [

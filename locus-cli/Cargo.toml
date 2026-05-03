@@ -1,0 +1,17 @@
+[package]
+name = "locus-cli"
+version = "0.1.0"
+edition = "2024"
+description = "CLI for Locus gateway memory operations"
+license = "Apache-2.0"
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["clock", "serde"] }
+clap = { version = "4", features = ["derive", "env"] }
+locus-core = { path = "../locus-core" }
+locus-sdk = { path = "../locus-sdk" }
+serde_json = "1"
+surrealdb = { version = "3", default-features = false, features = ["protocol-http", "protocol-ws", "kv-surrealkv", "rustls", "kv-mem"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

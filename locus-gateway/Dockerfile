@@ -7,14 +7,14 @@ RUN apt-get update \
 WORKDIR /app
 
 # Binary is pre-built on the host by build-image.sh before docker build runs.
-COPY src/sttp/locus-gateway/publish/ ./
+COPY locus-gateway/publish/ ./
 
 RUN chmod +x /app/locus-gateway \
     && mkdir -p /data
 
-ENV STTP_GATEWAY_HTTP_PORT=8080
-ENV STTP_GATEWAY_GRPC_PORT=8081
-ENV STTP_GATEWAY_ROOT_DIR_NAME=.sttp-gateway
+ENV LOCUS_GATEWAY_HTTP_PORT=8080
+ENV LOCUS_GATEWAY_GRPC_PORT=8081
+ENV LOCUS_GATEWAY_ROOT_DIR_NAME=.locus-gateway
 ENV HOME=/data
 
 VOLUME ["/data"]

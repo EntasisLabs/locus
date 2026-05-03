@@ -244,7 +244,7 @@ async fn score_avec_handler(
     }
 
     let scorer = state.avec_scorer.as_ref().ok_or_else(|| {
-        bad_request("AVEC scoring is disabled; enable STTP_GATEWAY_AVEC_SCORING_ENABLED")
+        bad_request("AVEC scoring is disabled; enable LOCUS_GATEWAY_AVEC_SCORING_ENABLED")
     })?;
 
     let avec = scorer
@@ -1760,14 +1760,14 @@ mod tests {
             http_port: 8080,
             grpc_port: 8081,
             backend: GatewayBackend::Surreal,
-            root_dir_name: ".sttp-gateway".to_string(),
+            root_dir_name: ".locus-gateway".to_string(),
             remote: true,
             cors_enabled: true,
             cors_allowed_origins: "*".to_string(),
             surreal_embedded_endpoint: None,
             surreal_remote_endpoint: Some("ws://127.0.0.1:8000/rpc".to_string()),
             surreal_namespace: "keryx".to_string(),
-            surreal_database: "sttp-mcp".to_string(),
+            surreal_database: "locus_gateway".to_string(),
             surreal_user: "root".to_string(),
             surreal_password: "root".to_string(),
             embeddings_enabled: false,
@@ -1847,7 +1847,7 @@ mod tests {
         assert!(runtime.use_remote);
         assert_eq!(runtime.endpoint, "ws://127.0.0.1:8000/rpc");
         assert_eq!(runtime.namespace, "keryx");
-        assert_eq!(runtime.database, "sttp-mcp");
+        assert_eq!(runtime.database, "locus_gateway");
     }
 
     #[test]

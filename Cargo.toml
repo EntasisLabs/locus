@@ -4,6 +4,7 @@ members = [
   "locus-sdk",
   "locus-mcp",
   "locus-gateway",
+  "locus-cli",
 ]
 resolver = "2"
 

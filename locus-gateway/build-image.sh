@@ -4,7 +4,7 @@
 # Usage:
 #   ./build-image.sh [IMAGE_TAG]
 #
-# Default IMAGE_TAG: ghcr.io/keryxlabs/locus-gateway:1.2.4
+# Default IMAGE_TAG: ghcr.io/keryxlabs/locus-gateway:2.0.0
 #
 # Builds the Rust binary on the host first, then packages publish output into
 # a minimal runtime image. No Rust toolchain is required inside the container.
@@ -12,8 +12,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-IMAGE_TAG="${1:-ghcr.io/keryxlabs/locus-gateway:1.2.5}"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+IMAGE_TAG="${1:-ghcr.io/keryxlabs/locus-gateway:2.0.0}"
 PUBLISH_DIR="$SCRIPT_DIR/publish"
 
 if ! command -v cargo >/dev/null 2>&1; then

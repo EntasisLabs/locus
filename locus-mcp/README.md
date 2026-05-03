@@ -42,45 +42,45 @@ cargo check -q
 Run in in-memory mode:
 
 ```bash
-STTP_MCP_IN_MEMORY=true cargo run
+LOCUS_MCP_IN_MEMORY=true cargo run
 ```
 
 Run with SurrealDB mode (example):
 
 ```bash
-STTP_MCP_REMOTE=true \
-STTP_MCP_SURREAL_REMOTE_ENDPOINT=ws://127.0.0.1:8000/rpc \
-STTP_MCP_SURREAL_NAMESPACE=keryx \
-STTP_MCP_SURREAL_DATABASE=sttp_mcp \
-STTP_MCP_SURREAL_USERNAME=root \
-STTP_MCP_SURREAL_PASSWORD=root \
+LOCUS_MCP_REMOTE=true \
+LOCUS_MCP_SURREAL_REMOTE_ENDPOINT=ws://127.0.0.1:8000/rpc \
+LOCUS_MCP_SURREAL_NAMESPACE=keryx \
+LOCUS_MCP_SURREAL_DATABASE=locus_mcp \
+LOCUS_MCP_SURREAL_USERNAME=root \
+LOCUS_MCP_SURREAL_PASSWORD=root \
 cargo run
 ```
 
 Run with auto-embedding (Ollama):
 
 ```bash
-STTP_MCP_EMBEDDINGS_ENABLED=true \
-STTP_MCP_EMBEDDINGS_PROVIDER=ollama \
-STTP_MCP_EMBEDDINGS_ENDPOINT=http://127.0.0.1:11434/api/embeddings \
-STTP_MCP_EMBEDDINGS_MODEL=sttp-encoder \
+LOCUS_MCP_EMBEDDINGS_ENABLED=true \
+LOCUS_MCP_EMBEDDINGS_PROVIDER=ollama \
+LOCUS_MCP_EMBEDDINGS_ENDPOINT=http://127.0.0.1:11434/api/embeddings \
+LOCUS_MCP_EMBEDDINGS_MODEL=sttp-encoder \
 cargo run
 ```
 
 Run with auto-embedding (Candle local):
 
 ```bash
-STTP_MCP_EMBEDDINGS_ENABLED=true \
-STTP_MCP_EMBEDDINGS_PROVIDER=candle \
-STTP_MCP_EMBEDDINGS_MODEL=sttp-encoder \
-STTP_MCP_EMBEDDINGS_REPO=sentence-transformers/all-MiniLM-L6-v2 \
+LOCUS_MCP_EMBEDDINGS_ENABLED=true \
+LOCUS_MCP_EMBEDDINGS_PROVIDER=candle \
+LOCUS_MCP_EMBEDDINGS_MODEL=sttp-encoder \
+LOCUS_MCP_EMBEDDINGS_REPO=sentence-transformers/all-MiniLM-L6-v2 \
 cargo run --features candle-local
 ```
 
 Build Docker image with Candle support:
 
 ```bash
-STTP_MCP_RS_BUILD_FEATURES=candle-local ./build-image.sh locus-mcp:latest
+LOCUS_MCP_BUILD_FEATURES=candle-local ./build-image.sh locus-mcp:latest candle-local
 ```
 
 ## Configuration
@@ -89,8 +89,8 @@ The server resolves storage mode and connection settings from env vars and optio
 
 ### Storage Mode Selection
 
-- `STTP_MCP_IN_MEMORY=true` enables in-memory mode.
-- `STTP_MCP_STORAGE=inmemory` also enables in-memory mode.
+- `LOCUS_MCP_IN_MEMORY=true` enables in-memory mode.
+- `LOCUS_MCP_STORAGE=inmemory` also enables in-memory mode.
 - `--in-memory` also enables in-memory mode.
 - Otherwise server defaults to SurrealDB mode.
 
@@ -98,14 +98,14 @@ The server resolves storage mode and connection settings from env vars and optio
 
 Env vars:
 
-- `STTP_MCP_REMOTE=true|false`
-- `STTP_MCP_SURREAL_REMOTE_ENDPOINT`
-- `STTP_MCP_SURREAL_EMBEDDED_ENDPOINT`
-- `STTP_MCP_SURREAL_ENDPOINT` (applies to both remote and embedded slots)
-- `STTP_MCP_SURREAL_NAMESPACE`
-- `STTP_MCP_SURREAL_DATABASE`
-- `STTP_MCP_SURREAL_USERNAME`
-- `STTP_MCP_SURREAL_PASSWORD`
+- `LOCUS_MCP_REMOTE=true|false`
+- `LOCUS_MCP_SURREAL_REMOTE_ENDPOINT`
+- `LOCUS_MCP_SURREAL_EMBEDDED_ENDPOINT`
+- `LOCUS_MCP_SURREAL_ENDPOINT` (applies to both remote and embedded slots)
+- `LOCUS_MCP_SURREAL_NAMESPACE`
+- `LOCUS_MCP_SURREAL_DATABASE`
+- `LOCUS_MCP_SURREAL_USERNAME`
+- `LOCUS_MCP_SURREAL_PASSWORD`
 
 CLI alternatives:
 
@@ -120,18 +120,18 @@ CLI alternatives:
 
 Notes:
 
-- If `STTP_MCP_REMOTE=true`, `--remote` is injected for runtime resolution.
+- If `LOCUS_MCP_REMOTE=true`, `--remote` is injected for runtime resolution.
 - If auth values are omitted in remote mode, defaults are `root/root`.
 
 ### Embedding Provider Inputs
 
 Env vars:
 
-- `STTP_MCP_EMBEDDINGS_ENABLED=true|false`
-- `STTP_MCP_EMBEDDINGS_PROVIDER` (`ollama` or `candle` when built with `candle-local`)
-- `STTP_MCP_EMBEDDINGS_ENDPOINT` (used by Ollama provider)
-- `STTP_MCP_EMBEDDINGS_MODEL`
-- `STTP_MCP_EMBEDDINGS_REPO` (used by Candle provider)
+- `LOCUS_MCP_EMBEDDINGS_ENABLED=true|false`
+- `LOCUS_MCP_EMBEDDINGS_PROVIDER` (`ollama` or `candle` when built with `candle-local`)
+- `LOCUS_MCP_EMBEDDINGS_ENDPOINT` (used by Ollama provider)
+- `LOCUS_MCP_EMBEDDINGS_MODEL`
+- `LOCUS_MCP_EMBEDDINGS_REPO` (used by Candle provider)
 
 CLI alternatives:
 
@@ -273,10 +273,10 @@ If VS Code launches MCP commands from your workspace root, this workspace-relati
       "args": [
         "run",
         "--manifest-path",
-        "src/sttp/locus-mcp/Cargo.toml"
+        "locus-mcp/Cargo.toml"
       ],
       "env": {
-        "STTP_MCP_IN_MEMORY": "true"
+        "LOCUS_MCP_IN_MEMORY": "true"
       }
     }
   }
@@ -293,10 +293,10 @@ If you prefer an absolute manifest path, use your own repository location:
       "args": [
         "run",
         "--manifest-path",
-        "/path/to/instrumenta/src/sttp/locus-mcp/Cargo.toml"
+        "/path/to/locus/locus-mcp/Cargo.toml"
       ],
       "env": {
-        "STTP_MCP_IN_MEMORY": "true"
+        "LOCUS_MCP_IN_MEMORY": "true"
       }
     }
   }
@@ -315,15 +315,15 @@ Swap the `env` block if you want persistent mode:
       "args": [
         "run",
         "--manifest-path",
-        "src/sttp/locus-mcp/Cargo.toml"
+        "locus-mcp/Cargo.toml"
       ],
       "env": {
-        "STTP_MCP_REMOTE": "true",
-        "STTP_MCP_SURREAL_REMOTE_ENDPOINT": "ws://127.0.0.1:8000/rpc",
-        "STTP_MCP_SURREAL_NAMESPACE": "keryx",
-        "STTP_MCP_SURREAL_DATABASE": "sttp_mcp",
-        "STTP_MCP_SURREAL_USERNAME": "root",
-        "STTP_MCP_SURREAL_PASSWORD": "root"
+        "LOCUS_MCP_REMOTE": "true",
+        "LOCUS_MCP_SURREAL_REMOTE_ENDPOINT": "ws://127.0.0.1:8000/rpc",
+        "LOCUS_MCP_SURREAL_NAMESPACE": "keryx",
+        "LOCUS_MCP_SURREAL_DATABASE": "locus_mcp",
+        "LOCUS_MCP_SURREAL_USERNAME": "root",
+        "LOCUS_MCP_SURREAL_PASSWORD": "root"
       }
     }
   }
@@ -335,7 +335,7 @@ Swap the `env` block if you want persistent mode:
 If you prefer not to compile on each launch:
 
 ```bash
-cd src/sttp/locus-mcp
+cd locus-mcp
 cargo build --release
 ```
 
@@ -345,9 +345,9 @@ Then point VS Code to the binary:
 {
   "mcpServers": {
     "locus-mcp": {
-      "command": "/path/to/instrumenta/src/sttp/locus-mcp/target/release/locus-mcp",
+      "command": "/path/to/locus/locus-mcp/target/release/locus-mcp",
       "env": {
-        "STTP_MCP_IN_MEMORY": "true"
+        "LOCUS_MCP_IN_MEMORY": "true"
       }
     }
   }

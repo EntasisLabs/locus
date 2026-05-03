@@ -12,7 +12,7 @@ pub struct SurrealDbEndpointsSettings {
 impl Default for SurrealDbEndpointsSettings {
     fn default() -> Self {
         Self {
-            embedded: Some("surrealkv://data/sttp-mcp".to_string()),
+            embedded: Some("surrealkv://data/locus".to_string()),
             remote: None,
         }
     }
@@ -32,7 +32,7 @@ impl Default for SurrealDbSettings {
         Self {
             endpoints: SurrealDbEndpointsSettings::default(),
             namespace: "keryx".to_string(),
-            database: "sttp-mcp".to_string(),
+            database: "locus".to_string(),
             user: Some("root".to_string()),
             password: Some("root".to_string()),
         }
@@ -85,13 +85,13 @@ impl SurrealDbRuntimeOptions {
     ) -> Result<Self> {
         let use_remote = args.iter().any(|arg| arg.eq_ignore_ascii_case("--remote"));
         let root_name = root_directory_name
-            .unwrap_or(".sttp-mcp")
+            .unwrap_or(".locus")
             .trim()
             .to_string();
 
         let home = env::var("HOME").map_err(|_| anyhow!("HOME is not set"))?;
         let root_dir = PathBuf::from(home).join(if root_name.is_empty() {
-            ".sttp-mcp"
+            ".locus"
         } else {
             root_name.as_str()
         });

@@ -1063,8 +1063,8 @@ async fn main() -> Result<()> {
     init_logging();
 
     let args = std::env::args().collect::<Vec<_>>();
-    let use_in_memory = env_flag("STTP_MCP_IN_MEMORY")
-        || std::env::var("STTP_MCP_STORAGE")
+    let use_in_memory = env_flag("LOCUS_MCP_IN_MEMORY")
+        || std::env::var("LOCUS_MCP_STORAGE")
             .map(|value| value.eq_ignore_ascii_case("inmemory"))
             .unwrap_or(false)
         || args
@@ -1080,7 +1080,7 @@ async fn main() -> Result<()> {
         let settings = load_surreal_settings(&args)?;
         let runtime_args = runtime_args(&args);
         let runtime =
-            SurrealDbRuntimeOptions::from_args(&runtime_args, &settings, Some(".sttp-mcp"))?;
+            SurrealDbRuntimeOptions::from_args(&runtime_args, &settings, Some(".locus-mcp"))?;
 
         let client = Arc::new(
             RuntimeSurrealDbClient::connect(
@@ -1155,35 +1155,37 @@ fn init_logging() {
 
 fn load_surreal_settings(args: &[String]) -> Result<SurrealDbSettings> {
     let mut settings = SurrealDbSettings::default();
+    settings.endpoints.embedded = Some("surrealkv://data/locus-mcp".to_string());
+    settings.database = "locus_mcp".to_string();
 
     if let Some(value) = env_or_arg(
-        "STTP_MCP_SURREAL_REMOTE_ENDPOINT",
+        "LOCUS_MCP_SURREAL_REMOTE_ENDPOINT",
         args,
         "--remote-endpoint",
     ) {
         settings.endpoints.remote = Some(value);
     }
     if let Some(value) = env_or_arg(
-        "STTP_MCP_SURREAL_EMBEDDED_ENDPOINT",
+        "LOCUS_MCP_SURREAL_EMBEDDED_ENDPOINT",
         args,
         "--embedded-endpoint",
     ) {
         settings.endpoints.embedded = Some(value);
     }
-    if let Some(value) = env_or_arg("STTP_MCP_SURREAL_ENDPOINT", args, "--endpoint") {
+    if let Some(value) = env_or_arg("LOCUS_MCP_SURREAL_ENDPOINT", args, "--endpoint") {
         settings.endpoints.remote = Some(value.clone());
         settings.endpoints.embedded = Some(value);
     }
-    if let Some(value) = env_or_arg("STTP_MCP_SURREAL_NAMESPACE", args, "--namespace") {
+    if let Some(value) = env_or_arg("LOCUS_MCP_SURREAL_NAMESPACE", args, "--namespace") {
         settings.namespace = value;
     }
-    if let Some(value) = env_or_arg("STTP_MCP_SURREAL_DATABASE", args, "--database") {
+    if let Some(value) = env_or_arg("LOCUS_MCP_SURREAL_DATABASE", args, "--database") {
         settings.database = value;
     }
-    if let Some(value) = env_or_arg("STTP_MCP_SURREAL_USERNAME", args, "--username") {
+    if let Some(value) = env_or_arg("LOCUS_MCP_SURREAL_USERNAME", args, "--username") {
         settings.user = Some(value);
     }
-    if let Some(value) = env_or_arg("STTP_MCP_SURREAL_PASSWORD", args, "--password") {
+    if let Some(value) = env_or_arg("LOCUS_MCP_SURREAL_PASSWORD", args, "--password") {
         settings.password = Some(value);
     }
 
@@ -1209,14 +1211,14 @@ fn arg_value(args: &[String], key: &str) -> Option<String> {
 
 fn runtime_args(args: &[String]) -> Vec<String> {
     let mut runtime_args = args.to_vec();
-    if env_flag("STTP_MCP_REMOTE") && !runtime_args.iter().any(|value| value == "--remote") {
+    if env_flag("LOCUS_MCP_REMOTE") && !runtime_args.iter().any(|value| value == "--remote") {
         runtime_args.push("--remote".to_string());
     }
     runtime_args
 }
 
 fn build_embedding_provider(args: &[String]) -> Result<Option<Arc<dyn EmbeddingProvider>>> {
-    let embeddings_enabled = env_flag("STTP_MCP_EMBEDDINGS_ENABLED")
+    let embeddings_enabled = env_flag("LOCUS_MCP_EMBEDDINGS_ENABLED")
         || args
             .iter()
             .any(|arg| arg.eq_ignore_ascii_case("--embeddings-enabled"));
@@ -1226,7 +1228,7 @@ fn build_embedding_provider(args: &[String]) -> Result<Option<Arc<dyn EmbeddingP
     }
 
     let provider_kind_raw = env_or_arg(
-        "STTP_MCP_EMBEDDINGS_PROVIDER",
+        "LOCUS_MCP_EMBEDDINGS_PROVIDER",
         args,
         "--embeddings-provider",
     )
@@ -1244,15 +1246,15 @@ fn build_embedding_provider(args: &[String]) -> Result<Option<Arc<dyn EmbeddingP
     })?;
 
     let endpoint = env_or_arg(
-        "STTP_MCP_EMBEDDINGS_ENDPOINT",
+        "LOCUS_MCP_EMBEDDINGS_ENDPOINT",
         args,
         "--embeddings-endpoint",
     )
     .unwrap_or_else(|| "http://127.0.0.1:11434/api/embeddings".to_string());
-    let model = env_or_arg("STTP_MCP_EMBEDDINGS_MODEL", args, "--embeddings-model")
+    let model = env_or_arg("LOCUS_MCP_EMBEDDINGS_MODEL", args, "--embeddings-model")
         .unwrap_or_else(|| "sttp-encoder".to_string());
     #[cfg(feature = "candle-local")]
-    let repo = env_or_arg("STTP_MCP_EMBEDDINGS_REPO", args, "--embeddings-repo")
+    let repo = env_or_arg("LOCUS_MCP_EMBEDDINGS_REPO", args, "--embeddings-repo")
         .unwrap_or_else(|| "sentence-transformers/all-MiniLM-L6-v2".to_string());
 
     let provider: Arc<dyn EmbeddingProvider> = match provider_kind {

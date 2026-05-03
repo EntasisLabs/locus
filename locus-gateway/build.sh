@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Build locus-mcp release artifacts for multiple targets.
+# Build locus-gateway release artifacts for multiple targets.
 #
 # Usage:
 #   ./build.sh [--publish]
 #
 # Environment:
-#   LOCUS_MCP_VERSION     Artifact version (default: Cargo.toml version)
-#   LOCUS_VERSION         Fallback version if LOCUS_MCP_VERSION is not set
+#   LOCUS_GATEWAY_VERSION   Artifact version (default: Cargo.toml version)
+#   LOCUS_GATEWAY_RS_VERSION Fallback version key
+#
 
 set -euo pipefail
 
@@ -18,13 +19,13 @@ if ! command -v cargo >/dev/null 2>&1; then
   exit 1
 fi
 
-# Override order: LOCUS_MCP_VERSION -> LOCUS_VERSION -> Cargo.toml version -> 0.1.0
+# Override order: LOCUS_GATEWAY_VERSION -> LOCUS_GATEWAY_RS_VERSION -> Cargo.toml version -> 0.1.0
 CARGO_VERSION="$(sed -n 's/^version = "\([^"]*\)"$/\1/p' "$MANIFEST_PATH" | head -n1 || true)"
-VERSION="${LOCUS_MCP_VERSION:-${LOCUS_VERSION:-${CARGO_VERSION:-0.1.0}}}"
+VERSION="${LOCUS_GATEWAY_VERSION:-${LOCUS_GATEWAY_RS_VERSION:-${CARGO_VERSION:-0.1.0}}}"
 
-TAG_PREFIX="locus-mcp"
+TAG_PREFIX="locus-gateway"
 RELEASE="${TAG_PREFIX}/v${VERSION}"
-NAME="locus-mcp"
+NAME="locus-gateway"
 
 TARGETS=(
   aarch64-apple-darwin

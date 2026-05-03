@@ -6,7 +6,7 @@ use locus_core::storage::surrealdb::{
 fn runtime_uses_remote_endpoint_when_flag_is_present() {
     let settings = SurrealDbSettings {
         endpoints: SurrealDbEndpointsSettings {
-            embedded: Some("surrealkv://data/sttp-mcp".to_string()),
+            embedded: Some("surrealkv://data/locus".to_string()),
             remote: Some("ws://127.0.0.1:8000/rpc".to_string()),
         },
         ..SurrealDbSettings::default()
@@ -24,7 +24,7 @@ fn runtime_uses_remote_endpoint_when_flag_is_present() {
 fn runtime_normalizes_embedded_relative_path() {
     let settings = SurrealDbSettings {
         endpoints: SurrealDbEndpointsSettings {
-            embedded: Some("surrealkv://data/sttp-mcp".to_string()),
+            embedded: Some("surrealkv://data/locus".to_string()),
             remote: None,
         },
         ..SurrealDbSettings::default()

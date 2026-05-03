@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HTTP_PORT="${HTTP_PORT:-18080}"
 GRPC_PORT="${GRPC_PORT:-18081}"
 BASE_URL="http://127.0.0.1:${HTTP_PORT}"
-LOG_FILE="${LOG_FILE:-/tmp/sttp-gateway-integration.log}"
+LOG_FILE="${LOG_FILE:-/tmp/locus-gateway-integration.log}"
 EXTERNAL_GATEWAY="${EXTERNAL_GATEWAY:-0}"
 
 GATEWAY_PID=""

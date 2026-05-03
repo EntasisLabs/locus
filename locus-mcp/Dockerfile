@@ -7,7 +7,7 @@ RUN apt-get update \
 WORKDIR /app
 
 # Binary is pre-built on the host by build-image.sh before docker build runs.
-COPY src/sttp/locus-mcp/publish/ ./
+COPY locus-mcp/publish/ ./
 
 RUN chmod +x /app/locus-mcp \
     && mkdir -p /data

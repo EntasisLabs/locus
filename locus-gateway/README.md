@@ -35,24 +35,24 @@ If you only want a deployable STTP API, that is still the default experience. Th
 Run with defaults (in-memory backend, HTTP 8080, gRPC 8081):
 
 ```bash
-cargo run --manifest-path src/sttp/locus-gateway/Cargo.toml
+cargo run --manifest-path locus-gateway/Cargo.toml
 ```
 
 Run with Surreal remote backend:
 
 ```bash
-cargo run --manifest-path src/sttp/locus-gateway/Cargo.toml -- \
+cargo run --manifest-path locus-gateway/Cargo.toml -- \
   --backend surreal \
   --remote \
   --surreal-remote-endpoint ws://127.0.0.1:8000/rpc \
   --surreal-namespace keryx \
-  --surreal-database sttp_mcp \
+  --surreal-database locus_gateway \
   --surreal-user root \
   --surreal-password root
 ```
 
 Important: `--remote` and `--surreal-remote-endpoint` do not change backend mode by themselves.
-You must set `--backend surreal` (or `STTP_GATEWAY_BACKEND=surreal`) or the gateway will continue using the default `in-memory` backend.
+You must set `--backend surreal` (or `LOCUS_GATEWAY_BACKEND=surreal`) or the gateway will continue using the default `in-memory` backend.
 
 Check health:
 
@@ -66,19 +66,19 @@ All flags have environment variable equivalents.
 
 | Flag | Env Var | Default | Notes |
 | --- | --- | --- | --- |
-| `--http-port` | `STTP_GATEWAY_HTTP_PORT` | `8080` | HTTP listener |
-| `--grpc-port` | `STTP_GATEWAY_GRPC_PORT` | `8081` | gRPC listener (h2c) |
-| `--backend` | `STTP_GATEWAY_BACKEND` | `in-memory` | `in-memory` or `surreal` |
-| `--cors-enabled` | `STTP_GATEWAY_CORS_ENABLED` | `true` | Enable/disable HTTP CORS middleware |
-| `--cors-allowed-origins` | `STTP_GATEWAY_CORS_ALLOWED_ORIGINS` | `*` | `*` or comma-separated absolute origins |
-| `--root-dir-name` | `STTP_GATEWAY_ROOT_DIR_NAME` | `.sttp-gateway` | Local runtime data root name |
-| `--remote` | `STTP_GATEWAY_REMOTE` | `false` | Surreal remote mode toggle |
-| `--surreal-embedded-endpoint` | `STTP_SURREAL_EMBEDDED_ENDPOINT` | unset | Embedded endpoint override |
-| `--surreal-remote-endpoint` | `STTP_SURREAL_REMOTE_ENDPOINT` | unset | Remote endpoint override |
-| `--surreal-namespace` | `STTP_SURREAL_NAMESPACE` | `keryx` | Surreal namespace |
-| `--surreal-database` | `STTP_SURREAL_DATABASE` | `sttp-mcp` | Surreal database |
-| `--surreal-user` | `STTP_SURREAL_USER` | `root` | Surreal username |
-| `--surreal-password` | `STTP_SURREAL_PASSWORD` | `root` | Surreal password |
+| `--http-port` | `LOCUS_GATEWAY_HTTP_PORT` | `8080` | HTTP listener |
+| `--grpc-port` | `LOCUS_GATEWAY_GRPC_PORT` | `8081` | gRPC listener (h2c) |
+| `--backend` | `LOCUS_GATEWAY_BACKEND` | `in-memory` | `in-memory` or `surreal` |
+| `--cors-enabled` | `LOCUS_GATEWAY_CORS_ENABLED` | `true` | Enable/disable HTTP CORS middleware |
+| `--cors-allowed-origins` | `LOCUS_GATEWAY_CORS_ALLOWED_ORIGINS` | `*` | `*` or comma-separated absolute origins |
+| `--root-dir-name` | `LOCUS_GATEWAY_ROOT_DIR_NAME` | `.locus-gateway` | Local runtime data root name |
+| `--remote` | `LOCUS_GATEWAY_REMOTE` | `false` | Surreal remote mode toggle |
+| `--surreal-embedded-endpoint` | `LOCUS_SURREAL_EMBEDDED_ENDPOINT` | unset | Embedded endpoint override |
+| `--surreal-remote-endpoint` | `LOCUS_SURREAL_REMOTE_ENDPOINT` | unset | Remote endpoint override |
+| `--surreal-namespace` | `LOCUS_SURREAL_NAMESPACE` | `keryx` | Surreal namespace |
+| `--surreal-database` | `LOCUS_SURREAL_DATABASE` | `locus_gateway` | Surreal database |
+| `--surreal-user` | `LOCUS_SURREAL_USER` | `root` | Surreal username |
+| `--surreal-password` | `LOCUS_SURREAL_PASSWORD` | `root` | Surreal password |
 
 ## Tenant Scoping
 
@@ -151,7 +151,7 @@ For no-auth BYO usage from browser clients, CORS is enabled with permissive defa
 - methods include `GET`, `POST`, `PATCH`, `OPTIONS`
 - headers: any (including `Content-Type`, `Authorization`, tenant headers)
 
-Recommended production setup: set explicit origins with `STTP_GATEWAY_CORS_ALLOWED_ORIGINS`, for example `https://app.resonantia.ai,http://localhost:5173`.
+Recommended production setup: set explicit origins with `LOCUS_GATEWAY_CORS_ALLOWED_ORIGINS`, for example `https://app.resonantia.ai,http://localhost:5173`.
 
 ### Node Store Response Compatibility
 
@@ -328,13 +328,13 @@ No Rust toolchain is installed in the container image.
 ### One-Command Build And Package
 
 ```bash
-./src/sttp/locus-gateway/build-image.sh
+./locus-gateway/build-image.sh
 ```
 
 Custom tag:
 
 ```bash
-./src/sttp/locus-gateway/build-image.sh ghcr.io/keryxlabs/locus-gateway:1.2.3
+./locus-gateway/build-image.sh ghcr.io/keryxlabs/locus-gateway:2.0.0
 ```
 
 ### Manual Build And Package
@@ -342,23 +342,23 @@ Custom tag:
 Build locally:
 
 ```bash
-cargo build --release --locked --manifest-path src/sttp/locus-gateway/Cargo.toml
+cargo build --release --locked --manifest-path locus-gateway/Cargo.toml
 ```
 
 Prepare publish folder:
 
 ```bash
-mkdir -p src/sttp/locus-gateway/publish
-cp src/sttp/locus-gateway/target/release/locus-gateway src/sttp/locus-gateway/publish/locus-gateway
-chmod +x src/sttp/locus-gateway/publish/locus-gateway
+mkdir -p locus-gateway/publish
+cp locus-gateway/target/release/locus-gateway locus-gateway/publish/locus-gateway
+chmod +x locus-gateway/publish/locus-gateway
 ```
 
 Build image from repository root:
 
 ```bash
 docker build \
-  -f src/sttp/locus-gateway/Dockerfile \
-  -t locus-gateway:1.2.3 \
+  -f locus-gateway/Dockerfile \
+  -t locus-gateway:2.0.0 \
   .
 ```
 
@@ -376,7 +376,7 @@ docker build \
 docker run --rm \
   -p 8080:8080 \
   -p 8081:8081 \
-  locus-gateway:1.2.3
+  locus-gateway:2.0.0
 ```
 
 ### Run: Surreal Remote Backend
@@ -385,14 +385,14 @@ docker run --rm \
 docker run --rm \
   -p 8080:8080 \
   -p 8081:8081 \
-  -e STTP_GATEWAY_BACKEND=surreal \
-  -e STTP_GATEWAY_REMOTE=true \
-  -e STTP_SURREAL_REMOTE_ENDPOINT=ws://host.docker.internal:8000/rpc \
-  -e STTP_SURREAL_NAMESPACE=keryx \
-  -e STTP_SURREAL_DATABASE=sttp_mcp \
-  -e STTP_SURREAL_USER=root \
-  -e STTP_SURREAL_PASSWORD=root \
-  locus-gateway:1.2.3
+  -e LOCUS_GATEWAY_BACKEND=surreal \
+  -e LOCUS_GATEWAY_REMOTE=true \
+  -e LOCUS_SURREAL_REMOTE_ENDPOINT=ws://host.docker.internal:8000/rpc \
+  -e LOCUS_SURREAL_NAMESPACE=keryx \
+  -e LOCUS_SURREAL_DATABASE=locus_gateway \
+  -e LOCUS_SURREAL_USER=root \
+  -e LOCUS_SURREAL_PASSWORD=root \
+  locus-gateway:2.0.0
 ```
 
 ### Run: Embedded Mode With Persistent Volume
@@ -401,22 +401,22 @@ docker run --rm \
 docker run --rm \
   -p 8080:8080 \
   -p 8081:8081 \
-  -v sttp-gateway-data:/data \
-  locus-gateway:1.2.3
+  -v locus-gateway-data:/data \
+  locus-gateway:2.0.0
 ```
 
 ## Build And Test
 
 ```bash
-cargo check --manifest-path src/sttp/locus-gateway/Cargo.toml
-cargo test --manifest-path src/sttp/locus-gateway/Cargo.toml
+cargo check --manifest-path locus-gateway/Cargo.toml
+cargo test --manifest-path locus-gateway/Cargo.toml
 ```
 
 ## Troubleshooting
 
 - If HTTP `404` appears for newly added endpoints, restart the gateway binary to load the latest build.
 - If gRPC methods are missing in reflection, rebuild and restart after proto changes.
-- If `/api/v1/nodes` is unexpectedly empty while using Surreal flags, verify backend mode is actually `surreal` (`--backend surreal` or `STTP_GATEWAY_BACKEND=surreal`).
+- If `/api/v1/nodes` is unexpectedly empty while using Surreal flags, verify backend mode is actually `surreal` (`--backend surreal` or `LOCUS_GATEWAY_BACKEND=surreal`).
 - If tenant-scoped queries return no data, verify `x-tenant-id`/`tenantId` and session ID pairing.
 - For rekey operations, always run dry-run first and inspect conflicts before apply mode.
 - If Docker still feels slow, run `build-image.sh` so only packaging runs in Docker and compilation stays on the host cache.
