@@ -1,0 +1,16 @@
+[workspace]
+members = [
+  "locus-core",
+  "locus-sdk",
+  "locus-mcp",
+  "locus-gateway",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+license = "Apache-2.0"
+
+[workspace.metadata]
+project = "locus"
+protocol = "sttp"

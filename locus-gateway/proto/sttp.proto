@@ -1,0 +1,230 @@
+syntax = "proto3";
+
+option csharp_namespace = "SttpGateway.Grpc";
+package sttp.v1;
+
+import "google/protobuf/timestamp.proto";
+
+service SttpGatewayService {
+  rpc CalibrateSession (CalibrateSessionRequest) returns (CalibrateSessionReply);
+  rpc StoreContext (StoreContextRequest) returns (StoreContextReply);
+  rpc GetContext (GetContextRequest) returns (GetContextReply);
+  rpc GetEmbeddingContext (GetEmbeddingContextRequest) returns (GetContextReply);
+  rpc ListNodes (ListNodesRequest) returns (ListNodesReply);
+  rpc GetMoods (GetMoodsRequest) returns (GetMoodsReply);
+  rpc BatchRekey (BatchRekeyRequest) returns (BatchRekeyReply);
+  rpc CreateMonthlyRollup (CreateMonthlyRollupRequest) returns (CreateMonthlyRollupReply);
+}
+
+message AvecState {
+  float stability = 1;
+  float friction = 2;
+  float logic = 3;
+  float autonomy = 4;
+  float psi = 5;
+}
+
+message SttpNode {
+  string raw = 1;
+  string session_id = 2;
+  string tier = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  int32 compression_depth = 5;
+  optional string parent_node_id = 6;
+  AvecState user_avec = 7;
+  AvecState model_avec = 8;
+  optional AvecState compression_avec = 9;
+  float rho = 10;
+  float kappa = 11;
+  float psi = 12;
+}
+
+message PsiRange {
+  float min = 1;
+  float max = 2;
+  float average = 3;
+}
+
+message NumericRange {
+  float min = 1;
+  float max = 2;
+  float average = 3;
+}
+
+message ConfidenceBandSummary {
+  int32 low = 1;
+  int32 medium = 2;
+  int32 high = 3;
+}
+
+message CalibrateSessionRequest {
+  string session_id = 1;
+  float stability = 2;
+  float friction = 3;
+  float logic = 4;
+  float autonomy = 5;
+  string trigger = 6;
+}
+
+message CalibrateSessionReply {
+  AvecState previous_avec = 1;
+  float delta = 2;
+  string drift_classification = 3;
+  string trigger = 4;
+  repeated string trigger_history = 5;
+  bool is_first_calibration = 6;
+}
+
+message StoreContextRequest {
+  string node = 1;
+  string session_id = 2;
+}
+
+message StoreContextReply {
+  string node_id = 1;
+  float psi = 2;
+  bool valid = 3;
+  optional string validation_error = 4;
+}
+
+message GetContextRequest {
+  string session_id = 1;
+  float stability = 2;
+  float friction = 3;
+  float logic = 4;
+  float autonomy = 5;
+  int32 limit = 6;
+  optional string query_text = 7;
+  repeated float query_embedding = 8;
+  optional float alpha = 9;
+  optional float beta = 10;
+  optional google.protobuf.Timestamp from_utc = 11;
+  optional google.protobuf.Timestamp to_utc = 12;
+  repeated string tiers = 13;
+}
+
+message GetContextReply {
+  repeated SttpNode nodes = 1;
+  int32 retrieved = 2;
+  PsiRange psi_range = 3;
+}
+
+message GetEmbeddingContextRequest {
+  string session_id = 1;
+  float stability = 2;
+  float friction = 3;
+  float logic = 4;
+  float autonomy = 5;
+  int32 limit = 6;
+  optional string rag_query_text = 7;
+  repeated float rag_embedding = 8;
+  optional string avec_query_text = 9;
+  repeated float avec_embedding = 10;
+  optional float rag_weight = 11;
+  optional float avec_weight = 12;
+  optional float alpha = 13;
+  optional float beta = 14;
+  optional google.protobuf.Timestamp from_utc = 15;
+  optional google.protobuf.Timestamp to_utc = 16;
+  repeated string tiers = 17;
+}
+
+message ListNodesRequest {
+  int32 limit = 1;
+  optional string session_id = 2;
+}
+
+message ListNodesReply {
+  repeated SttpNode nodes = 1;
+  int32 retrieved = 2;
+}
+
+message GetMoodsRequest {
+  optional string target_mood = 1;
+  float blend = 2;
+  optional float current_stability = 3;
+  optional float current_friction = 4;
+  optional float current_logic = 5;
+  optional float current_autonomy = 6;
+}
+
+message MoodPreset {
+  string name = 1;
+  string description = 2;
+  AvecState avec = 3;
+}
+
+message MoodSwapPreview {
+  string target_mood = 1;
+  float blend = 2;
+  AvecState current = 3;
+  AvecState target = 4;
+  AvecState blended = 5;
+}
+
+message GetMoodsReply {
+  repeated MoodPreset presets = 1;
+  string apply_guide = 2;
+  optional MoodSwapPreview swap_preview = 3;
+}
+
+message BatchRekeyRequest {
+  repeated string node_ids = 1;
+  string target_session_id = 2;
+  optional string target_tenant_id = 3;
+  optional bool dry_run = 4;
+  optional bool allow_merge = 5;
+}
+
+message ScopeRekeyResult {
+  string source_tenant_id = 1;
+  string source_session_id = 2;
+  string target_tenant_id = 3;
+  string target_session_id = 4;
+  int32 temporal_nodes = 5;
+  int32 calibrations = 6;
+  int32 target_temporal_nodes = 7;
+  int32 target_calibrations = 8;
+  bool applied = 9;
+  bool conflict = 10;
+  optional string message = 11;
+}
+
+message BatchRekeyReply {
+  bool dry_run = 1;
+  int32 requested_node_ids = 2;
+  int32 resolved_node_ids = 3;
+  repeated string missing_node_ids = 4;
+  repeated ScopeRekeyResult scopes = 5;
+  int32 temporal_nodes_updated = 6;
+  int32 calibrations_updated = 7;
+  int32 updated_scopes = 8;
+  int32 conflict_scopes = 9;
+}
+
+message CreateMonthlyRollupRequest {
+  string session_id = 1;
+  google.protobuf.Timestamp start_utc = 2;
+  google.protobuf.Timestamp end_utc = 3;
+  optional string source_session_id = 4;
+  optional string parent_node_id = 5;
+  int32 limit = 6;
+  bool persist = 7;
+}
+
+message CreateMonthlyRollupReply {
+  bool success = 1;
+  string node_id = 2;
+  string raw_node = 3;
+  optional string error = 4;
+  int32 source_nodes = 5;
+  optional string parent_reference = 6;
+  AvecState user_average = 7;
+  AvecState model_average = 8;
+  AvecState compression_average = 9;
+  NumericRange rho_range = 10;
+  NumericRange kappa_range = 11;
+  NumericRange psi_range = 12;
+  ConfidenceBandSummary rho_bands = 13;
+  ConfidenceBandSummary kappa_bands = 14;
+}

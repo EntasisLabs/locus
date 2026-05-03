@@ -1,0 +1,29 @@
+[package]
+name = "locus-sdk"
+version = "0.1.0"
+edition = "2024"
+description = "SDK-first STTP memory primitives and AI provider abstraction"
+license = "Apache-2.0"
+readme = "README.md"
+keywords = ["sttp", "memory", "sdk", "ai", "embeddings"]
+categories = ["asynchronous"]
+
+[features]
+default = ["genai-provider"]
+genai-provider = ["dep:genai"]
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["clock", "serde"] }
+fake = { version = "5", features = ["derive"] }
+genai = { version = "0.5.0", optional = true }
+rand = "0.8"
+rand_chacha = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+locus-core = { path = "../locus-core" }
+thiserror = "2"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
