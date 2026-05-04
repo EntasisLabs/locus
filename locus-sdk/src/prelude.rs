@@ -32,6 +32,9 @@ pub use crate::application::memory_transform::MemoryTransformService;
 pub use crate::infrastructure::registry::InMemoryAiProviderRegistry;
 #[cfg(feature = "genai-provider")]
 pub use crate::infrastructure::genai_adapter::provider::GenaiProviderAdapter;
+#[cfg(feature = "local-embedding")]
+pub use crate::infrastructure::embeddings::LocalEmbeddingProvider;
+pub use crate::infrastructure::embeddings::OllamaEmbeddingProvider;
 pub use crate::infrastructure::sttp_native::embedding_provider_adapter::SttpEmbeddingProviderAdapter;
 pub use crate::interface::dto::{
     AvecStateDto, CompositeInputItemDto, CompositeNodeFromTextOptionsDto,

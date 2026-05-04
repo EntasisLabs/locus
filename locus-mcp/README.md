@@ -22,7 +22,7 @@ This server runs over stdio and exposes six tools:
 - Optional hybrid retrieval in `get_context` when `query_embedding` is provided.
 - Optional auto-embedding on `store_context` with selectable providers:
   - Ollama (default provider)
-  - Candle local (feature-gated)
+  - Local embedding (feature-gated)
 
 ## Requirements
 
@@ -67,20 +67,20 @@ LOCUS_MCP_EMBEDDINGS_MODEL=sttp-encoder \
 cargo run
 ```
 
-Run with auto-embedding (Candle local):
+Run with auto-embedding (local embedding):
 
 ```bash
 LOCUS_MCP_EMBEDDINGS_ENABLED=true \
-LOCUS_MCP_EMBEDDINGS_PROVIDER=candle \
+LOCUS_MCP_EMBEDDINGS_PROVIDER=local \
 LOCUS_MCP_EMBEDDINGS_MODEL=sttp-encoder \
 LOCUS_MCP_EMBEDDINGS_REPO=sentence-transformers/all-MiniLM-L6-v2 \
-cargo run --features candle-local
+cargo run --features local-embedding
 ```
 
-Build Docker image with Candle support:
+Build Docker image with local embedding support:
 
 ```bash
-LOCUS_MCP_BUILD_FEATURES=candle-local ./build-image.sh locus-mcp:latest candle-local
+LOCUS_MCP_BUILD_FEATURES=local-embedding ./build-image.sh locus-mcp:latest local-embedding
 ```
 
 ## Configuration
@@ -128,15 +128,15 @@ Notes:
 Env vars:
 
 - `LOCUS_MCP_EMBEDDINGS_ENABLED=true|false`
-- `LOCUS_MCP_EMBEDDINGS_PROVIDER` (`ollama` or `candle` when built with `candle-local`)
+- `LOCUS_MCP_EMBEDDINGS_PROVIDER` (`ollama` or `local` when built with `local-embedding`)
 - `LOCUS_MCP_EMBEDDINGS_ENDPOINT` (used by Ollama provider)
 - `LOCUS_MCP_EMBEDDINGS_MODEL`
-- `LOCUS_MCP_EMBEDDINGS_REPO` (used by Candle provider)
+- `LOCUS_MCP_EMBEDDINGS_REPO` (used by local embedding provider)
 
 CLI alternatives:
 
 - `--embeddings-enabled`
-- `--embeddings-provider <ollama|candle>`
+- `--embeddings-provider <ollama|local>`
 - `--embeddings-endpoint <value>`
 - `--embeddings-model <value>`
 - `--embeddings-repo <value>`
@@ -144,7 +144,7 @@ CLI alternatives:
 Notes:
 
 - Provider defaults to `ollama`.
-- If `candle` is requested without building with `--features candle-local`, startup returns a configuration error.
+- If `local` is requested without building with `--features local-embedding`, startup returns a configuration error.
 - `store_context` embedding generation is fail-open: node storage still succeeds if embedding generation fails.
 
 ## Tool Reference

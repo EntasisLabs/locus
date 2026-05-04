@@ -2,11 +2,13 @@
 # Build locus-mcp release artifacts for multiple targets.
 #
 # Usage:
-#   ./build.sh [--publish]
+#   ./build.sh [--publish] [--features <csv>] [--name-suffix <suffix>]
 #
 # Environment:
 #   LOCUS_MCP_VERSION     Artifact version (default: Cargo.toml version)
 #   LOCUS_VERSION         Fallback version if LOCUS_MCP_VERSION is not set
+#   LOCUS_MCP_BUILD_FEATURES Optional cargo feature set
+#   LOCUS_MCP_BUILD_NAME_SUFFIX Optional artifact/release suffix (for example: embeddings)
 
 set -euo pipefail
 
@@ -22,9 +24,10 @@ fi
 CARGO_VERSION="$(sed -n 's/^version = "\([^"]*\)"$/\1/p' "$MANIFEST_PATH" | head -n1 || true)"
 VERSION="${LOCUS_MCP_VERSION:-${LOCUS_VERSION:-${CARGO_VERSION:-0.1.0}}}"
 
-TAG_PREFIX="locus-mcp"
-RELEASE="${TAG_PREFIX}/v${VERSION}"
-NAME="locus-mcp"
+BASE_NAME="locus-mcp"
+BINARY_NAME="locus-mcp"
+BUILD_FEATURES="${LOCUS_MCP_BUILD_FEATURES:-}"
+NAME_SUFFIX="${LOCUS_MCP_BUILD_NAME_SUFFIX:-}"
 
 TARGETS=(
   aarch64-apple-darwin
@@ -37,9 +40,59 @@ TARGETS=(
 )
 
 PUBLISH=false
-if [[ "${1:-}" == "--publish" ]]; then
-  PUBLISH=true
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./build.sh [--publish] [--features <csv>] [--name-suffix <suffix>]
+
+Options:
+  --publish                 Upload packaged artifacts to GitHub release
+  --features <csv>          Cargo features to build (example: local-embedding)
+  --name-suffix <suffix>    Suffix artifact/release names (example: embeddings)
+  -h, --help                Show help
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --publish)
+      PUBLISH=true
+      shift
+      ;;
+    --features)
+      [[ $# -ge 2 ]] || { echo "error: missing value for --features" >&2; exit 1; }
+      BUILD_FEATURES="$2"
+      shift 2
+      ;;
+    --name-suffix)
+      [[ $# -ge 2 ]] || { echo "error: missing value for --name-suffix" >&2; exit 1; }
+      NAME_SUFFIX="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "error: unknown option '$1'" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -n "$NAME_SUFFIX" ]]; then
+  NAME_SUFFIX="${NAME_SUFFIX#-}"
 fi
+
+NAME="$BASE_NAME"
+if [[ -n "$NAME_SUFFIX" ]]; then
+  NAME="${BASE_NAME}-${NAME_SUFFIX}"
+fi
+
+TAG_PREFIX="$NAME"
+RELEASE="${TAG_PREFIX}/v${VERSION}"
 
 BUILT_TARGETS=()
 
@@ -54,7 +107,20 @@ run_build() {
   local target="$1"
   echo "[BUILD] cargo build --release --target $target ..."
   ensure_target "$target"
-  if cargo build --release --locked --manifest-path "$MANIFEST_PATH" --target "$target"; then
+
+  local build_cmd=(
+    cargo build
+    --release
+    --locked
+    --manifest-path "$MANIFEST_PATH"
+    --target "$target"
+  )
+
+  if [[ -n "$BUILD_FEATURES" ]]; then
+    build_cmd+=(--features "$BUILD_FEATURES")
+  fi
+
+  if "${build_cmd[@]}"; then
     BUILT_TARGETS+=("$target")
   else
     echo "[WARN] Build failed for $target, skipping."
@@ -70,7 +136,7 @@ run_all_builds() {
 
 package_artifact() {
   local target="$1"
-  local bin_name="$NAME"
+  local bin_name="$BINARY_NAME"
   local archive_name=""
 
   case "$target" in
@@ -91,11 +157,11 @@ package_artifact() {
       ;;
     x86_64-pc-windows-gnu)
       archive_name="${NAME}-${VERSION}-win-x64.tar.gz"
-      bin_name="${NAME}.exe"
+      bin_name="${BINARY_NAME}.exe"
       ;;
     aarch64-pc-windows-gnullvm)
       archive_name="${NAME}-${VERSION}-win-arm64.tar.gz"
-      bin_name="${NAME}.exe"
+      bin_name="${BINARY_NAME}.exe"
       ;;
     *)
       echo "[WARN] Unknown target '$target', skipping packaging."

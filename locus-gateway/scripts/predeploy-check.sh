@@ -10,7 +10,7 @@ Usage: ./scripts/predeploy-check.sh [--with-docker]
 
 Runs predeploy validation for locus-gateway:
   1) cargo test --tests
-  2) cargo test --tests --features candle-local
+  2) cargo test --tests --features local-embedding
   3) integration smoke (in-memory)
   4) optional dockerized smoke when --with-docker is provided
 EOF
@@ -51,7 +51,7 @@ trap cleanup EXIT
 cd "${ROOT_DIR}"
 
 run_step "Unit tests (default)" cargo test --tests
-run_step "Unit tests (candle-local)" cargo test --tests --features candle-local
+run_step "Unit tests (local-embedding)" cargo test --tests --features local-embedding
 run_step "Integration smoke (local process)" ./scripts/integration-smoke.sh
 
 if [[ "${WITH_DOCKER}" == "1" ]]; then

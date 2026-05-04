@@ -2,10 +2,12 @@
 # Build (and optionally push) the locus-mcp Docker image.
 #
 # Usage:
-#   ./build-image.sh [IMAGE_TAG]
+#   ./build-image.sh [IMAGE_TAG] [FEATURES]
+#   ./build-image.sh [--features <csv>] [--name-suffix <suffix>] [IMAGE_TAG]
 #
 # Default IMAGE_TAG: ghcr.io/keryxlabs/locus-mcp:0.1.0
-# Optional features: set LOCUS_MCP_BUILD_FEATURES (for example: candle-local)
+# Optional features: set LOCUS_MCP_BUILD_FEATURES (for example: local-embedding)
+# Optional name suffix: set LOCUS_MCP_BUILD_NAME_SUFFIX (for example: embeddings)
 #
 # Builds the Rust binary on the host first, then packages publish output into
 # a minimal runtime image. No Rust toolchain is required inside the container.
@@ -14,9 +16,70 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-IMAGE_TAG="${1:-ghcr.io/keryxlabs/locus-mcp:0.1.0}"
-BUILD_FEATURES="${2:-${LOCUS_MCP_BUILD_FEATURES:-}}"
+BUILD_FEATURES="${LOCUS_MCP_BUILD_FEATURES:-}"
+NAME_SUFFIX="${LOCUS_MCP_BUILD_NAME_SUFFIX:-}"
+BASE_IMAGE_NAME="locus-mcp"
+DEFAULT_VERSION="0.1.0"
 PUBLISH_DIR="$SCRIPT_DIR/publish"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./build-image.sh [IMAGE_TAG] [FEATURES]
+  ./build-image.sh [--features <csv>] [--name-suffix <suffix>] [IMAGE_TAG]
+
+Options:
+  --features <csv>          Cargo features to build (example: local-embedding)
+  --name-suffix <suffix>    Suffix default image name (example: embeddings)
+  -h, --help                Show help
+EOF
+}
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --features)
+      [[ $# -ge 2 ]] || { echo "error: missing value for --features" >&2; exit 1; }
+      BUILD_FEATURES="$2"
+      shift 2
+      ;;
+    --name-suffix)
+      [[ $# -ge 2 ]] || { echo "error: missing value for --name-suffix" >&2; exit 1; }
+      NAME_SUFFIX="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      POSITIONAL+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ -n "$NAME_SUFFIX" ]]; then
+  NAME_SUFFIX="${NAME_SUFFIX#-}"
+fi
+
+IMAGE_NAME="$BASE_IMAGE_NAME"
+if [[ -n "$NAME_SUFFIX" ]]; then
+  IMAGE_NAME="${BASE_IMAGE_NAME}-${NAME_SUFFIX}"
+fi
+
+IMAGE_TAG="ghcr.io/keryxlabs/${IMAGE_NAME}:${DEFAULT_VERSION}"
+if [[ ${#POSITIONAL[@]} -ge 1 ]]; then
+  IMAGE_TAG="${POSITIONAL[0]}"
+fi
+if [[ ${#POSITIONAL[@]} -ge 2 && -z "$BUILD_FEATURES" ]]; then
+  BUILD_FEATURES="${POSITIONAL[1]}"
+fi
+if [[ ${#POSITIONAL[@]} -gt 2 ]]; then
+  echo "error: too many positional arguments" >&2
+  usage >&2
+  exit 1
+fi
 
 if ! command -v cargo >/dev/null 2>&1; then
   echo "error: cargo not found. Install Rust toolchain first." >&2

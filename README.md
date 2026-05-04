@@ -1,23 +1,26 @@
 # Locus
 
-Rust memory infrastructure for STTP.
+**Intelligence requires a place to stand.**
 
-Locus is the standalone Rust implementation layer for STTP memory operations. It was split from the prior monorepo so memory behavior, host surfaces, and release cadence can evolve independently while staying protocol-aligned.
+Language models are stateless by default, existing in a vacuum of the "now." To move beyond fleeting chat sessions and into enduring agency, information requires a stable environment. In the ancient **Method of Loci**, memory was mastered by anchoring ideas to physical landmarks turning abstract thoughts into a navigable palace.
 
-This README is intentionally detailed. The goal is to answer most first-pass technical questions in one place, then route you to focused docs and crate-level references for deeper implementation detail.
+**Locus** is the architectural realization of that palace for the STTP protocol.
+
+It is the infrastructure of "where." By providing a standalone implementation layer for memory operations, Locus ensures that context is no longer a transient variable, but a persistent coordinate. Whether accessed via a gateway, a terminal, or an embedded surface, the memory remains spatially consistent and protocol-aligned.
+
+We build Locus because for an agent to reason, it must first remember; and to remember, it must have a place to return to.
+
+---
+
+How this connects to STTP:
+
+- **The Spatial Anchor:** Just as the Method of Loci uses _loci_ (places) to store data, Locus uses the STTP protocol to define the "geometry" of memory—making context retrievable through structural navigation rather than just keyword searching.
+- **Spatio-Temporal Continuity:** By decoupling the memory layer, we ensure that the "Spatio" (the location of the data) and the "Temporal" (the persistence over time) are preserved regardless of which model or interface is interacting with it.
+- **Infrastructure over Magic:** Like the original KeryxInstrumenta vision, Locus does not offer "vague magic." It offers the raw, visible machinery of a memory palace—giving both developers and agents a living system to reason within.
+
+
 
 Licensed under Apache-2.0.
-
-## What Locus Is
-
-Locus is one memory stack with four consumption shapes:
-
-1. Embedded libraries for Rust applications.
-2. MCP server tools for assistant and agent workflows.
-3. HTTP and gRPC gateway for service and platform integration.
-4. Terminal-first CLI workflows for operators and non-technical adopters.
-
-The key design choice is stable memory semantics across all three surfaces.
 
 ## Who This Is For
 
@@ -336,11 +339,35 @@ Locus uses Instrumenta-style namespaced component release lines.
 | `locus-mcp` | Docker image | `./locus-mcp/build-image.sh ghcr.io/keryxlabs/locus-mcp:X.Y.Z` | `docker push ghcr.io/keryxlabs/locus-mcp:X.Y.Z` |
 | `locus-gateway` | Docker image | `./locus-gateway/build-image.sh ghcr.io/keryxlabs/locus-gateway:X.Y.Z` | `docker push ghcr.io/keryxlabs/locus-gateway:X.Y.Z` |
 
+### Master Orchestration Script
+
+Use the root-level wrapper to orchestrate component release and image scripts in one place:
+
+```bash
+./build.sh --default-version 0.1.0
+```
+
+Common patterns:
+
+```bash
+# Release artifacts/checks only
+./build.sh --mode release --default-version 0.1.0
+
+# Release artifacts/checks and publish outputs to GitHub/crates.io targets
+./build.sh --mode release --default-version 0.1.0 --publish
+
+# Build and tag only service images (mcp + gateway)
+./build.sh --mode images --stack services --default-version 0.1.0
+```
+
 ### Suggested Release Sequence
 
 ```bash
 cargo check --workspace
 cargo test --workspace
+
+# Optional one-command orchestrated release/images flow
+./build.sh --default-version 0.1.0
 
 ./locus-core/publish-crates.sh
 cargo publish --manifest-path locus-sdk/Cargo.toml --dry-run

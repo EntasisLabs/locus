@@ -19,7 +19,7 @@ For historical entries before this split, see ../CHANGELOG.md.
 	- runtime transport implementation moved to `src/gateway.rs` via `gateway::run()`
 - Preserved behavior while modularizing:
 	- HTTP/gRPC route surface and compatibility aliases remain unchanged
-	- default and `candle-local` test paths remained green through the refactor
+	- default and `local-embedding` test paths remained green through the refactor
 - Added embedding-focused retrieval endpoint for hybrid RAG + AVEC vector queries:
 	- `POST /api/v1/context/embeddings`
 	- aliases: `POST /api/context/embeddings`, `POST /context/embeddings`

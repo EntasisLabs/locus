@@ -5,31 +5,19 @@ edition = "2024"
 
 [features]
 default = []
-candle-local = [
-	"dep:candle-core",
-	"dep:candle-nn",
-	"dep:candle-transformers",
-	"dep:hf-hub",
-	"dep:tokenizers",
-]
+local-embedding = ["locus-sdk/local-embedding"]
 
 [dependencies]
 anyhow = "1"
 async-trait = "0.1"
-candle-core = { version = "0.8", optional = true }
-candle-nn = { version = "0.8", optional = true }
-candle-transformers = { version = "0.8", optional = true }
 chrono = { version = "0.4", features = ["clock", "serde"] }
-hf-hub = { version = "0.4", optional = true }
 rmcp = { version = "1.6.0", features = ["server", "macros", "transport-io", "schemars"] }
 schemars = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 locus-core = { path = "../locus-core" }
 surrealdb = { version = "3", default-features = false, features = ["protocol-http", "protocol-ws", "kv-surrealkv", "rustls", "kv-mem"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-tokenizers = { version = "0.21", optional = true }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 locus-sdk = { path = "../locus-sdk" }

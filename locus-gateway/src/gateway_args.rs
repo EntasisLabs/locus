@@ -119,6 +119,7 @@ pub(crate) enum GatewayBackend {
 #[derive(Debug, Clone, ValueEnum)]
 pub(crate) enum EmbeddingsProviderKind {
     Ollama,
-    #[cfg(feature = "candle-local")]
-    Candle,
+    #[cfg(feature = "local-embedding")]
+    #[value(alias = "candle")]
+    Local,
 }

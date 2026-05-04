@@ -6,24 +6,14 @@ build = "build.rs"
 
 [features]
 default = []
-candle-local = [
-	"dep:candle-core",
-	"dep:candle-nn",
-	"dep:candle-transformers",
-	"dep:hf-hub",
-	"dep:tokenizers",
-]
+local-embedding = ["locus-sdk/local-embedding"]
 
 [dependencies]
 anyhow = "1"
 async-trait = "0.1"
 axum = { version = "0.8", features = ["json", "macros"] }
-candle-core = { version = "0.8", optional = true }
-candle-nn = { version = "0.8", optional = true }
-candle-transformers = { version = "0.8", optional = true }
 chrono = { version = "0.4", features = ["clock", "serde"] }
 clap = { version = "4", features = ["derive", "env"] }
-hf-hub = { version = "0.3", optional = true }
 prost = "0.13"
 prost-types = "0.13"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
@@ -31,7 +21,6 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 surrealdb = { version = "3", default-features = false, features = ["protocol-http", "protocol-ws", "kv-surrealkv", "rustls", "kv-mem"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
-tokenizers = { version = "0.21", optional = true }
 tonic = { version = "0.12", features = ["transport"] }
 tonic-reflection = "0.12"
 tower-http = { version = "0.6", features = ["cors"] }

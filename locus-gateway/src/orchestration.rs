@@ -14,14 +14,15 @@ use locus_core::storage::{
     InMemoryNodeStore, SurrealDbEndpointsSettings, SurrealDbNodeStore, SurrealDbRuntimeOptions,
     SurrealDbSettings,
 };
+#[cfg(feature = "local-embedding")]
+use locus_sdk::infrastructure::embeddings::LocalEmbeddingProvider;
+use locus_sdk::infrastructure::embeddings::OllamaEmbeddingProvider;
 use tracing::{error, info};
 
 use crate::app_state::AppState;
 use crate::gateway_args::{EmbeddingsProviderKind, GatewayArgs, GatewayBackend};
 use crate::http_models::CorsAllowedOrigins;
-#[cfg(feature = "candle-local")]
-use crate::providers::SttpCandleProvider;
-use crate::providers::{AvecScorer, OllamaAvecScorer, OllamaEmbeddingProvider};
+use crate::providers::{AvecScorer, OllamaAvecScorer};
 use crate::surreal_client::RuntimeSurrealDbClient;
 
 pub(crate) async fn build_state(args: &GatewayArgs) -> Result<AppState> {
@@ -233,8 +234,8 @@ fn build_embedding_provider(
             args.embeddings_endpoint.clone(),
             args.embeddings_model.clone(),
         )),
-        #[cfg(feature = "candle-local")]
-        EmbeddingsProviderKind::Candle => Arc::new(SttpCandleProvider::new(
+        #[cfg(feature = "local-embedding")]
+        EmbeddingsProviderKind::Local => Arc::new(LocalEmbeddingProvider::new(
             args.embeddings_model.clone(),
             args.embeddings_repo.clone(),
         )?),
