@@ -1,6 +1,11 @@
-# Locus
 
-**Intelligence requires a place to stand.**
+<p align="center">
+	<img width="599" height="534" alt="image" src="https://github.com/user-attachments/assets/6f5121a9-1102-4a84-bf40-bded0f79012e" />
+</p>
+
+
+---
+# Locus - **Intelligence requires a place to stand.**
 
 Language models are stateless by default, existing in a vacuum of the "now." To move beyond fleeting chat sessions and into enduring agency, information requires a stable environment. In the ancient **Method of Loci**, memory was mastered by anchoring ideas to physical landmarks turning abstract thoughts into a navigable palace.
 
