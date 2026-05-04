@@ -288,6 +288,7 @@ async fn store_uses_model_avec_when_compression_avec_is_zero() {
 
     client.queue_response(vec![]).await;
     client.queue_response(vec![]).await;
+    client.queue_response(vec![]).await;
 
     let node = build_test_node("session");
 
@@ -295,16 +296,16 @@ async fn store_uses_model_avec_when_compression_avec_is_zero() {
     assert!(!node_id.trim().is_empty());
 
     let params = client.parameters().await;
-    assert_eq!(params.len(), 2);
+    assert_eq!(params.len(), 3);
 
-    let comp_stability = params[1]
+    let comp_stability = params[2]
         .get("comp_stability")
         .expect("comp_stability must be present")
         .as_f64()
         .expect("comp_stability must be numeric");
     assert!((comp_stability - 0.91).abs() <= 0.0001);
     assert_eq!(
-        params[1]
+        params[2]
             .get("tenant_id")
             .expect("tenant_id must be present"),
         &json!("default")
@@ -318,15 +319,16 @@ async fn store_derives_tenant_id_from_scoped_session_key() {
 
     client.queue_response(vec![]).await;
     client.queue_response(vec![]).await;
+    client.queue_response(vec![]).await;
 
     let node = build_test_node("tenant:acme::session:session-42");
 
     store.store_async(node).await.expect("store should succeed");
 
     let params = client.parameters().await;
-    assert_eq!(params.len(), 2);
+    assert_eq!(params.len(), 3);
     assert_eq!(
-        params[1]
+        params[2]
             .get("tenant_id")
             .expect("tenant_id must be present"),
         &json!("acme")
@@ -338,7 +340,12 @@ async fn upsert_returns_duplicate_when_sync_identity_already_exists() {
     let client = Arc::new(MockSurrealDbClient::default());
     let store = SurrealDbNodeStore::new(client.clone());
 
+    // First upsert: no existing exact/any match, then create.
     client.queue_response(vec![]).await;
+    client.queue_response(vec![]).await;
+    client.queue_response(vec![]).await;
+
+    // Second upsert: exact match is found and treated as duplicate.
     client.queue_response(vec![]).await;
     client
         .queue_response(vec![json!({
@@ -361,10 +368,12 @@ async fn upsert_returns_duplicate_when_sync_identity_already_exists() {
     assert_eq!(second.node_id, "existing-node");
 
     let queries = client.queries().await;
-    assert_eq!(queries.len(), 3);
+    assert_eq!(queries.len(), 5);
     assert!(queries[0].contains("sync_key = $sync_key"));
-    assert!(queries[1].contains("CREATE temporal_node:"));
+    assert!(queries[1].contains("session_id = $session_id"));
     assert!(queries[2].contains("sync_key = $sync_key"));
+    assert!(queries[3].contains("sync_key = $sync_key"));
+    assert!(queries[4].contains("sync_key = $sync_key"));
 }
 
 #[tokio::test(flavor = "current_thread")]

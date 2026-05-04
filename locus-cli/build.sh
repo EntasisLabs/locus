@@ -14,6 +14,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST_PATH="$SCRIPT_DIR/Cargo.toml"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 if ! command -v cargo >/dev/null 2>&1; then
   echo "error: cargo not found. Install Rust toolchain first." >&2
@@ -96,6 +97,27 @@ RELEASE="${TAG_PREFIX}/v${VERSION}"
 
 BUILT_TARGETS=()
 
+resolve_binary_path() {
+  local target="$1"
+  local bin_name="$2"
+  local workspace_target="${CARGO_TARGET_DIR:-$REPO_ROOT/target}"
+  local workspace_candidate="$workspace_target/$target/release/$bin_name"
+  local local_candidate="$SCRIPT_DIR/target/$target/release/$bin_name"
+
+  if [[ -f "$workspace_candidate" ]]; then
+    echo "$workspace_candidate"
+    return 0
+  fi
+
+  if [[ -f "$local_candidate" ]]; then
+    echo "$local_candidate"
+    return 0
+  fi
+
+  echo "[WARN] Missing binary for $target. Checked: $workspace_candidate and $local_candidate"
+  return 1
+}
+
 ensure_target() {
   local target="$1"
   if command -v rustup >/dev/null 2>&1; then
@@ -169,9 +191,8 @@ package_artifact() {
       ;;
   esac
 
-  local bin_path="$SCRIPT_DIR/target/$target/release/$bin_name"
-  if [[ ! -f "$bin_path" ]]; then
-    echo "[WARN] Missing binary for $target at $bin_path, skipping packaging."
+  local bin_path
+  if ! bin_path="$(resolve_binary_path "$target" "$bin_name")"; then
     return
   fi
 

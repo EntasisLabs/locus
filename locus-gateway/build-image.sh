@@ -22,6 +22,26 @@ BASE_IMAGE_NAME="locus-gateway"
 DEFAULT_VERSION="2.0.0"
 PUBLISH_DIR="$SCRIPT_DIR/publish"
 
+resolve_binary_path() {
+  local relative_path="$1"
+  local workspace_target="${CARGO_TARGET_DIR:-$REPO_ROOT/target}"
+  local workspace_candidate="$workspace_target/$relative_path"
+  local local_candidate="$SCRIPT_DIR/target/$relative_path"
+
+  if [[ -f "$workspace_candidate" ]]; then
+    echo "$workspace_candidate"
+    return 0
+  fi
+
+  if [[ -f "$local_candidate" ]]; then
+    echo "$local_candidate"
+    return 0
+  fi
+
+  echo "error: binary not found. Checked: $workspace_candidate and $local_candidate" >&2
+  return 1
+}
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -107,7 +127,8 @@ fi
 "${build_cmd[@]}"
 
 mkdir -p "$PUBLISH_DIR"
-cp "$SCRIPT_DIR/target/release/locus-gateway" "$PUBLISH_DIR/locus-gateway"
+BIN_PATH="$(resolve_binary_path "release/locus-gateway")"
+cp "$BIN_PATH" "$PUBLISH_DIR/locus-gateway"
 chmod +x "$PUBLISH_DIR/locus-gateway"
 
 if command -v strip >/dev/null 2>&1; then
