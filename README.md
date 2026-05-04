@@ -7,7 +7,9 @@
 ---
 # Locus - **Intelligence requires a place to stand.**
 
-Language models are stateless by default, existing in a vacuum of the "now." To move beyond fleeting chat sessions and into enduring agency, information requires a stable environment. In the ancient **Method of Loci**, memory was mastered by anchoring ideas to physical landmarks turning abstract thoughts into a navigable palace.
+Language models are stateless by default, existing in a vacuum of the "now." To move beyond fleeting chat sessions and into enduring agency, information requires a stable environment.
+
+In the ancient **Method of Loci**, memory was mastered by anchoring ideas to physical landmarks turning abstract thoughts into a navigable palace.
 
 **Locus** is the architectural realization of that palace for the STTP protocol.
 
