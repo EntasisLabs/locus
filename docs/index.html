@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Locus — The memory layer for STTP agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--void:#04030d;--deep:#080717;--nebula:#0c0a1e;--surface:#110f28;--rim:#1c1935;--mist:rgba(255,255,255,.055);--mist2:rgba(255,255,255,.09);--star:rgba(255,255,255,.88);--text:rgba(255,255,255,.82);--text-dim:rgba(255,255,255,.48);--text-faint:rgba(255,255,255,.22);--teal:#4dbfa0;--purple:#8b6ec4;--blue:#5090d0;--rose:#c46080;--amber:#d4943a;--fd:'DM Serif Display',Georgia,serif;--fu:'Syne',sans-serif;--fm:'JetBrains Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--text);font-family:var(--fu);font-size:16px;line-height:1.7;overflow-x:hidden}
+#sf{position:fixed;inset:0;z-index:0;pointer-events:none}
+.nb{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.nb::before{content:'';position:absolute;width:1000px;height:800px;top:-300px;left:-250px;background:radial-gradient(ellipse,rgba(139,110,196,.15) 0%,transparent 65%);animation:nd1 32s ease-in-out infinite alternate}
+.nb::after{content:'';position:absolute;width:800px;height:700px;bottom:-100px;right:-200px;background:radial-gradient(ellipse,rgba(77,191,160,.1) 0%,transparent 60%);animation:nd2 24s ease-in-out infinite alternate}
+@keyframes nd1{to{transform:translate(80px,50px) scale(1.1)}}
+@keyframes nd2{to{transform:translate(-50px,-70px) scale(1.15)}}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes pr{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.7);opacity:0}}
+@keyframes fl{to{stroke-dashoffset:-24}}
+main{position:relative;z-index:1}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 52px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(24px);background:rgba(4,3,13,.55);border-bottom:.5px solid var(--mist)}
+.nl{font-family:var(--fd);font-size:21px;letter-spacing:.01em;color:var(--star);text-decoration:none}
+.na{display:flex;gap:32px;list-style:none}
+.na a{font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color .2s}
+.na a:hover{color:var(--star)}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 48px 100px}
+.hl{font-family:var(--fm);font-size:10px;font-weight:300;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:32px;opacity:0;animation:fu .8s .2s ease forwards}
+.ht{font-family:var(--fd);font-size:clamp(58px,9vw,118px);line-height:.95;letter-spacing:-.02em;color:var(--star);margin-bottom:24px;opacity:0;animation:fu 1s .4s ease forwards}
+.ht em{font-style:italic;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.35)}
+.hs{font-size:clamp(15px,2vw,19px);color:var(--text-dim);max-width:500px;line-height:1.8;margin-bottom:52px;opacity:0;animation:fu 1s .65s ease forwards}
+.ha{display:flex;gap:14px;opacity:0;animation:fu 1s .9s ease forwards}
+.btn{font-family:var(--fu);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:13px 30px;border-radius:2px;transition:all .2s;cursor:pointer;border:none}
+.bp{background:var(--purple);color:#fff}
+.bp:hover{background:#a080d8;transform:translateY(-1px);box-shadow:0 8px 28px rgba(139,110,196,.45)}
+.bg{background:transparent;color:var(--text-dim);border:.5px solid rgba(255,255,255,.18)}
+.bg:hover{color:var(--star);border-color:rgba(255,255,255,.45)}
+.sr{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+.sr.in{opacity:1;transform:none}
+section{position:relative}
+.wrap{max-width:1100px;margin:0 auto;padding:0 52px}
+.ss{border-top:.5px solid var(--mist)}
+.ml{font-family:var(--fm);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);display:block;margin-bottom:14px}
+.dh{font-family:var(--fd);font-size:clamp(38px,5vw,62px);line-height:1.08;color:var(--star);margin-bottom:18px}
+.bp2{font-size:17px;color:var(--text-dim);line-height:1.82;max-width:600px}
+.dc{background:var(--nebula);border:.5px solid var(--mist2);border-radius:3px;padding:36px;position:relative;overflow:hidden}
+.dc::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(139,110,196,.07) 0%,transparent 55%);pointer-events:none}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--mist);border:.5px solid var(--mist2);border-radius:3px;overflow:hidden}
+.pc{background:var(--nebula);padding:34px 30px;transition:background .2s}
+.pc:hover{background:var(--surface)}
+.pn{font-family:var(--fm);font-size:10px;letter-spacing:.18em;margin-bottom:10px}
+.pname{font-family:var(--fd);font-size:24px;color:var(--star);margin-bottom:8px}
+.pdesc{font-size:14px;color:var(--text-dim);line-height:1.72}
+.ab{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.ab span:first-child{font-family:var(--fm);font-size:11px;min-width:72px}
+.at{flex:1;height:3px;background:var(--rim);border-radius:2px;overflow:hidden}
+.af{height:100%;border-radius:2px}
+.ab span:last-child{font-family:var(--fm);font-size:11px;color:var(--text-faint);min-width:32px;text-align:right}
+footer{border-top:.5px solid var(--mist);padding:44px 52px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-faint)}
+footer a{color:var(--text-dim);text-decoration:none}
+footer a:hover{color:var(--star)}
+</style>
+</head>
+<body>
+<canvas id="sf"></canvas>
+<div class="nb"></div>
+<nav>
+  <a href="#" class="nl">Locus</a>
+  <ul class="na">
+    <li><a href="#protocol">Protocol</a></li>
+    <li><a href="#primitives">Primitives</a></li>
+    <li><a href="#avec">AVEC</a></li>
+    <li><a href="https://github.com/keryxlabs/locus" target="_blank">GitHub ↗</a></li>
+  </ul>
+</nav>
+<main>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="hl">STTP memory infrastructure · Apache-2.0</span>
+  <h1 class="ht">The ground<br>beneath<br><em>the signal.</em></h1>
+  <p class="hs">Agents are stateless. Context evaporates. Locus gives cognitive state a coordinate — typed, persistent, and verifiable across every session, model, and transport.</p>
+  <div class="ha">
+    <a href="#protocol" class="btn bp">See the architecture</a>
+    <a href="https://github.com/keryxlabs/locus" class="btn bg" target="_blank">GitHub ↗</a>
+  </div>
+  <div style="margin-top:88px;opacity:0;animation:fu 1.2s 1.2s ease forwards">
+    <svg width="480" height="200" viewBox="0 0 480 200" style="overflow:visible">
+      <defs>
+        <radialGradient id="hgc" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(139,110,196,.28)"/>
+          <stop offset="100%" stop-color="rgba(139,110,196,0)"/>
+        </radialGradient>
+      </defs>
+      <circle cx="240" cy="100" r="36" fill="none" stroke="rgba(139,110,196,.25)" stroke-width=".5"/>
+      <circle cx="240" cy="100" r="36" fill="none" stroke="rgba(139,110,196,.4)" stroke-width="1" style="animation:pr 3s ease-out infinite"/>
+      <circle cx="240" cy="100" r="36" fill="none" stroke="rgba(139,110,196,.4)" stroke-width="1" style="animation:pr 3s ease-out 1.5s infinite"/>
+      <line x1="240" y1="100" x2="70" y2="42"  stroke="rgba(255,255,255,.06)" stroke-width=".5" stroke-dasharray="3 4"/>
+      <line x1="240" y1="100" x2="410" y2="42" stroke="rgba(255,255,255,.06)" stroke-width=".5" stroke-dasharray="3 4"/>
+      <line x1="240" y1="100" x2="70" y2="162" stroke="rgba(255,255,255,.06)" stroke-width=".5" stroke-dasharray="3 4"/>
+      <line x1="240" y1="100" x2="410" y2="162" stroke="rgba(255,255,255,.06)" stroke-width=".5" stroke-dasharray="3 4"/>
+      <circle cx="240" cy="100" r="34" fill="url(#hgc)"/>
+      <circle cx="240" cy="100" r="16" fill="var(--surface)" stroke="rgba(139,110,196,.6)" stroke-width=".75"/>
+      <circle cx="240" cy="100" r="4" fill="#a080d8"/>
+      <text x="240" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" letter-spacing=".18em" fill="rgba(160,128,216,.6)">LOCUS</text>
+      <g><circle cx="70" cy="42" r="20" fill="var(--nebula)" stroke="rgba(77,191,160,.45)" stroke-width=".5"/>
+         <text x="70" y="38" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="rgba(77,191,160,.8)">⊕⟨</text>
+         <text x="70" y="52" text-anchor="middle" font-family="'Syne'" font-size="7" fill="rgba(255,255,255,.3)">provenance</text></g>
+      <g><circle cx="410" cy="42" r="20" fill="var(--nebula)" stroke="rgba(80,144,208,.45)" stroke-width=".5"/>
+         <text x="410" y="38" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="rgba(80,144,208,.9)">⦿⟨</text>
+         <text x="410" y="52" text-anchor="middle" font-family="'Syne'" font-size="7" fill="rgba(255,255,255,.3)">envelope</text></g>
+      <g><circle cx="70" cy="162" r="20" fill="var(--nebula)" stroke="rgba(196,96,128,.45)" stroke-width=".5"/>
+         <text x="70" y="158" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="rgba(196,96,128,.9)">◈⟨</text>
+         <text x="70" y="172" text-anchor="middle" font-family="'Syne'" font-size="7" fill="rgba(255,255,255,.3)">content</text></g>
+      <g><circle cx="410" cy="162" r="20" fill="var(--nebula)" stroke="rgba(212,148,58,.45)" stroke-width=".5"/>
+         <text x="410" y="158" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="rgba(212,148,58,.9)">⍉⟨</text>
+         <text x="410" y="172" text-anchor="middle" font-family="'Syne'" font-size="7" fill="rgba(255,255,255,.3)">metrics</text></g>
+    </svg>
+  </div>
+</section>
+
+<!-- WHAT IT IS -->
+<section class="ss" style="padding:120px 0 130px">
+  <div class="wrap">
+    <div class="tc">
+      <div class="sr">
+        <span class="ml">What Locus is</span>
+        <h2 class="dh">Not a product.<br>Infrastructure.</h2>
+        <p class="bp2" style="margin-bottom:22px">Locus is the standalone memory layer for the STTP protocol. It handles storage, retrieval, validation, and transport — so everything built on top can treat memory as a solved problem.</p>
+        <p class="bp2">MCP server for assistants. HTTP/gRPC gateway for services. Rust SDK for in-process embedding. CLI for operators. One contract, every surface.</p>
+      </div>
+      <div class="sr" style="transition-delay:.15s">
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:var(--nebula);border:.5px solid var(--mist2);border-radius:3px 3px 0 0">
+            <span style="font-family:var(--fm);font-size:10px;color:rgba(77,191,160,.7);letter-spacing:.14em;min-width:108px">locus-mcp</span>
+            <span style="font-size:13px;color:var(--text-dim)">stdio · MCP tools for assistants + agents</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:var(--nebula);border:.5px solid var(--mist2)">
+            <span style="font-family:var(--fm);font-size:10px;color:rgba(80,144,208,.8);letter-spacing:.14em;min-width:108px">locus-gateway</span>
+            <span style="font-size:13px;color:var(--text-dim)">HTTP + gRPC · deployable host for services</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:var(--nebula);border:.5px solid var(--mist2)">
+            <span style="font-family:var(--fm);font-size:10px;color:rgba(139,110,196,.8);letter-spacing:.14em;min-width:108px">locus-sdk</span>
+            <span style="font-size:13px;color:var(--text-dim)">Rust · transport-agnostic in-process memory</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:var(--nebula);border:.5px solid var(--mist2);border-radius:0 0 3px 3px">
+            <span style="font-family:var(--fm);font-size:10px;color:rgba(212,148,58,.7);letter-spacing:.14em;min-width:108px">locus-cli</span>
+            <span style="font-size:13px;color:var(--text-dim)">terminal · operator workflows, no service code</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;text-align:center">
+          <span style="font-family:var(--fm);font-size:10px;color:var(--text-faint);letter-spacing:.1em">all backed by → locus-core · parser · validator · retrieval</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STTP PROTOCOL -->
+<section class="ss" id="protocol" style="padding:120px 0 140px">
+  <div class="wrap">
+    <div class="sr" style="text-align:center;margin-bottom:72px">
+      <span class="ml" style="display:block">The protocol</span>
+      <h2 class="dh">Every node is self-sufficient.</h2>
+      <p class="bp2" style="margin:0 auto">Four ordered layers. Layer order is semantic — reordering alters meaning. Every field typed. Every confidence annotated. A stateless receiver needs nothing else.</p>
+    </div>
+    <div class="dc sr" style="transition-delay:.1s">
+      <svg width="100%" viewBox="0 0 1020 290" style="display:block">
+        <defs>
+          <marker id="aw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5" stroke-linecap="round"/>
+          </marker>
+        </defs>
+        <rect x="14" y="28" width="228" height="234" rx="3" fill="rgba(77,191,160,.05)" stroke="rgba(77,191,160,.28)" stroke-width=".5"/>
+        <rect x="14" y="28" width="228" height="2.5" fill="rgba(77,191,160,.55)"/>
+        <text x="30" y="52" font-family="'JetBrains Mono'" font-size="10" fill="rgba(77,191,160,.75)" letter-spacing=".1em">⊕⟨  PROVENANCE</text>
+        <text x="30" y="80" font-family="'Syne'" font-size="11" fill="rgba(255,255,255,.3)">trigger</text>
+        <text x="110" y="80" font-family="'JetBrains Mono'" font-size="11" fill="rgba(77,191,160,.65)">manual</text>
+        <text x="30" y="102" font-family="'Syne'" font-size="11" fill="rgba(255,255,255,.3)">format</text>
+        <text x="110" y="102" font-family="'JetBrains Mono'" font-size="10" fill="rgba(77,191,160,.65)">temporal_node</text>
+        <text x="30" y="124" font-family="'Syne'" font-size="11" fill="rgba(255,255,255,.3)">session</text>
+        <text x="110" y="124" font-family="'JetBrains Mono'" font-size="11" fill="rgba(255,255,255,.38)">"abc-123"</text>
+        <text x="30" y="155" font-family="'Syne'" font-size="10" fill="rgba(255,255,255,.18)">attractor_config {</text>
+        <text x="44" y="173" font-family="'JetBrains Mono'" font-size="10" fill="rgba(255,255,255,.25)">stability: 0.90</text>
+        <text x="44" y="190" font-family="'JetBrains Mono'" font-size="10" fill="rgba(255,255,255,.25)">friction:  0.20</text>
+        <text x="44" y="207" font-family="'JetBrains Mono'" font-size="10" fill="rgba(255,255,255,.25)">logic:    0.98</text>
+        <text x="44" y="224" font-family="'JetBrains Mono'" font-size="10" fill="rgba(255,255,255,.25)">autonomy: 0.85</text>
+        <text x="30" y="242" font-family="'Syne'" font-size="10" fill="rgba(255,255,255,.18)">}</text>
+        <text x="126" y="275" text-anchor="middle" font-family="'Syne'" font-size="9" fill="rgba(77,191,160,.4)" letter-spacing=".1em">ORIENTATION</text>
+        <line x1="244" y1="145" x2="264" y2="145" stroke="rgba(255,255,255,.18)" stroke-width="1" marker-end="url(#aw)"/>
+        <rect x="267" y="28" width="210" height="234" rx="3" fill="rgba(80,144,208,.05)" stroke="rgba(80,144,208,.28)" stroke-width=".5"/>
+        <rect x="267" y="28" width="210" height="2.5" fill="rgba(80,144,208,.5)"/>
+        <text x="283" y="52" font-family="'JetBrains Mono'" font-size="10" fill="rgba(80,144,208,.85)" letter-spacing=".1em">⦿⟨  ENVELOPE</text>
+        <text x="283" y="80" font-family="'Syne'" font-size="11" fill="rgba(255,255,255,.3)">timestamp</text>
+        <text x="283" y="97" font-family="'JetBrains Mono'" font-size="10" fill="rgba(80,144,208,.6)">"2026-04-25T…"</text>
+        <text x="283" y="120" font-family="'Syne'" font-size="11" fill="rgba(255,255,255,.3)">tier</text>
+        <text x="323" y="120" font-family="'JetBrains Mono'" font-size="11" fill="rgba(80,144,208,.75)">raw</text>
+        <text x="283" y="148" font-family="'Syne'" font-size="10" fill="rgba(255,255,255,.18)">user_avec {</text>
+        <text x="297" y="166" font-family="'JetBrains Mono'" font-size="10" fill="rgba(255,255,255,.25)">stability: 0.90</text>
+        <text x="297" y="183" font-family="'JetBrains Mono'" font-size="10" fill="rgba(255,255,255,.25)">friction:  0.20</text>
+        <text x="297" y="200" font-family="'JetBrains Mono'" font-size="10" fill="rgba(255,255,255,.25)">psi:       2.93</text>
+        <text x="283" y="218" font-family="'Syne'" font-size="10" fill="rgba(255,255,255,.18)">}</text>
+        <text x="372" y="275" text-anchor="middle" font-family="'Syne'" font-size="9" fill="rgba(80,144,208,.4)" letter-spacing=".1em">IDENTITY</text>
+        <line x1="479" y1="145" x2="499" y2="145" stroke="rgba(255,255,255,.18)" stroke-width="1" marker-end="url(#aw)"/>
+        <rect x="502" y="28" width="220" height="234" rx="3" fill="rgba(196,96,128,.05)" stroke="rgba(196,96,128,.28)" stroke-width=".5"/>
+        <rect x="502" y="28" width="220" height="2.5" fill="rgba(196,96,128,.5)"/>
+        <text x="518" y="52" font-family="'JetBrains Mono'" font-size="10" fill="rgba(196,96,128,.85)" letter-spacing=".1em">◈⟨  CONTENT</text>
+        <text x="518" y="82" font-family="'Syne'" font-size="11" fill="rgba(255,255,255,.3)">confidence-annotated fields:</text>
+        <rect x="518" y="95" width="188" height="30" rx="2" fill="rgba(196,96,128,.07)" stroke="rgba(196,96,128,.2)" stroke-width=".5"/>
+        <text x="530" y="115" font-family="'JetBrains Mono'" font-size="11" fill="rgba(216,130,158,.85)">focus(.99): "parser"</text>
+        <rect x="518" y="133" width="188" height="30" rx="2" fill="rgba(196,96,128,.07)" stroke="rgba(196,96,128,.2)" stroke-width=".5"/>
+        <text x="530" y="153" font-family="'JetBrains Mono'" font-size="11" fill="rgba(216,130,158,.85)">decision(.96): {…}</text>
+        <rect x="518" y="171" width="188" height="30" rx="2" fill="rgba(196,96,128,.07)" stroke="rgba(196,96,128,.2)" stroke-width=".5"/>
+        <text x="530" y="191" font-family="'JetBrains Mono'" font-size="11" fill="rgba(216,130,158,.85)">insight(.88): "…"</text>
+        <text x="518" y="222" font-family="'Syne'" font-size="10" fill="rgba(255,255,255,.18)">confidence ∈ [0.0, 1.0] · max depth 5</text>
+        <text x="612" y="275" text-anchor="middle" font-family="'Syne'" font-size="9" fill="rgba(196,96,128,.4)" letter-spacing=".1em">MEANING</text>
+        <line x1="724" y1="145" x2="744" y2="145" stroke="rgba(255,255,255,.18)" stroke-width="1" marker-end="url(#aw)"/>
+        <rect x="747" y="28" width="258" height="234" rx="3" fill="rgba(212,148,58,.05)" stroke="rgba(212,148,58,.28)" stroke-width=".5"/>
+        <rect x="747" y="28" width="258" height="2.5" fill="rgba(212,148,58,.5)"/>
+        <text x="763" y="52" font-family="'JetBrains Mono'" font-size="10" fill="rgba(212,148,58,.85)" letter-spacing=".1em">⍉⟨  METRICS</text>
+        <text x="763" y="80" font-family="'Syne'" font-size="11" fill="rgba(255,255,255,.3)">signal quality</text>
+        <text x="763" y="100" font-family="'JetBrains Mono'" font-size="11" fill="rgba(212,148,58,.75)">rho: 0.95</text>
+        <text x="763" y="118" font-family="'JetBrains Mono'" font-size="11" fill="rgba(212,148,58,.75)">kappa: 0.94</text>
+        <text x="763" y="136" font-family="'JetBrains Mono'" font-size="11" fill="rgba(212,148,58,.75)">psi: 2.93</text>
+        <text x="763" y="162" font-family="'Syne'" font-size="10" fill="rgba(255,255,255,.18)">compression_avec {</text>
+        <text x="777" y="180" font-family="'JetBrains Mono'" font-size="10" fill="rgba(255,255,255,.25)">stability: 0.90</text>
+        <text x="777" y="197" font-family="'JetBrains Mono'" font-size="10" fill="rgba(255,255,255,.25)">psi:       2.93</text>
+        <text x="763" y="215" font-family="'Syne'" font-size="10" fill="rgba(255,255,255,.18)">}</text>
+        <text x="876" y="275" text-anchor="middle" font-family="'Syne'" font-size="9" fill="rgba(212,148,58,.4)" letter-spacing=".1em">VERIFICATION</text>
+      </svg>
+    </div>
+    <p class="sr" style="margin-top:22px;font-family:var(--fm);font-size:11px;color:var(--text-faint);letter-spacing:.06em;transition-delay:.2s">strict profile fails closed · tolerant profile recovers with diagnostics · additive evolution — old nodes always survive</p>
+  </div>
+</section>
+
+<!-- PRIMITIVES -->
+<section class="ss" id="primitives" style="padding:120px 0 140px">
+  <div class="wrap">
+    <div class="tc" style="margin-bottom:72px">
+      <div class="sr">
+        <span class="ml">Six primitives</span>
+        <h2 class="dh">Like NAND gates —<br>compose into anything.</h2>
+        <p class="bp2">Each primitive is deterministic, transport-neutral, and policy-explicit. Combine them into any memory workflow. The composition layer is just primitives, wired.</p>
+      </div>
+      <div class="sr" style="transition-delay:.15s">
+        <div class="dc">
+          <svg width="100%" viewBox="0 0 400 260" style="display:block">
+            <defs>
+              <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5" stroke-linecap="round"/>
+              </marker>
+              <marker id="agp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="rgba(139,110,196,.6)" stroke-width="1.5" stroke-linecap="round"/>
+              </marker>
+            </defs>
+            <text x="14" y="46"  font-family="'JetBrains Mono'" font-size="10" fill="rgba(77,191,160,.7)">find</text>
+            <text x="14" y="88"  font-family="'JetBrains Mono'" font-size="10" fill="rgba(139,110,196,.8)">recall</text>
+            <text x="14" y="130" font-family="'JetBrains Mono'" font-size="10" fill="rgba(80,144,208,.7)">aggregate</text>
+            <text x="14" y="172" font-family="'JetBrains Mono'" font-size="10" fill="rgba(196,96,128,.7)">transform</text>
+            <text x="14" y="214" font-family="'JetBrains Mono'" font-size="10" fill="rgba(212,148,58,.7)">explain</text>
+            <line x1="58"  y1="42"  x2="148" y2="80"  stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
+            <line x1="72"  y1="84"  x2="148" y2="96"  stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
+            <line x1="100" y1="126" x2="148" y2="112" stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
+            <line x1="90"  y1="168" x2="148" y2="140" stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
+            <line x1="74"  y1="210" x2="148" y2="164" stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
+            <rect x="150" y="60" width="120" height="120" rx="3" fill="rgba(139,110,196,.08)" stroke="rgba(139,110,196,.4)" stroke-width=".75"/>
+            <text x="210" y="112" text-anchor="middle" font-family="'DM Serif Display'" font-style="italic" font-size="14" fill="rgba(160,128,216,.7)">compose</text>
+            <text x="210" y="130" text-anchor="middle" font-family="'Syne'" font-size="9" fill="rgba(255,255,255,.2)">any workflow</text>
+            <line x1="162" y1="90"  x2="258" y2="90"  stroke="rgba(139,110,196,.18)" stroke-width=".5" stroke-dasharray="4 4" style="animation:fl 1.6s linear infinite"/>
+            <line x1="162" y1="120" x2="258" y2="120" stroke="rgba(139,110,196,.18)" stroke-width=".5" stroke-dasharray="4 4" style="animation:fl 2.1s linear infinite"/>
+            <line x1="162" y1="150" x2="258" y2="150" stroke="rgba(139,110,196,.18)" stroke-width=".5" stroke-dasharray="4 4" style="animation:fl 1.8s linear infinite"/>
+            <line x1="271" y1="88"  x2="316" y2="68"  stroke="rgba(139,110,196,.35)" stroke-width=".75" marker-end="url(#agp)"/>
+            <line x1="271" y1="120" x2="316" y2="120" stroke="rgba(139,110,196,.35)" stroke-width=".75" marker-end="url(#agp)"/>
+            <line x1="271" y1="152" x2="316" y2="172" stroke="rgba(139,110,196,.35)" stroke-width=".75" marker-end="url(#agp)"/>
+            <text x="322" y="72"  font-family="'JetBrains Mono'" font-size="9" fill="rgba(255,255,255,.38)">recall_with_explain</text>
+            <text x="322" y="124" font-family="'JetBrains Mono'" font-size="9" fill="rgba(255,255,255,.38)">daily_rollup</text>
+            <text x="322" y="176" font-family="'JetBrains Mono'" font-size="9" fill="rgba(255,255,255,.38)">transform_verify</text>
+            <text x="322" y="240" font-family="'JetBrains Mono'" font-size="9" fill="rgba(255,255,255,.22)">+ any workflow</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="pg sr" style="transition-delay:.2s">
+      <div class="pc">
+        <div class="pn" style="color:rgba(77,191,160,.65)">01 · deterministic</div>
+        <div class="pname">find</div>
+        <p class="pdesc">Filter, sort, and paginate nodes with explicit scope. No ranking — pure predicate logic. Stable sort semantics.</p>
+      </div>
+      <div class="pc">
+        <div class="pn" style="color:rgba(139,110,196,.7)">02 · resonant</div>
+        <div class="pname">recall</div>
+        <p class="pdesc">AVEC-driven ranked retrieval. Surfaces nodes that resonate with the current cognitive state — optionally amplified by semantic signal.</p>
+      </div>
+      <div class="pc">
+        <div class="pn" style="color:rgba(80,144,208,.7)">03 · temporal</div>
+        <div class="pname">aggregate</div>
+        <p class="pdesc">Grouped statistics and rollups across time windows. The foundation of daily, weekly, and monthly timeline compression.</p>
+      </div>
+      <div class="pc">
+        <div class="pn" style="color:rgba(196,96,128,.7)">04 · controlled</div>
+        <div class="pname">transform</div>
+        <p class="pdesc">Bulk mutation with dry-run support. Embedding backfill, schema migration, reindexing — bounded, explicit, reversible.</p>
+      </div>
+      <div class="pc">
+        <div class="pn" style="color:rgba(212,148,58,.7)">05 · transparent</div>
+        <div class="pname">explain</div>
+        <p class="pdesc">Stage-level visibility into the retrieval pipeline. Know exactly why a node was returned — or wasn't. Every decision, auditable.</p>
+      </div>
+      <div class="pc">
+        <div class="pn" style="color:rgba(255,255,255,.28)">06 · introspective</div>
+        <div class="pname">schema</div>
+        <p class="pdesc">Runtime capability discovery. Dynamic UIs and agent planners ask the schema what's possible — no hardcoded assumptions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AVEC -->
+<section class="ss" id="avec" style="padding:120px 0 140px">
+  <div class="wrap">
+    <div class="tc">
+      <div class="sr">
+        <span class="ml">Cognitive state</span>
+        <h2 class="dh">The attractor<br>vector.</h2>
+        <p class="bp2" style="margin-bottom:28px">Every node carries an AVEC — a four-dimensional fingerprint of cognitive state at the moment of encoding. Recall surfaces nodes that resonate with the current state, not just keyword matches.</p>
+        <p class="bp2" style="margin-bottom:36px;font-size:15px;color:var(--text-faint)">ψ coherence is derived — not stored. A receiving agent computes it independently, verifying drift without shared history.</p>
+        <div style="font-family:var(--fm);font-size:12px;color:var(--text-faint)">
+          <div class="ab"><span style="color:rgba(77,191,160,.7)">stability</span><div class="at"><div class="af" style="width:90%;background:rgba(77,191,160,.4)"></div></div><span>0.90</span></div>
+          <div class="ab"><span style="color:rgba(196,96,128,.7)">friction</span><div class="at"><div class="af" style="width:20%;background:rgba(196,96,128,.4)"></div></div><span>0.20</span></div>
+          <div class="ab"><span style="color:rgba(80,144,208,.7)">logic</span><div class="at"><div class="af" style="width:98%;background:rgba(80,144,208,.4)"></div></div><span>0.98</span></div>
+          <div class="ab"><span style="color:rgba(139,110,196,.7)">autonomy</span><div class="at"><div class="af" style="width:85%;background:rgba(139,110,196,.4)"></div></div><span>0.85</span></div>
+          <div style="margin-top:18px;padding-top:16px;border-top:.5px solid var(--mist);display:flex;align-items:center;gap:12px">
+            <span style="color:rgba(255,255,255,.35)">ψ coherence</span>
+            <span style="font-size:20px;font-family:var(--fd);font-style:italic;color:rgba(160,128,216,.8)">2.93</span>
+            <span style="margin-left:auto;font-size:10px;letter-spacing:.1em;color:rgba(212,148,58,.55)">high resonance</span>
+          </div>
+        </div>
+      </div>
+      <div class="sr" style="transition-delay:.15s">
+        <div class="dc">
+          <svg width="100%" viewBox="0 0 400 360" style="display:block">
+            <circle cx="200" cy="180" r="150" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+            <circle cx="200" cy="180" r="112" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+            <circle cx="200" cy="180" r="75"  fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+            <circle cx="200" cy="180" r="37"  fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+            <line x1="200" y1="30"  x2="200" y2="330" stroke="rgba(255,255,255,.04)" stroke-width=".5"/>
+            <line x1="50"  y1="180" x2="350" y2="180" stroke="rgba(255,255,255,.04)" stroke-width=".5"/>
+            <polygon points="200,45 230,180 200,327 73,180" fill="rgba(139,110,196,.13)" stroke="rgba(139,110,196,.5)" stroke-width=".75"/>
+            <circle cx="200" cy="45"  r="4" fill="rgba(77,191,160,.85)"/>
+            <circle cx="230" cy="180" r="4" fill="rgba(196,96,128,.85)"/>
+            <circle cx="200" cy="327" r="4" fill="rgba(80,144,208,.85)"/>
+            <circle cx="73"  cy="180" r="4" fill="rgba(139,110,196,.85)"/>
+            <circle cx="200" cy="180" r="6" fill="rgba(139,110,196,.8)"/>
+            <circle cx="200" cy="180" r="6" fill="none" stroke="rgba(160,128,216,.35)" stroke-width="1" style="animation:pr 3s ease-out infinite"/>
+            <text x="200" y="29"  text-anchor="middle" font-family="'JetBrains Mono'" font-size="10" fill="rgba(77,191,160,.6)">stability 0.90</text>
+            <text x="238" y="184" font-family="'JetBrains Mono'" font-size="10" fill="rgba(196,96,128,.6)">friction 0.20</text>
+            <text x="200" y="350" text-anchor="middle" font-family="'JetBrains Mono'" font-size="10" fill="rgba(80,144,208,.6)">logic 0.98</text>
+            <text x="66"  y="172" text-anchor="end" font-family="'JetBrains Mono'" font-size="10" fill="rgba(139,110,196,.6)">autonomy</text>
+            <text x="66"  y="186" text-anchor="end" font-family="'JetBrains Mono'" font-size="10" fill="rgba(139,110,196,.6)">0.85</text>
+            <text x="200" y="184" text-anchor="middle" font-family="'DM Serif Display'" font-style="italic" font-size="13" fill="rgba(255,255,255,.18)">ψ 2.93</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ECOSYSTEM + CTA -->
+<section class="ss" style="padding:100px 0 100px">
+  <div class="wrap sr" style="text-align:center">
+    <span class="ml" style="display:block">Part of the ecosystem</span>
+    <h2 class="dh">Built on <em style="font-style:italic;color:rgba(255,255,255,.3)">STTP</em>. Powers <a href="https://resonantia.me" target="_blank" style="color:var(--teal);text-decoration:none;font-style:normal">Resonantia</a>.</h2>
+    <p class="bp2" style="margin:0 auto 48px;text-align:center">Locus is the infrastructure STTP agents stand on. Any agent, tool, or service that speaks STTP can use Locus as its memory layer.</p>
+    <div style="display:inline-flex;flex-direction:column;align-items:stretch;gap:1px;font-family:var(--fm);font-size:11px;color:var(--text-faint);margin-bottom:56px;min-width:360px">
+      <div style="padding:12px 28px;background:var(--nebula);border:.5px solid var(--mist2);border-radius:2px 2px 0 0;color:rgba(77,191,160,.6);text-align:center">resonantia · your app · any STTP agent</div>
+      <div style="padding:12px 28px;background:var(--surface);border:.5px solid var(--mist2);text-align:center;color:rgba(139,110,196,.7)">locus — memory layer</div>
+      <div style="padding:12px 28px;background:var(--nebula);border:.5px solid var(--mist2);border-radius:0 0 2px 2px;text-align:center;color:rgba(255,255,255,.25)">⏣ STTP · typed IR · cognitive state</div>
+    </div>
+    <div style="font-family:var(--fm);font-size:12px;color:var(--text-faint);background:var(--nebula);border:.5px solid var(--mist2);border-radius:3px;padding:20px 28px;text-align:left;max-width:500px;margin:0 auto 44px">
+      <div style="margin-bottom:8px;font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.2)">MCP server · one command</div>
+      <span style="color:rgba(255,255,255,.2)">$ </span><span style="color:rgba(77,191,160,.7)">docker run</span> --rm -i \<br>
+      &nbsp;&nbsp;-v "$PWD/locus-data:/data" \<br>
+      &nbsp;&nbsp;<span style="color:rgba(139,110,196,.55)">ghcr.io/keryxlabs/locus-mcp:0.1.0</span>
+    </div>
+    <div style="display:flex;gap:14px;justify-content:center">
+      <a href="https://github.com/keryxlabs/locus" class="btn bp" target="_blank">View on GitHub ↗</a>
+      <a href="https://resonantia.me" class="btn bg" target="_blank">See Resonantia</a>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer>
+  <div><span style="font-family:var(--fd);font-style:italic;font-size:15px;color:var(--text-faint)">Locus</span> &nbsp;·&nbsp; Apache-2.0 &nbsp;·&nbsp; <a href="https://github.com/keryxlabs/locus" target="_blank">keryxlabs/locus</a></div>
+  <div style="display:flex;gap:24px"><a href="https://github.com/keryxlabs/locus" target="_blank">GitHub</a><a href="https://resonantia.me" target="_blank">Resonantia</a></div>
+</footer>
+<script>
+const canvas=document.getElementById('sf'),ctx=canvas.getContext('2d');
+let W,H,stars=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+function mkStars(){stars=Array.from({length:180},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.1,a:Math.random()*.55+.08,tw:Math.random()*Math.PI*2,ts:Math.random()*.008+.003}))}
+function draw(){ctx.clearRect(0,0,W,H);stars.forEach(s=>{s.tw+=s.ts;const a=s.a*(.55+.45*Math.sin(s.tw));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fill()});requestAnimationFrame(draw)}
+resize();mkStars();draw();
+window.addEventListener('resize',()=>{resize();mkStars()});
+const els=document.querySelectorAll('.sr');
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.1});
+els.forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
