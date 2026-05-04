@@ -16,11 +16,11 @@ How this connects to STTP:
 
 - **The Spatial Anchor:** Just as the Method of Loci uses _loci_ (places) to store data, Locus uses the STTP protocol to define the "geometry" of memory—making context retrievable through structural navigation rather than just keyword searching.
 - **Spatio-Temporal Continuity:** By decoupling the memory layer, we ensure that the "Spatio" (the location of the data) and the "Temporal" (the persistence over time) are preserved regardless of which model or interface is interacting with it.
-- **Infrastructure over Magic:** Like the original KeryxInstrumenta vision, Locus does not offer "vague magic." It offers the raw, visible machinery of a memory palace—giving both developers and agents a living system to reason within.
+- **Infrastructure over Magic:** Locus does not offer "vague magic." It offers the raw, visible machinery of a memory palace, giving both developers and agents a living system to reason within.
 
 
 
-Licensed under Apache-2.0.
+Licensed under [Apache-2.0](LICENSE).
 
 ## Who This Is For
 
@@ -453,9 +453,20 @@ Crate-level release notes:
 
 Contributions are welcome across crates, docs, and operational tooling.
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and validation expectations.
+
 When making changes:
 
 1. Keep external contracts stable unless a planned versioned break is required.
 2. Prefer additive behavior changes first.
 3. Include migration notes for any contract-impacting changes.
 4. Add tests for behavior changes in retrieval, parsing, or transforms.
+
+## Community And Governance
+
+For public collaboration standards and disclosure policy:
+
+1. [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+2. [CONTRIBUTING.md](CONTRIBUTING.md)
+3. [SECURITY.md](SECURITY.md)
+4. [LICENSE](LICENSE)
