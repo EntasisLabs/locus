@@ -82,6 +82,34 @@ Operational docs:
 9. [docs/security.md](docs/security.md)
 10. [docs/sttp_typed_ir_language_spec.md](docs/sttp_typed_ir_language_spec.md)
 
+## Technical Docs Site (mdBook + rustdoc)
+
+Locus now supports a generated technical docs site that combines narrative guides and API reference.
+
+Build from repo root:
+
+```bash
+./docs/build-technical-docs.sh
+```
+
+Generated output:
+
+1. `docs/technical/book/index.html` (mdBook guide set)
+2. `docs/technical/api/index.html` (workspace rustdoc)
+3. `docs/technical/index.html` (combined entrypoint)
+
+Recommended first technical pages:
+
+1. `docs/book/src/environment-setup.md` (tooling and environment baseline)
+2. `docs/book/src/deployment.md` (runtime profiles and release readiness)
+3. `docs/book/src/integration.md` (contract-safe migration and rollout gates)
+
+Requirements:
+
+1. `mdbook` installed (`cargo install mdbook`)
+2. `mdbook-mermaid` installed (`cargo install mdbook-mermaid`)
+3. Standard Rust toolchain for `cargo doc`
+
 ## Start Path By Goal
 
 If you are deciding where to begin:
@@ -92,6 +120,17 @@ If you are deciding where to begin:
 4. I want terminal-first workflows without writing service code: start with [locus-cli/README.md](locus-cli/README.md).
 5. I am new to infra and want simple setup: start with the image-based quick runs in this README, then [locus-mcp/README.md](locus-mcp/README.md).
 6. I need operational and release policy: start with [docs/deployment.md](docs/deployment.md), [docs/operations.md](docs/operations.md), and [docs/versioning.md](docs/versioning.md).
+
+## Support Matrix (Baseline)
+
+| Area | Baseline |
+| --- | --- |
+| Rust toolchain | Stable |
+| Cargo | Included with stable toolchain |
+| Host OS | Linux, macOS, Windows (WSL2 recommended) |
+| Container runtime | Docker Engine or compatible |
+| Storage modes | In-memory and SurrealDB v3 |
+| Docs tooling | mdbook and mdbook-mermaid |
 
 ## Runtime Strategy
 

@@ -1,0 +1,144 @@
+/* Use a wider reading column for technical docs pages. */
+:root {
+  --content-max-width: 1240px;
+}
+
+.content main {
+  max-width: 1240px !important;
+}
+
+/* Normalize Mermaid blocks to a consistent visual footprint. */
+.mermaid {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 1.25rem 0 1.5rem;
+  padding-bottom: 0.35rem;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y pinch-zoom;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.mermaid svg {
+  display: block;
+  width: 980px;
+  min-width: 980px;
+  max-width: 980px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.mermaid.diagram-wide svg {
+  width: 1120px;
+  min-width: 1120px;
+  max-width: 1120px;
+}
+
+.mermaid.diagram-medium svg {
+  width: 980px;
+  min-width: 980px;
+  max-width: 980px;
+}
+
+.mermaid.diagram-compact svg {
+  width: 700px;
+  min-width: 700px;
+  max-width: 700px;
+}
+
+@media (max-width: 1400px) {
+  :root {
+    --content-max-width: 1160px;
+  }
+
+  .content main {
+    max-width: 1160px !important;
+  }
+
+  .mermaid svg {
+    width: 920px;
+    min-width: 920px;
+    max-width: 920px;
+  }
+
+  .mermaid.diagram-wide svg {
+    width: 1000px;
+    min-width: 1000px;
+    max-width: 1000px;
+  }
+
+  .mermaid.diagram-medium svg {
+    width: 900px;
+    min-width: 900px;
+    max-width: 900px;
+  }
+
+  .mermaid.diagram-compact svg {
+    width: 680px;
+    min-width: 680px;
+    max-width: 680px;
+  }
+}
+
+@media (max-width: 1100px) {
+  :root {
+    --content-max-width: 980px;
+  }
+
+  .content main {
+    max-width: 980px !important;
+  }
+
+  .mermaid svg {
+    width: 820px;
+    min-width: 820px;
+    max-width: 820px;
+  }
+
+  .mermaid.diagram-wide svg {
+    width: 860px;
+    min-width: 860px;
+    max-width: 860px;
+  }
+
+  .mermaid.diagram-medium svg {
+    width: 780px;
+    min-width: 780px;
+    max-width: 780px;
+  }
+
+  .mermaid.diagram-compact svg {
+    width: 620px;
+    min-width: 620px;
+    max-width: 620px;
+  }
+}
+
+@media (max-width: 800px) {
+  .mermaid svg {
+    width: 640px;
+    min-width: 640px;
+    max-width: 640px;
+  }
+
+  .mermaid.diagram-wide svg {
+    width: 680px;
+    min-width: 680px;
+    max-width: 680px;
+  }
+
+  .mermaid.diagram-medium svg {
+    width: 620px;
+    min-width: 620px;
+    max-width: 620px;
+  }
+
+  .mermaid.diagram-compact svg {
+    width: 500px;
+    min-width: 500px;
+    max-width: 500px;
+  }
+}
