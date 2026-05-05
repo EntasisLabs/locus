@@ -26,3 +26,24 @@ This documentation set is focused on production usage of the Locus Rust memory i
 
 1. ../locus-core
 2. ../locus-sdk
+
+## Generated Technical Docs
+
+Locus technical docs can be generated as a full site combining guides and API docs.
+
+From repo root:
+
+```bash
+./docs/build-technical-docs.sh
+```
+
+Tooling prerequisites:
+
+1. `cargo install mdbook`
+2. `cargo install mdbook-mermaid`
+
+Outputs:
+
+1. technical/book/index.html (mdBook chapters)
+2. technical/api/index.html (rustdoc API reference)
+3. technical/index.html (combined entrypoint)

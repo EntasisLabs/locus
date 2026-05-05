@@ -2,13 +2,15 @@
 
 ## Document Control
 - Document ID: LOCUS-SDK-ARCH-001
-- Status: Draft for Internal Review
-- Intended Audience: SDK Maintainers, Integrators, Architecture Review Board
+- Status: Current
+- Intended Audience: Application Developers, Platform Engineers, Solution Architects
 - Source of Truth: `locus-sdk` implementation (`application/*`, `domain/*`, `infrastructure/*`, `interface/*`)
 - Last Updated: 2026-05-04
 
 ## 1. Purpose and Scope
 This document defines the architecture of `locus-sdk`, including module boundaries, service orchestration, extension points, and operational behavior.
+
+Use this document to evaluate integration fit, implementation boundaries, and operational implications before committing to host-level adoption.
 
 Objectives:
 - Make component responsibilities explicit.
