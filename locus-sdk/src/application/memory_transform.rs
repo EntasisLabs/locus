@@ -19,10 +19,15 @@ pub struct MemoryTransformService {
 }
 
 impl MemoryTransformService {
+    /// Create a transform service with storage and provider registry dependencies.
     pub fn new(store: Arc<dyn NodeStore>, providers: Arc<dyn AiProviderRegistry>) -> Self {
         Self { store, providers }
     }
 
+    /// Execute a bulk memory transform operation.
+    ///
+    /// The current implementation supports embedding backfill with optional
+    /// dry-run behavior, batch control, and bounded failure reporting.
     pub async fn execute(&self, request: &MemoryTransformRequest) -> Result<MemoryTransformResult> {
         let started_at = Utc::now();
         let max_nodes = clamp_nodes(if request.max_nodes == 0 {

@@ -148,6 +148,24 @@ async fn main() -> Result<()> {
 }
 ```
 
+## Full End-to-End Example
+
+Run a complete in-memory workflow that exercises the core primitives:
+
+1. memory_find
+2. memory_recall
+3. memory_explain
+4. memory_aggregate
+5. memory_transform (dry-run then apply)
+6. memory_schema
+7. recall_with_explain composition
+
+Command:
+
+```bash
+cargo run -p locus-sdk --example full_end_to_end
+```
+
 ## Human and Assistant Collaboration Guide
 
 This SDK is intentionally designed to be usable by both application developers and model-driven collaborators.

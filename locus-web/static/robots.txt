@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Host: locus.black
+Sitemap: https://locus.black/sitemap.xml

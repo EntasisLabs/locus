@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Deployment and operations guide for Locus runtime modes, readiness checks, observability, and incident response.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#04030d">
+<meta name="author" content="Entasis Labs">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Locus">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Locus Deployment and Operations">
+<meta property="og:description" content="Deploy and operate Locus with clear runtime profiles, readiness checks, observability priorities, and incident playbooks.">
+<meta property="og:url" content="https://entasislabs.github.io/locus/deployment-operations.html">
+<meta property="og:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Locus Deployment and Operations">
+<meta name="twitter:description" content="Deploy and operate Locus with clear runtime profiles, readiness checks, observability priorities, and incident playbooks.">
+<meta name="twitter:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
+<link rel="canonical" href="https://entasislabs.github.io/locus/deployment-operations.html">
+<title>Locus Deployment and Operations | Locus</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Locus Deployment and Operations",
+  "description": "Deploy and operate Locus with clear runtime profiles, readiness checks, observability priorities, and incident playbooks.",
+  "url": "https://entasislabs.github.io/locus/deployment-operations.html",
+  "author": {
+    "@type": "Organization",
+    "name": "Entasis Labs"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Entasis Labs"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Locus",
+    "url": "https://entasislabs.github.io/locus/"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#04030d;--panel:#0d0a20;--line:rgba(255,255,255,.12);--txt:rgba(255,255,255,.86);--dim:rgba(255,255,255,.62);--teal:#4dbfa0;--amber:#d4943a;--mono:'JetBrains Mono',monospace;--ui:'Syne',sans-serif;--serif:'DM Serif Display',serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:radial-gradient(1200px 600px at 80% -10%, rgba(77,191,160,.09), transparent),radial-gradient(900px 600px at 10% 120%, rgba(212,148,58,.09), transparent),var(--bg);color:var(--txt);line-height:1.7}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.reading-veil{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 50% 16%, rgba(8,9,12,0.14), transparent 30%),linear-gradient(180deg, rgba(8,9,12,0.22), rgba(8,9,12,0.36) 45%, rgba(8,9,12,0.48) 100%)}
+main,nav,footer{position:relative;z-index:1}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 52px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(24px);background:rgba(4,3,13,.55);border-bottom:1px solid var(--line)}
+.nl{font-family:var(--serif);font-size:21px;letter-spacing:.01em;color:var(--txt);text-decoration:none}
+.na{display:flex;gap:10px;list-style:none;align-items:center}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.8;box-shadow:0 0 12px rgba(77,191,160,.55)}
+.na a{text-decoration:none;color:var(--dim);padding:7px 10px;border-radius:999px;border:1px solid transparent;transition:all .2s;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase}
+.na a.active{color:var(--txt);border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:2px}
+.na a:hover{color:var(--txt);border-color:var(--line);background:rgba(255,255,255,.04)}
+.hero{padding:120px 0 38px}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--teal);text-transform:uppercase}
+h1{font-family:var(--serif);font-size:clamp(38px,6.5vw,68px);line-height:1.04;margin:12px 0 14px}
+.lead{max-width:64ch;color:var(--dim);font-size:18px}
+.grid{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin-top:26px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;backdrop-filter:blur(6px);transition:transform .2s,border-color .2s,background .2s}
+.card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.26);background:rgba(18,16,42,.85)}
+.card h2{font-family:var(--serif);font-size:32px;margin-bottom:10px}
+.sub{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+.list{padding-left:18px;color:var(--dim)}
+.list li{margin:6px 0}
+.table{width:100%;border-collapse:collapse;font-size:14px}
+.table th,.table td{border:1px solid var(--line);padding:10px 12px;text-align:left}
+.table th{color:rgba(255,255,255,.85);font-weight:600}
+.table td{color:var(--dim)}
+.stack{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 46px}
+.cmd{background:#120f28;border:1px solid var(--line);border-radius:6px;padding:12px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.55;color:rgba(255,255,255,.88);margin-top:10px}
+.links a{display:inline-block;margin:4px 10px 0 0;padding:8px 10px;border:1px solid var(--line);border-radius:6px;text-decoration:none;font-size:13px;color:var(--dim)}
+.links a:hover{color:var(--txt);border-color:rgba(255,255,255,.3)}
+footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.hero,.grid,.stack,.card{animation:fadeUp .8s ease both}
+.grid{animation-delay:.1s}
+.stack{animation-delay:.2s}
+@media (max-width:900px){.grid,.stack{grid-template-columns:1fr}.lead{font-size:16px}}
+@media (max-width:980px){nav{padding:14px 24px}.na{gap:18px}}
+@media (max-width:760px){nav{padding:12px 14px;gap:12px}.nl{font-size:19px}.na{gap:10px;max-width:72vw;overflow-x:auto;padding-bottom:4px;justify-content:flex-end}.na a{font-size:12px;white-space:nowrap;letter-spacing:.08em}}
+@media (max-width:520px){.na li:nth-child(3){display:none}}
+@media (max-width:420px){nav{padding:10px 10px}.na{max-width:70vw;gap:8px}.na a{font-size:9px;letter-spacing:.07em}}
+</style>
+</head>
+<body>
+<div class="reading-veil"></div>
+<nav>
+  <a href="index.html" class="nl">Locus</a>
+  <ul class="na">
+    <li><span class="status-dot" aria-hidden="true"></span></li>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="quickstart.html">Quickstart</a></li>
+    <li><a href="deployment-operations.html" class="active" aria-current="page">Deploy/Ops</a></li>
+    <li><a href="docs.html">Docs</a></li>
+    <li><a href="https://github.com/entasislabs/locus" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+  </ul>
+</nav>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="kicker">Deployment and Operations</div>
+    <h1>Run reliably. Recover fast.</h1>
+    <p class="lead">This page condenses deployment modes, release readiness, observability priorities, and incident runbook patterns for production Locus usage.</p>
+  </section>
+
+  <section class="card" style="margin-bottom:16px">
+    <h2>Environment matrix</h2>
+    <table class="table">
+      <thead>
+        <tr><th>Environment</th><th>Storage</th><th>Host Profile</th><th>Primary Goal</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Local Development</td><td>In-memory or embedded Surreal</td><td>Single process</td><td>Fast iteration</td></tr>
+        <tr><td>CI Validation</td><td>In-memory fixtures</td><td>Test jobs only</td><td>Regression detection</td></tr>
+        <tr><td>Staging</td><td>Remote SurrealDB</td><td>Gateway and MCP parity checks</td><td>Release rehearsal</td></tr>
+        <tr><td>Production</td><td>Remote SurrealDB restricted access</td><td>Managed gateway and MCP deploys</td><td>Reliability and auditability</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <div class="sub">Release readiness</div>
+      <h2>Checklist</h2>
+      <ol class="list">
+        <li>Workspace compile and tests pass.</li>
+        <li>SDK examples execute in smoke path.</li>
+        <li>Host integrations confirm contract compatibility.</li>
+        <li>Changelog and migration notes updated.</li>
+        <li>Security checklist reviewed for secrets/logging hygiene.</li>
+      </ol>
+      <pre class="cmd">cargo check --workspace --examples
+cargo test -p locus-core --lib
+cargo test -p locus-sdk</pre>
+    </article>
+    <article class="card">
+      <div class="sub">Health signals</div>
+      <h2>Observe first</h2>
+      <ul class="list">
+        <li>Parse success ratio</li>
+        <li>Validation failure ratio</li>
+        <li>Recall latency percentiles</li>
+        <li>Transform success/failure rates</li>
+        <li>Embedding backfill throughput</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="stack">
+    <article class="card">
+      <div class="sub">Incident runbook A</div>
+      <h2>Parser spike</h2>
+      <ol class="list">
+        <li>Capture failing payloads.</li>
+        <li>Validate four-layer ordering and key format.</li>
+        <li>Compare behavior with last known-good release.</li>
+        <li>Rollback host version if release-correlated.</li>
+      </ol>
+    </article>
+    <article class="card">
+      <div class="sub">Incident runbook B</div>
+      <h2>Retrieval regression</h2>
+      <ol class="list">
+        <li>Capture request payload + scoring settings + path.</li>
+        <li>Run explain workflow with same request.</li>
+        <li>Compare fallback behavior against baseline.</li>
+        <li>Patch defaults only with regression tests.</li>
+      </ol>
+    </article>
+    <article class="card">
+      <div class="sub">Incident runbook C</div>
+      <h2>Transform instability</h2>
+      <ol class="list">
+        <li>Switch to dry-run.</li>
+        <li>Validate selected nodes and provider capabilities.</li>
+        <li>Reduce batch size and rerun with checkpoints.</li>
+        <li>Resume full run only after parity.</li>
+      </ol>
+    </article>
+    <article class="card">
+      <div class="sub">Deep references</div>
+      <h2>Primary docs</h2>
+      <div class="links">
+        <a href="deployment.md">Deployment Markdown</a>
+        <a href="operations.md">Operations Markdown</a>
+        <a href="integration.md">Integration Markdown</a>
+        <a href="security.md">Security Markdown</a>
+      </div>
+    </article>
+  </section>
+</main>
+
+<footer class="wrap">Locus Deployment and Operations · Apache-2.0 · <a href="index.html">Back to landing</a> · <a href="docs.html">Docs hub</a></footer>
+</body>
+</html>

@@ -1,3 +1,5 @@
+//! Parsing stack for STTP lexical analysis and node parsing.
+
 pub mod ast;
 pub mod lexer;
 pub mod lexicon;

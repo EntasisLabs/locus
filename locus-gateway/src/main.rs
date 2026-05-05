@@ -1,3 +1,8 @@
+//! `locus-gateway` binary.
+//!
+//! Provides HTTP and gRPC surfaces for STTP memory operations by composing
+//! core services with tenant-aware orchestration and provider routing.
+
 use anyhow::Result;
 
 mod app_state;

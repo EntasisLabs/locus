@@ -1,0 +1,3081 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Locus Technical Documentation</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-ae938929.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="mermaid-overrides-6dc6bef8.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex-754e55a0.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-ba80e232.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Locus Technical Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/entasislabs/locus" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="locus-technical-documentation"><a class="header" href="#locus-technical-documentation">Locus Technical Documentation</a></h1>
+<p>This book is the technical reference for teams evaluating, integrating, and operating Locus in real systems.</p>
+<h2 id="who-this-is-for"><a class="header" href="#who-this-is-for">Who This Is For</a></h2>
+<ul>
+<li>Application developers building products on top of Locus</li>
+<li>Platform engineers integrating memory infrastructure into existing stacks</li>
+<li>Technical teams preparing architecture proposals and implementation plans</li>
+</ul>
+<h2 id="what-you-can-decide-with-this-book"><a class="header" href="#what-you-can-decide-with-this-book">What You Can Decide With This Book</a></h2>
+<ul>
+<li>Whether Locus fits your reliability and integration requirements</li>
+<li>Which runtime shape fits your environment (SDK, gateway, MCP)</li>
+<li>How to implement safely without rewriting contracts later</li>
+</ul>
+<h2 id="what-you-get-here"><a class="header" href="#what-you-get-here">What You Get Here</a></h2>
+<ul>
+<li>Architecture and protocol model details</li>
+<li>Storage and schema specifications</li>
+<li>SDK design and composition patterns</li>
+<li>Mini orchestration cookbooks with prompts and composition flows</li>
+<li>Agent blueprint patterns by domain and task model</li>
+<li>Deployment and operations guidance</li>
+<li>Troubleshooting and versioning policy</li>
+</ul>
+<h2 id="api-documentation"><a class="header" href="#api-documentation">API Documentation</a></h2>
+<p>Generated Rust API docs are published alongside this book so implementation teams can move from architecture to code-level integration without switching references.</p>
+<ul>
+<li>Local build output: <code>docs/technical/api/index.html</code></li>
+<li>Typical crate roots:
+<ul>
+<li><code>docs/technical/api/locus_core/index.html</code></li>
+<li><code>docs/technical/api/locus_sdk/index.html</code></li>
+<li><code>docs/technical/api/locus_mcp/index.html</code></li>
+<li><code>docs/technical/api/locus_gateway/index.html</code></li>
+<li><code>docs/technical/api/locus_cli/index.html</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="build"><a class="header" href="#build">Build</a></h2>
+<p>From repository root:</p>
+<pre><code class="language-bash">./docs/build-technical-docs.sh
+</code></pre>
+<p>Then open:</p>
+<ul>
+<li><code>docs/technical/index.html</code></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="environment-setup"><a class="header" href="#environment-setup">Environment Setup</a></h1>
+<h2 id="audience-and-use"><a class="header" href="#audience-and-use">Audience and Use</a></h2>
+<p>This page is for developers and platform teams preparing a reliable local or shared environment for Locus evaluation and integration.</p>
+<p>Use it to:</p>
+<ol>
+<li>Confirm supported tooling and runtime combinations.</li>
+<li>Validate environment readiness before implementation work starts.</li>
+<li>Standardize local, CI, and staging setup patterns.</li>
+</ol>
+<h2 id="support-matrix"><a class="header" href="#support-matrix">Support Matrix</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Component</th><th>Supported Baseline</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr><td>Rust toolchain</td><td>Stable channel</td><td>Use a pinned stable toolchain in CI for reproducibility.</td></tr>
+<tr><td>Cargo</td><td>Bundled with Rust stable</td><td>Required for build, test, examples, and docs generation.</td></tr>
+<tr><td>OS (development)</td><td>Linux, macOS, Windows (WSL2 recommended)</td><td>Linux and macOS are primary paths for host scripting.</td></tr>
+<tr><td>Container runtime</td><td>Docker Engine or compatible runtime</td><td>Required for image-based MCP and gateway startup paths.</td></tr>
+<tr><td>Storage backend</td><td>In-memory or SurrealDB v3</td><td>In-memory for fast local validation; SurrealDB for persistent environments.</td></tr>
+<tr><td>Docs toolchain</td><td>mdbook, mdbook-mermaid</td><td>Required for generated technical docs site.</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="tooling-prerequisites"><a class="header" href="#tooling-prerequisites">Tooling Prerequisites</a></h2>
+<p>Install and verify:</p>
+<pre><code class="language-bash">rustc --version
+cargo --version
+docker --version
+mdbook --version
+mdbook-mermaid --version
+</code></pre>
+<p>If docs tools are missing:</p>
+<pre><code class="language-bash">cargo install mdbook
+cargo install mdbook-mermaid
+</code></pre>
+<h2 id="recommended-environment-profiles"><a class="header" href="#recommended-environment-profiles">Recommended Environment Profiles</a></h2>
+<h3 id="local-development-profile"><a class="header" href="#local-development-profile">Local Development Profile</a></h3>
+<p>Use when iterating on features and integration code.</p>
+<ol>
+<li>Storage: in-memory or local SurrealDB.</li>
+<li>Host runtime: single process.</li>
+<li>Objective: speed and repeatability.</li>
+</ol>
+<h3 id="ci-validation-profile"><a class="header" href="#ci-validation-profile">CI Validation Profile</a></h3>
+<p>Use for pull requests and release gating.</p>
+<ol>
+<li>Storage: deterministic in-memory fixtures.</li>
+<li>Host runtime: test-only jobs.</li>
+<li>Objective: compatibility and regression detection.</li>
+</ol>
+<h3 id="staging-profile"><a class="header" href="#staging-profile">Staging Profile</a></h3>
+<p>Use for pre-production verification.</p>
+<ol>
+<li>Storage: isolated remote SurrealDB.</li>
+<li>Host runtime: gateway and MCP parity checks.</li>
+<li>Objective: rollout rehearsal and migration validation.</li>
+</ol>
+<h2 id="baseline-verification"><a class="header" href="#baseline-verification">Baseline Verification</a></h2>
+<p>From repository root:</p>
+<pre><code class="language-bash">cargo check --workspace --examples
+cargo test --workspace
+cargo check --examples -p locus-sdk
+./docs/build-technical-docs.sh
+</code></pre>
+<p>A setup is considered ready when all commands complete successfully.</p>
+<h2 id="runtime-smoke-start"><a class="header" href="#runtime-smoke-start">Runtime Smoke Start</a></h2>
+<p>Image-based MCP:</p>
+<pre><code class="language-bash">docker run --rm -i -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-mcp:0.1.0
+</code></pre>
+<p>Image-based gateway:</p>
+<pre><code class="language-bash">docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-gateway:2.0.0
+</code></pre>
+<h2 id="environment-hygiene-controls"><a class="header" href="#environment-hygiene-controls">Environment Hygiene Controls</a></h2>
+<ol>
+<li>Keep secrets outside repository files.</li>
+<li>Keep development and production data paths separate.</li>
+<li>Pin model and provider settings in shared environments.</li>
+<li>Use explicit tenant and session scope in integration tests.</li>
+</ol>
+<h2 id="exit-criteria"><a class="header" href="#exit-criteria">Exit Criteria</a></h2>
+<p>Environment setup is complete when:</p>
+<ol>
+<li>Workspace build and tests pass.</li>
+<li>At least one host runtime starts successfully.</li>
+<li>Technical docs site builds successfully.</li>
+<li>Team members can reproduce setup using this page only.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
+<h2 id="audience-and-use-1"><a class="header" href="#audience-and-use-1">Audience and Use</a></h2>
+<p>This page is for engineers deciding how to adopt Locus in production systems.</p>
+<p>Use it to:</p>
+<ol>
+<li>Choose where Locus should sit in your stack.</li>
+<li>Understand component responsibilities before integration starts.</li>
+<li>Avoid coupling host transports to internal implementation details.</li>
+</ol>
+<h2 id="purpose"><a class="header" href="#purpose">Purpose</a></h2>
+<p>Locus is the Rust implementation layer for STTP memory systems. STTP remains the protocol layer. Locus provides reusable components for parsing, validation, storage, retrieval, and composition with stable contract boundaries.</p>
+<h2 id="layering"><a class="header" href="#layering">Layering</a></h2>
+<ol>
+<li>Protocol layer: STTP grammar and four-layer node contract.</li>
+<li>Implementation core: locus-core.</li>
+<li>SDK/application layer: locus-sdk.</li>
+<li>Host transport layer: MCP, HTTP, gRPC hosts that consume Locus crates.</li>
+</ol>
+<h2 id="crate-responsibilities"><a class="header" href="#crate-responsibilities">Crate Responsibilities</a></h2>
+<h3 id="locus-core"><a class="header" href="#locus-core">locus-core</a></h3>
+<ol>
+<li>Domain models and contracts.</li>
+<li>STTP parsing and validation.</li>
+<li>Storage adapters (in-memory and SurrealDB).</li>
+<li>Core services for calibration, store/query, rollups, and sync-ready primitives.</li>
+</ol>
+<h3 id="locus-sdk"><a class="header" href="#locus-sdk">locus-sdk</a></h3>
+<ol>
+<li>Primitive memory workflows: find, recall, aggregate, transform, explain, schema.</li>
+<li>Composition workflows for multi-step operations.</li>
+<li>Deterministic manual compression and recursive content construction.</li>
+<li>Transport DTOs and typed request/response boundaries.</li>
+</ol>
+<h2 id="design-principles"><a class="header" href="#design-principles">Design Principles</a></h2>
+<ol>
+<li>Deterministic-first behavior where possible.</li>
+<li>Explicit policy controls over hidden defaults.</li>
+<li>Transport-neutral workflows.</li>
+<li>Additive evolution with compatibility preservation.</li>
+<li>Observable retrieval paths with explainable outcomes.</li>
+</ol>
+<h2 id="data-contract-boundaries"><a class="header" href="#data-contract-boundaries">Data Contract Boundaries</a></h2>
+<ol>
+<li>STTP node text is validated against the protocol structure.</li>
+<li>Core models carry parsed and computed fields.</li>
+<li>SDK contracts define application-level behavior and policy.</li>
+<li>Transport DTOs convert cleanly into SDK contracts.</li>
+</ol>
+<h2 id="dependency-direction"><a class="header" href="#dependency-direction">Dependency Direction</a></h2>
+<ol>
+<li>locus-sdk depends on locus-core.</li>
+<li>locus-core has no dependency on locus-sdk.</li>
+<li>Hosts should depend on locus-sdk for workflow orchestration and on locus-core only when low-level access is required.</li>
+</ol>
+<p>This dependency model keeps host contracts stable while internal implementations evolve.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="locus-core-database-schema-and-data-governance"><a class="header" href="#locus-core-database-schema-and-data-governance">Locus Core Database Schema and Data Governance</a></h1>
+<h2 id="document-control"><a class="header" href="#document-control">Document Control</a></h2>
+<ul>
+<li>Document ID: LOCUS-CORE-DATA-ARCH-001</li>
+<li>Status: Current</li>
+<li>Intended Audience: Platform Engineers, Data Engineers, Reliability Engineers, Security Reviewers</li>
+<li>Source of Truth: <code>locus-core</code> implementation (<code>domain/models.rs</code>, <code>storage/surrealdb/*</code>, <code>domain/contracts.rs</code>)</li>
+<li>Last Updated: 2026-05-04</li>
+</ul>
+<h2 id="audience-and-use-2"><a class="header" href="#audience-and-use-2">Audience and Use</a></h2>
+<p>This document is for teams evaluating data durability, query behavior, and operational safety before adopting Locus in production systems.</p>
+<p>Use it to:</p>
+<ol>
+<li>Validate persistence and indexing behavior against your workload.</li>
+<li>Understand multi-tenant and compatibility rules.</li>
+<li>Review storage-level guarantees before integration and rollout.</li>
+</ol>
+<h2 id="1-purpose-and-scope"><a class="header" href="#1-purpose-and-scope">1. Purpose and Scope</a></h2>
+<p>This document specifies the persistence model used by <code>locus-core</code> for STTP memory nodes, calibration records, and synchronization checkpoints.</p>
+<p>It covers:</p>
+<ul>
+<li>Physical schema implemented in SurrealDB.</li>
+<li>Logical entity relationships.</li>
+<li>Idempotency and uniqueness rules.</li>
+<li>Multi-tenant and legacy-compatibility behavior.</li>
+<li>Query, indexing, and lifecycle constraints.</li>
+</ul>
+<p>It does not cover:</p>
+<ul>
+<li>HTTP/gRPC transport contracts (documented in gateway docs).</li>
+<li>UI-facing DTO contracts (documented in SDK interface docs).</li>
+</ul>
+<h2 id="2-architectural-context"><a class="header" href="#2-architectural-context">2. Architectural Context</a></h2>
+<p><code>locus-core</code> defines a storage abstraction (<code>NodeStore</code>) with two concrete implementations:</p>
+<ul>
+<li><code>InMemoryNodeStore</code> for tests and ephemeral execution.</li>
+<li><code>SurrealDbNodeStore</code> for persistent runtime.</li>
+</ul>
+<p>All persisted shape definitions and indexes in this document correspond to <code>SurrealDbNodeStore</code> schema initialization.</p>
+<h2 id="3-canonical-logical-model"><a class="header" href="#3-canonical-logical-model">3. Canonical Logical Model</a></h2>
+<pre class="mermaid">erDiagram
+    TEMPORAL_NODE {
+        string id PK
+        string tenant_id
+        string session_id
+        string tier
+        datetime timestamp
+        string sync_key
+        float psi
+        float rho
+        float kappa
+    }
+
+    CALIBRATION {
+        string id PK
+        string tenant_id
+        string session_id
+        float stability
+        float friction
+        float logic
+        float autonomy
+        float psi
+        datetime created_at
+    }
+
+    SYNC_CHECKPOINT {
+        string id PK
+        string tenant_id
+        string session_id
+        string connector_id
+        datetime cursor_updated_at
+        string cursor_sync_key
+        datetime updated_at
+    }
+
+      TEMPORAL_NODE }o--|| CALIBRATION : "session_scope"
+      TEMPORAL_NODE }o--|| SYNC_CHECKPOINT : "sync_scope"
+</pre>
+
+<h2 id="4-domain-model-alignment-uml"><a class="header" href="#4-domain-model-alignment-uml">4. Domain Model Alignment (UML)</a></h2>
+<pre class="mermaid">classDiagram
+    class AvecState {
+      +float stability
+      +float friction
+      +float logic
+      +float autonomy
+      +float psi()
+      +float drift_from(previous)
+      +DriftClassification classify_drift(previous)
+    }
+
+    class SttpNode {
+      +string raw
+      +string session_id
+      +string tier
+      +datetime timestamp
+      +int compression_depth
+      +string parent_node_id
+      +string sync_key
+      +datetime updated_at
+      +object source_metadata
+      +string context_summary
+      +float[] embedding
+      +string embedding_model
+      +int embedding_dimensions
+      +datetime embedded_at
+      +AvecState user_avec
+      +AvecState model_avec
+      +AvecState compression_avec
+      +float rho
+      +float kappa
+      +float psi
+      +string canonical_sync_key()
+    }
+
+    class SyncCursor {
+      +datetime updated_at
+      +string sync_key
+    }
+
+    class SyncCheckpoint {
+      +string session_id
+      +string connector_id
+      +SyncCursor cursor
+      +datetime updated_at
+      +object metadata
+    }
+
+    class NodeStore {
+      &lt;&lt;interface&gt;&gt;
+      +query_nodes_async(query)
+      +upsert_node_async(node)
+      +get_by_resonance_async(...)
+      +get_by_hybrid_async(...)
+      +query_changes_since_async(...)
+      +get_checkpoint_async(...)
+      +put_checkpoint_async(...)
+      +batch_rekey_scopes_async(...)
+    }
+
+    SttpNode --&gt; AvecState
+    SyncCheckpoint --&gt; SyncCursor
+    NodeStore ..&gt; SttpNode
+    NodeStore ..&gt; SyncCheckpoint
+</pre>
+
+<h2 id="5-physical-schema-surrealdb"><a class="header" href="#5-physical-schema-surrealdb">5. Physical Schema (SurrealDB)</a></h2>
+<h3 id="51-table-temporal_node"><a class="header" href="#51-table-temporal_node">5.1 Table: <code>temporal_node</code></a></h3>
+<p>Storage purpose:</p>
+<ul>
+<li>Authoritative persisted STTP node record.</li>
+<li>Supports retrieval, ranking, sync, and transform operations.</li>
+</ul>
+<p>Key characteristics:</p>
+<ul>
+<li><code>SCHEMAFULL</code> table.</li>
+<li>Unique identity by <code>(tenant_id, session_id, sync_key)</code>.</li>
+<li>Temporal ordering by <code>timestamp</code> and <code>updated_at</code>.</li>
+</ul>
+<p>Required fields:</p>
+<ul>
+<li>Identity and scope: <code>tenant_id</code>, <code>session_id</code>, <code>sync_key</code>.</li>
+<li>Protocol payload: <code>raw</code>, <code>tier</code>, <code>timestamp</code>, <code>compression_depth</code>.</li>
+<li>Metrics: <code>psi</code>, <code>rho</code>, <code>kappa</code>.</li>
+<li>AVEC projections: <code>user_*</code>, <code>model_*</code>, <code>comp_*</code>.</li>
+</ul>
+<p>Optional fields:</p>
+<ul>
+<li>Hierarchy: <code>parent_node_id</code>.</li>
+<li>Source lineage: <code>source_metadata</code>.</li>
+<li>Retrieval acceleration: <code>context_summary</code>, <code>embedding*</code>, <code>embedded_at</code>.</li>
+</ul>
+<h3 id="52-table-calibration"><a class="header" href="#52-table-calibration">5.2 Table: <code>calibration</code></a></h3>
+<p>Storage purpose:</p>
+<ul>
+<li>Session-level AVEC measurement history.</li>
+</ul>
+<p>Key characteristics:</p>
+<ul>
+<li><code>SCHEMAFULL</code> table.</li>
+<li>Ordered by <code>created_at</code> for latest state and trigger timeline.</li>
+</ul>
+<h3 id="53-table-sync_checkpoint"><a class="header" href="#53-table-sync_checkpoint">5.3 Table: <code>sync_checkpoint</code></a></h3>
+<p>Storage purpose:</p>
+<ul>
+<li>Connector/session cursor materialization for incremental pull.</li>
+</ul>
+<p>Key characteristics:</p>
+<ul>
+<li><code>SCHEMAFULL</code> table.</li>
+<li>Unique by <code>(tenant_id, session_id, connector_id)</code>.</li>
+</ul>
+<h2 id="6-index-and-access-pattern-mapping"><a class="header" href="#6-index-and-access-pattern-mapping">6. Index and Access Pattern Mapping</a></h2>
+<ul>
+<li><code>idx_node_sync_identity (tenant_id, session_id, sync_key UNIQUE)</code>
+<ul>
+<li>Supports idempotent upsert semantics.</li>
+</ul>
+</li>
+<li><code>idx_node_change_cursor (tenant_id, session_id, updated_at, sync_key)</code>
+<ul>
+<li>Supports stable incremental reads (<code>updated_at</code>, tie-break by <code>sync_key</code>).</li>
+</ul>
+</li>
+<li><code>idx_node_tenant_session (tenant_id, session_id)</code> and <code>idx_node_session (session_id)</code>
+<ul>
+<li>Supports scoped listing and filtering.</li>
+</ul>
+</li>
+<li><code>idx_node_tier (tier)</code>, <code>idx_node_timestamp (timestamp)</code>
+<ul>
+<li>Supports filtering across tier/time windows.</li>
+</ul>
+</li>
+<li><code>idx_cal_tenant_session</code>, <code>idx_cal_session</code>
+<ul>
+<li>Supports latest calibration and trigger history.</li>
+</ul>
+</li>
+<li><code>idx_checkpoint_scope (tenant_id, session_id, connector_id UNIQUE)</code>
+<ul>
+<li>Supports deterministic checkpoint upsert.</li>
+</ul>
+</li>
+</ul>
+<h2 id="7-write-path-rules"><a class="header" href="#7-write-path-rules">7. Write Path Rules</a></h2>
+<h3 id="71-idempotent-upsert"><a class="header" href="#71-idempotent-upsert">7.1 Idempotent Upsert</a></h3>
+<p><code>upsert_node_async</code> behavior:</p>
+<ol>
+<li>Normalize/derive <code>sync_key</code> if missing (<code>canonical_sync_key</code>).</li>
+<li>Determine tenant from <code>session_id</code> scope (<code>tenant:&lt;id&gt;::session:&lt;id&gt;</code>), else fallback <code>default</code>.</li>
+<li>Probe existing exact scope and fallback any-tenant records by <code>session_id + sync_key</code>.</li>
+<li>If fully equivalent payload/metadata exists -&gt; <code>Duplicate</code>.</li>
+<li>If record exists with differences -&gt; <code>Updated</code>.</li>
+<li>Otherwise create new -&gt; <code>Created</code>.</li>
+</ol>
+<h3 id="72-conflict-handling"><a class="header" href="#72-conflict-handling">7.2 Conflict Handling</a></h3>
+<p>On unique index conflict:</p>
+<ul>
+<li>Attempt to resolve conflict record id and update in place.</li>
+<li>Re-read existing record if needed and classify as <code>Updated</code> or <code>Duplicate</code>.</li>
+</ul>
+<h3 id="73-compression-avec-rule"><a class="header" href="#73-compression-avec-rule">7.3 Compression AVEC Rule</a></h3>
+<p>If candidate <code>compression_avec</code> is absent or zeroed, model AVEC is used as persistence fallback for <code>comp_*</code> fields.</p>
+<h2 id="8-read-path-rules"><a class="header" href="#8-read-path-rules">8. Read Path Rules</a></h2>
+<h3 id="81-query-query_nodes_async"><a class="header" href="#81-query-query_nodes_async">8.1 Query (<code>query_nodes_async</code>)</a></h3>
+<p>Supports:</p>
+<ul>
+<li>Optional session scope.</li>
+<li>Optional UTC lower/upper bounds.</li>
+<li>Optional tier set (case-insensitive).</li>
+<li>Descending <code>timestamp</code> order.</li>
+</ul>
+<h3 id="82-resonance-retrieval"><a class="header" href="#82-resonance-retrieval">8.2 Resonance Retrieval</a></h3>
+<p>Distance formula (per record):
+<code>ResonanceDelta = (|model_stability-s| + |model_friction-f| + |model_logic-l| + |model_autonomy-a|) / 4</code></p>
+<p>Ordering:</p>
+<ul>
+<li>Ascending <code>ResonanceDelta</code>.</li>
+</ul>
+<h3 id="83-hybrid-retrieval"><a class="header" href="#83-hybrid-retrieval">8.3 Hybrid Retrieval</a></h3>
+<p><code>NodeStore</code> defines hybrid retrieval APIs and graceful fallback behavior to resonance-only in implementations that cannot apply semantic ranking.</p>
+<h2 id="9-sync-and-change-data-capture"><a class="header" href="#9-sync-and-change-data-capture">9. Sync and Change Data Capture</a></h2>
+<pre class="mermaid">flowchart TD
+  A[Node upsert] --&gt; B[Set updated_at and sync_key]
+  B --&gt; C[Index supports cursor ordering]
+  C --&gt; D[Query changes since cursor]
+  D --&gt; E{More rows}
+  E -- yes --&gt; F[Return page ordered by updated_at then sync_key]
+  E -- no --&gt; G[has_more false]
+    F --&gt; H[Consumer applies rows]
+  H --&gt; I[Store checkpoint with next cursor]
+</pre>
+
+<p>Determinism contract:</p>
+<ul>
+<li>Cursor is composite: <code>(updated_at, sync_key)</code>.</li>
+<li>Ordering is total for equal timestamps due to <code>sync_key</code> tie-break.</li>
+</ul>
+<h2 id="10-multi-tenant-and-legacy-compatibility"><a class="header" href="#10-multi-tenant-and-legacy-compatibility">10. Multi-Tenant and Legacy Compatibility</a></h2>
+<p>Tenant rules:</p>
+<ul>
+<li>Derived tenant for scoped sessions: <code>tenant:&lt;tenant_id&gt;::session:&lt;session_id&gt;</code>.</li>
+<li>Default tenant fallback: <code>default</code>.</li>
+</ul>
+<p>Legacy compatibility behavior:</p>
+<ul>
+<li>Reads include records where <code>tenant_id</code> is <code>NONE</code> or empty for default tenant scope.</li>
+<li>Initializer backfills missing tenant fields and legacy sync fields.</li>
+</ul>
+<h2 id="11-scope-rekey-transaction-model"><a class="header" href="#11-scope-rekey-transaction-model">11. Scope Rekey Transaction Model</a></h2>
+<p>Batch rekey performs scope migration over full session scope, not anchor-only rows:</p>
+<ul>
+<li>Update <code>temporal_node.tenant_id</code>, <code>temporal_node.session_id</code>.</li>
+<li>Update <code>calibration.tenant_id</code>, <code>calibration.session_id</code>.</li>
+<li>Execute within a transaction block.</li>
+</ul>
+<p>Safety semantics:</p>
+<ul>
+<li>Dry-run supported at service level.</li>
+<li>Merge conflict detection for target scope supported.</li>
+</ul>
+<h2 id="12-validation-and-integrity-constraints"><a class="header" href="#12-validation-and-integrity-constraints">12. Validation and Integrity Constraints</a></h2>
+<p>Protocol-level validation (<code>TreeSitterValidator</code>) enforces:</p>
+<ul>
+<li>Required STTP layers present.</li>
+<li>Layer order correctness.</li>
+<li>Tier in allowed set: <code>raw|daily|weekly|monthly|quarterly|yearly</code>.</li>
+<li>Content nesting depth &lt;= 5.</li>
+<li>Optional PSI coherence verification against compression AVEC.</li>
+</ul>
+<p>These validations occur before persistence in <code>StoreContextService</code> workflows.</p>
+<h2 id="13-operational-non-functional-requirements"><a class="header" href="#13-operational-non-functional-requirements">13. Operational Non-Functional Requirements</a></h2>
+<ul>
+<li>Durability: SurrealDB persistence for production profile.</li>
+<li>Idempotency: guaranteed by sync identity index and upsert semantics.</li>
+<li>Replay safety: cursor/checkpoint design supports restartable sync pulls.</li>
+<li>Backward compatibility: additive schema evolution expected; legacy tenant buckets supported.</li>
+</ul>
+<h2 id="14-schema-evolution-guidelines"><a class="header" href="#14-schema-evolution-guidelines">14. Schema Evolution Guidelines</a></h2>
+<p>Permitted changes:</p>
+<ul>
+<li>Additive nullable fields.</li>
+<li>Additive indexes for new access paths.</li>
+<li>New retrieval predicates that preserve existing defaults.</li>
+</ul>
+<p>Controlled changes (require migration and compatibility review):</p>
+<ul>
+<li>Sync identity key shape.</li>
+<li>Cursor ordering columns.</li>
+<li>Tier vocabulary changes.</li>
+<li>AVEC projection field semantics.</li>
+</ul>
+<h2 id="15-traceability-to-implementation"><a class="header" href="#15-traceability-to-implementation">15. Traceability to Implementation</a></h2>
+<p>Primary implementation locations:</p>
+<ul>
+<li><code>locus-core/src/storage/surrealdb/raw_queries.rs</code></li>
+<li><code>locus-core/src/storage/surrealdb/node_store.rs</code></li>
+<li><code>locus-core/src/domain/models.rs</code></li>
+<li><code>locus-core/src/domain/contracts.rs</code></li>
+<li><code>locus-core/src/application/validation/tree_sitter_validator.rs</code></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="locus-sdk-architecture-specification"><a class="header" href="#locus-sdk-architecture-specification">Locus SDK Architecture Specification</a></h1>
+<h2 id="document-control-1"><a class="header" href="#document-control-1">Document Control</a></h2>
+<ul>
+<li>Document ID: LOCUS-SDK-ARCH-001</li>
+<li>Status: Current</li>
+<li>Intended Audience: Application Developers, Platform Engineers, Solution Architects</li>
+<li>Source of Truth: <code>locus-sdk</code> implementation (<code>application/*</code>, <code>domain/*</code>, <code>infrastructure/*</code>, <code>interface/*</code>)</li>
+<li>Last Updated: 2026-05-04</li>
+</ul>
+<h2 id="1-purpose-and-scope-1"><a class="header" href="#1-purpose-and-scope-1">1. Purpose and Scope</a></h2>
+<p>This document defines the architecture of <code>locus-sdk</code>, including module boundaries, service orchestration, extension points, and operational behavior.</p>
+<p>Use this document to evaluate integration fit, implementation boundaries, and operational implications before committing to host-level adoption.</p>
+<p>Objectives:</p>
+<ul>
+<li>Make component responsibilities explicit.</li>
+<li>Reduce integration risk for host applications.</li>
+<li>Preserve backward-compatible architecture evolution.</li>
+</ul>
+<h2 id="2-layered-architecture-overview"><a class="header" href="#2-layered-architecture-overview">2. Layered Architecture Overview</a></h2>
+<pre class="mermaid">flowchart TD
+    A[Host Application] --&gt; B[SDK API Surface - prelude]
+    B --&gt; C[Application Services]
+    C --&gt; D[Domain Contracts and Models]
+    C --&gt; E[Infrastructure Adapters]
+    C --&gt; F[Interface DTO Mappers]
+    E --&gt; G[locus-core NodeStore]
+    E --&gt; H[AI Provider Runtime]
+
+    subgraph SDK
+      B
+      C
+      D
+      E
+      F
+    end
+</pre>
+
+<p>Layer intent:</p>
+<ul>
+<li><code>prelude</code>: stable ergonomic import surface for consumers.</li>
+<li><code>application</code>: orchestration services and workflow composition.</li>
+<li><code>domain</code>: neutral request/result types and provider contracts.</li>
+<li><code>infrastructure</code>: concrete adapters and registries.</li>
+<li><code>interface</code>: DTO translation boundary for transport adapters.</li>
+</ul>
+<h2 id="3-module-decomposition"><a class="header" href="#3-module-decomposition">3. Module Decomposition</a></h2>
+<h3 id="31-domain-layer"><a class="header" href="#31-domain-layer">3.1 Domain Layer</a></h3>
+<ul>
+<li><code>domain/memory.rs</code>: canonical memory query/recall/aggregate/transform contracts.</li>
+<li><code>domain/ai.rs</code>: provider capability model and routing contracts.</li>
+<li><code>domain/compression.rs</code>: manual compression request/result schema.</li>
+</ul>
+<h3 id="32-application-layer"><a class="header" href="#32-application-layer">3.2 Application Layer</a></h3>
+<p>Primary services:</p>
+<ul>
+<li><code>MemoryFindService</code></li>
+<li><code>MemoryRecallService</code></li>
+<li><code>MemoryExplainService</code></li>
+<li><code>MemoryAggregateService</code></li>
+<li><code>MemoryTransformService</code></li>
+<li><code>MemoryCompositionService</code></li>
+<li><code>MemorySchemaService</code></li>
+<li><code>ManualCompressionService</code></li>
+<li>AI routing helpers (<code>ai_router.rs</code>, <code>routing_config.rs</code>)</li>
+</ul>
+<h3 id="33-infrastructure-layer"><a class="header" href="#33-infrastructure-layer">3.3 Infrastructure Layer</a></h3>
+<ul>
+<li><code>InMemoryAiProviderRegistry</code></li>
+<li><code>GenaiProviderAdapter</code> (feature-gated)</li>
+<li><code>SttpEmbeddingProviderAdapter</code></li>
+<li><code>OllamaEmbeddingProvider</code></li>
+<li><code>LocalEmbeddingProvider</code> (feature <code>local-embedding</code>)</li>
+</ul>
+<h3 id="34-interface-layer"><a class="header" href="#34-interface-layer">3.4 Interface Layer</a></h3>
+<ul>
+<li><code>interface/dto.rs</code>: bidirectional mapping between SDK-native types and DTO structs.</li>
+</ul>
+<h2 id="4-core-service-topology-uml"><a class="header" href="#4-core-service-topology-uml">4. Core Service Topology (UML)</a></h2>
+<pre class="mermaid">flowchart TD
+    MCS[MemoryCompositionService]
+    MFS[MemoryFindService]
+    MRS[MemoryRecallService]
+    MES[MemoryExplainService]
+    MAS[MemoryAggregateService]
+    MTS[MemoryTransformService]
+    NS[NodeStore interface]
+    APR[AiProviderRegistry interface]
+    AP[AiProvider interface]
+
+    MCS --&gt; MRS
+    MCS --&gt; MES
+    MCS --&gt; MAS
+    MFS --&gt; NS
+    MRS --&gt; NS
+    MES --&gt; NS
+    MAS --&gt; NS
+    MTS --&gt; NS
+    MTS --&gt; APR
+    APR --&gt; AP
+</pre>
+
+<h3 id="41-query-and-retrieval-services"><a class="header" href="#41-query-and-retrieval-services">4.1 Query and Retrieval Services</a></h3>
+<pre class="mermaid">classDiagram
+    class MemoryFindService {
+      +execute(request) MemoryFindResult
+    }
+    class MemoryRecallService {
+      +execute(request) MemoryRecallResult
+    }
+    class MemoryExplainService {
+      +execute(request) MemoryExplainResult
+    }
+    class MemoryAggregateService {
+      +execute(request) MemoryAggregateResult
+    }
+    class NodeStore {
+      &lt;&lt;interface&gt;&gt;
+      +query_nodes_async(query)
+      +get_by_resonance_async(...)
+      +get_by_hybrid_async(...)
+    }
+
+    MemoryFindService ..&gt; NodeStore
+    MemoryRecallService ..&gt; NodeStore
+    MemoryExplainService ..&gt; NodeStore
+    MemoryAggregateService ..&gt; NodeStore
+</pre>
+
+<h3 id="42-transform-and-provider-resolution"><a class="header" href="#42-transform-and-provider-resolution">4.2 Transform and Provider Resolution</a></h3>
+<pre class="mermaid">classDiagram
+    class MemoryTransformService {
+      +execute(request) MemoryTransformResult
+    }
+    class AiProviderRegistry {
+      &lt;&lt;interface&gt;&gt;
+      +resolve(task, provider_id, policy)
+      +list_capabilities()
+    }
+    class AiProvider {
+      &lt;&lt;interface&gt;&gt;
+      +embed_semantic(request)
+      +embed_avec(request)
+      +score_avec(request)
+    }
+    class NodeStore {
+      &lt;&lt;interface&gt;&gt;
+      +upsert_node_async(node)
+    }
+
+    MemoryTransformService ..&gt; NodeStore
+    MemoryTransformService ..&gt; AiProviderRegistry
+    AiProviderRegistry ..&gt; AiProvider
+</pre>
+
+<h3 id="43-composition-workflow-wiring"><a class="header" href="#43-composition-workflow-wiring">4.3 Composition Workflow Wiring</a></h3>
+<pre class="mermaid">flowchart LR
+    MCS[MemoryCompositionService]
+    MRS[MemoryRecallService]
+    MES[MemoryExplainService]
+    MAS[MemoryAggregateService]
+    MTS[MemoryTransformService]
+
+    MCS --&gt;|recall_with_explain| MRS
+    MCS --&gt;|recall_with_explain| MES
+    MCS --&gt;|daily_rollup| MAS
+    MCS --&gt;|transform_then_recall_verify| MTS
+    MCS --&gt;|transform_then_recall_verify| MRS
+</pre>
+
+<h2 id="5-request-lifecycle-patterns"><a class="header" href="#5-request-lifecycle-patterns">5. Request Lifecycle Patterns</a></h2>
+<h3 id="51-find-path"><a class="header" href="#51-find-path">5.1 Find Path</a></h3>
+<pre class="mermaid">flowchart TD
+    A[MemoryFindRequest] --&gt; B[Clamp limit]
+    B --&gt; C[NodeStore.query_nodes_async]
+    C --&gt; D[Apply common filters]
+    D --&gt; E[Sort by selected field]
+    E --&gt; F[Compute has_more and next_cursor]
+    F --&gt; G[MemoryFindResult]
+</pre>
+
+<h3 id="52-recall-path-with-fallback"><a class="header" href="#52-recall-path-with-fallback">5.2 Recall Path with Fallback</a></h3>
+<pre class="mermaid">flowchart TD
+    A[MemoryRecallRequest] --&gt; B{query_embedding present?}
+    B -- yes --&gt; C[Hybrid retrieval]
+    B -- no --&gt; D[Resonance retrieval]
+    C --&gt; E[Apply common filters]
+    D --&gt; E
+    E --&gt; F{Fallback policy allows lexical fallback?}
+    F -- no --&gt; J[Return recall result]
+    F -- yes --&gt; G[Expanded retrieval]
+    G --&gt; H[Lexical scoring over summary/session/raw]
+    H --&gt; I[Merge or replace depending on policy]
+    I --&gt; J[Return recall result with retrieval_path]
+</pre>
+
+<h3 id="53-transform-path"><a class="header" href="#53-transform-path">5.3 Transform Path</a></h3>
+<pre class="mermaid">flowchart TD
+    A[MemoryTransformRequest] --&gt; B[Query and filter candidate nodes]
+    B --&gt; C{operation == embed_backfill}
+    C -- yes --&gt; D[Keep nodes missing embeddings]
+    C -- no --&gt; E[Use selected set]
+    D --&gt; E
+    E --&gt; F{dry_run?}
+    F -- yes --&gt; G[Return projected counts]
+    F -- no --&gt; H[Batch through selected nodes]
+    H --&gt; I[Route semantic embedding via provider registry]
+    I --&gt; J[Apply embedding fields to node]
+    J --&gt; K[NodeStore.upsert_node_async]
+    K --&gt; L[Accumulate updated/skipped/failed/duplicate]
+    L --&gt; M[Return MemoryTransformResult]
+</pre>
+
+<h2 id="6-ai-routing-and-provider-resolution"><a class="header" href="#6-ai-routing-and-provider-resolution">6. AI Routing and Provider Resolution</a></h2>
+<p>Routing semantics:</p>
+<ul>
+<li><code>route_embedding</code> dispatches by <code>AiTask</code> (<code>SemanticEmbedding</code> or <code>AvecEmbedding</code>).</li>
+<li><code>route_avec_score</code> dispatches scoring requests.</li>
+</ul>
+<p>Provider selection (<code>AiProviderRegistry.resolve</code>):</p>
+<ul>
+<li>Explicit <code>provider_id</code> must exist and support requested task.</li>
+<li><code>ProviderPolicy::Required</code> requires explicit provider id.</li>
+<li><code>Auto</code> and <code>Preferred</code> select first provider supporting the task.</li>
+</ul>
+<p><code>AiRoutingConfig</code> responsibilities:</p>
+<ul>
+<li>Default provider fallback.</li>
+<li>Task-specific model selection per provider.</li>
+<li>Request mutation helper methods (<code>apply_to_embed_request</code>, <code>apply_to_score_request</code>).</li>
+</ul>
+<h2 id="7-data-contracts-and-guardrails"><a class="header" href="#7-data-contracts-and-guardrails">7. Data Contracts and Guardrails</a></h2>
+<p>Memory contract characteristics:</p>
+<ul>
+<li>Scope controls: tenant/session/tier/time.</li>
+<li>Filter controls: embedding presence/model, metric ranges, lexical contains.</li>
+<li>Scoring controls: alpha/beta and fallback policy.</li>
+</ul>
+<p>Clamp guardrails:</p>
+<ul>
+<li><code>clamp_limit</code>: 1..200.</li>
+<li><code>clamp_groups</code>: 1..5000.</li>
+<li><code>clamp_nodes</code>: 1..50000.</li>
+<li><code>clamp_batch_size</code>: 1..500.</li>
+</ul>
+<p>These guardrails are enforced before expensive operations.</p>
+<h2 id="8-composition-workflows"><a class="header" href="#8-composition-workflows">8. Composition Workflows</a></h2>
+<p><code>MemoryCompositionService</code> encapsulates higher-level workflows:</p>
+<ul>
+<li><code>recall_with_explain</code>: single request emits both retrieval and explain trace.</li>
+<li><code>daily_rollup</code>: aggregate by day over filtered scope.</li>
+<li><code>transform_then_recall_verify</code>: execute transform, then immediate recall verification.</li>
+<li><code>build_content_from_text</code>: deterministic structured content generation using manual compression and role-based AVEC resolution.</li>
+</ul>
+<p>Composite content building constraints:</p>
+<ul>
+<li>Maximum recursion depth clamped to 5.</li>
+<li>Can require explicit AVEC overrides unless LLM fallback is allowed.</li>
+<li>Emits confidence-annotated structured JSON fields.</li>
+</ul>
+<h2 id="9-infrastructure-adapters-and-feature-gating"><a class="header" href="#9-infrastructure-adapters-and-feature-gating">9. Infrastructure Adapters and Feature Gating</a></h2>
+<ul>
+<li><code>GenaiProviderAdapter</code> behind <code>genai-provider</code> feature.</li>
+<li><code>LocalEmbeddingProvider</code> behind <code>local-embedding</code> feature.</li>
+<li><code>OllamaEmbeddingProvider</code> always available.</li>
+<li><code>SttpEmbeddingProviderAdapter</code> wraps <code>locus-core</code> <code>EmbeddingProvider</code> into SDK <code>AiProvider</code> shape.</li>
+</ul>
+<p>Operational note:</p>
+<ul>
+<li>Local embedding uses CPU-bound worker and blocking-task isolation for runtime safety.</li>
+</ul>
+<h2 id="10-dto-boundary-and-integration-strategy"><a class="header" href="#10-dto-boundary-and-integration-strategy">10. DTO Boundary and Integration Strategy</a></h2>
+<p><code>interface/dto.rs</code> provides:</p>
+<ul>
+<li>Inbound request conversion DTO -&gt; domain model.</li>
+<li>Outbound response conversion domain model -&gt; DTO.</li>
+<li>Composite workflow DTOs for composed service responses.</li>
+</ul>
+<p>Design intent:</p>
+<ul>
+<li>Keep transport concerns out of domain/application layers.</li>
+<li>Preserve ability to evolve transport fields with additive mapping.</li>
+</ul>
+<h2 id="11-reliability-and-change-management-rules"><a class="header" href="#11-reliability-and-change-management-rules">11. Reliability and Change Management Rules</a></h2>
+<p>Compatibility rules:</p>
+<ul>
+<li>Additive enums/fields are preferred evolution path.</li>
+<li>Existing defaults remain stable unless a versioned schema contract is introduced.</li>
+<li>New provider adapters must satisfy <code>AiProvider</code> capabilities explicitly.</li>
+</ul>
+<p>Failure management principles:</p>
+<ul>
+<li>Partial batch failures are surfaced in <code>MemoryTransformResult.failures</code>.</li>
+<li>Fallback behavior is explicit and observable in explain outputs.</li>
+<li>Provider misconfiguration fails fast with structured errors.</li>
+</ul>
+<h2 id="12-security-and-operational-considerations"><a class="header" href="#12-security-and-operational-considerations">12. Security and Operational Considerations</a></h2>
+<ul>
+<li>Provider API keys and endpoints are externalized in host configuration.</li>
+<li>Text sent to embedding/scoring providers should be minimized to needed content.</li>
+<li><code>MemoryTransformService</code> dry-run mode should be default for first execution in new environments.</li>
+</ul>
+<h2 id="13-traceability-to-implementation"><a class="header" href="#13-traceability-to-implementation">13. Traceability to Implementation</a></h2>
+<p>Primary implementation locations:</p>
+<ul>
+<li><code>locus-sdk/src/domain/memory.rs</code></li>
+<li><code>locus-sdk/src/domain/ai.rs</code></li>
+<li><code>locus-sdk/src/application/memory_find.rs</code></li>
+<li><code>locus-sdk/src/application/memory_recall.rs</code></li>
+<li><code>locus-sdk/src/application/memory_explain.rs</code></li>
+<li><code>locus-sdk/src/application/memory_aggregate.rs</code></li>
+<li><code>locus-sdk/src/application/memory_transform.rs</code></li>
+<li><code>locus-sdk/src/application/memory_composition.rs</code></li>
+<li><code>locus-sdk/src/application/routing_config.rs</code></li>
+<li><code>locus-sdk/src/infrastructure/registry.rs</code></li>
+<li><code>locus-sdk/src/infrastructure/embeddings.rs</code></li>
+<li><code>locus-sdk/src/interface/dto.rs</code></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sttp-sdk-recursive-node-from-text-composite-guide"><a class="header" href="#sttp-sdk-recursive-node-from-text-composite-guide">STTP SDK Recursive Node-From-Text Composite Guide</a></h1>
+<p>Date: 2026-05-03
+Status: Implemented (initial slice)</p>
+<h2 id="1-purpose"><a class="header" href="#1-purpose">1. Purpose</a></h2>
+<p>This guide documents the recursive deterministic composition workflow in locus-sdk.</p>
+<p>The workflow lets callers build a spec-safe STTP content-layer payload from plain text entries without requiring model summarization for the core compression path.</p>
+<h2 id="2-what-it-solves"><a class="header" href="#2-what-it-solves">2. What It Solves</a></h2>
+<ol>
+<li>Build content payloads from ordered role-tagged text input.</li>
+<li>Support recursive context trees while staying validator-safe.</li>
+<li>Resolve AVEC using explicit deterministic policy order.</li>
+<li>Keep an optional LLM path only for unresolved AVEC, not core compression.</li>
+</ol>
+<h2 id="3-core-types"><a class="header" href="#3-core-types">3. Core Types</a></h2>
+<p>Defined in <a href="locus-sdk/src/application/memory_composition.rs">locus-sdk/src/application/memory_composition.rs</a>:</p>
+<ol>
+<li>CompositeRole</li>
+<li>CompositeInputItem</li>
+<li>CompositeRoleAvecOverrides</li>
+<li>CompositeNodeFromTextOptions</li>
+<li>CompositeNodeFromTextRequest</li>
+<li>CompositeNodeFromTextResult</li>
+</ol>
+<p>DTO equivalents are defined in <a href="locus-sdk/src/interface/dto.rs">locus-sdk/src/interface/dto.rs</a>:</p>
+<ol>
+<li>CompositeRoleDto</li>
+<li>CompositeInputItemDto</li>
+<li>CompositeRoleAvecOverridesDto</li>
+<li>CompositeNodeFromTextOptionsDto</li>
+<li>CompositeNodeFromTextRequestDto</li>
+<li>CompositeNodeFromTextResponseDto</li>
+</ol>
+<h2 id="4-deterministic-avec-resolution"><a class="header" href="#4-deterministic-avec-resolution">4. Deterministic AVEC Resolution</a></h2>
+<p>For each input item, AVEC resolution order is:</p>
+<ol>
+<li>item-level override (CompositeInputItem.avec_override)</li>
+<li>role-level override (CompositeNodeFromTextOptions.role_avec)</li>
+<li>global override (CompositeNodeFromTextOptions.global_avec)</li>
+<li>unresolved</li>
+</ol>
+<p>If unresolved item count is greater than zero:</p>
+<ol>
+<li>if allow_llm_avec_fallback is false, the workflow fails with a typed error,</li>
+<li>if allow_llm_avec_fallback is true, requires_llm_avec is true in the result.</li>
+</ol>
+<h2 id="5-recursion-and-validation-constraints"><a class="header" href="#5-recursion-and-validation-constraints">5. Recursion and Validation Constraints</a></h2>
+<ol>
+<li>Requested depth is clamped to [1, 5].</li>
+<li>Build fails if item context exceeds max_recursion_depth.</li>
+<li>The content object uses confidence-scored keys to remain strict-parser compatible.</li>
+<li>This aligns with validator nesting limits in core validator logic.</li>
+</ol>
+<p>Reference: <a href="locus-core/src/application/validation/tree_sitter_validator.rs">locus-core/src/application/validation/tree_sitter_validator.rs</a></p>
+<h2 id="6-compression-strategy"><a class="header" href="#6-compression-strategy">6. Compression Strategy</a></h2>
+<p>Each input/context item is compressed with ManualCompressionService to derive:</p>
+<ol>
+<li>anchor_topic</li>
+<li>key_points</li>
+</ol>
+<p>This keeps the composite deterministic and model-optional for compression.</p>
+<p>Reference: <a href="locus-sdk/src/application/manual_compression.rs">locus-sdk/src/application/manual_compression.rs</a></p>
+<h2 id="7-quick-example-domain-models"><a class="header" href="#7-quick-example-domain-models">7. Quick Example (Domain Models)</a></h2>
+<pre class="playground"><code class="language-rust">use std::sync::Arc;
+
+use anyhow::Result;
+use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core::domain::models::AvecState;
+use locus_sdk::prelude::{
+    CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
+    CompositeRole, CompositeRoleAvecOverrides, MemoryCompositionService,
+};
+
+fn main() -&gt; Result&lt;()&gt; {
+    let store: Arc&lt;dyn NodeStore&gt; = Arc::new(InMemoryNodeStore::new());
+    let composition = MemoryCompositionService::new(store);
+
+    let req = CompositeNodeFromTextRequest {
+        items: vec![CompositeInputItem {
+            role: CompositeRole::Conversation,
+            text: "user asks about fallback policy and model explains ranked retrieval".to_string(),
+            avec_override: None,
+            context: vec![CompositeInputItem {
+                role: CompositeRole::Document,
+                text: "design notes mention deterministic lexical fallback".to_string(),
+                avec_override: None,
+                context: Vec::new(),
+            }],
+        }],
+        options: CompositeNodeFromTextOptions {
+            role_avec: CompositeRoleAvecOverrides {
+                conversation: Some(AvecState {
+                    stability: 0.82,
+                    friction: 0.20,
+                    logic: 0.86,
+                    autonomy: 0.74,
+                }),
+                ..Default::default()
+            },
+            global_avec: Some(AvecState {
+                stability: 0.75,
+                friction: 0.25,
+                logic: 0.80,
+                autonomy: 0.70,
+            }),
+            allow_llm_avec_fallback: false,
+            max_recursion_depth: 5,
+        },
+    };
+
+    let result = composition.build_content_from_text(&amp;req)?;
+
+    println!("resolved_avec_count={}", result.resolved_avec_count);
+    println!("requires_llm_avec={}", result.requires_llm_avec);
+    println!("content={}", result.content);
+
+    Ok(())
+}</code></pre>
+<h2 id="8-quick-example-dto-boundary"><a class="header" href="#8-quick-example-dto-boundary">8. Quick Example (DTO Boundary)</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use locus_sdk::prelude::{
+    CompositeNodeFromTextRequestDto, CompositeNodeFromTextResponseDto,
+};
+
+fn convert_boundary(req_dto: CompositeNodeFromTextRequestDto) -&gt; CompositeNodeFromTextResponseDto {
+    let domain_req = req_dto.into();
+    let domain_result = service.build_content_from_text(&amp;domain_req).unwrap();
+    domain_result.into()
+}
+<span class="boring">}</span></code></pre>
+<h2 id="9-test-coverage"><a class="header" href="#9-test-coverage">9. Test Coverage</a></h2>
+<p>Current coverage includes:</p>
+<ol>
+<li>role and global AVEC resolution chain</li>
+<li>unresolved AVEC failure behavior</li>
+<li>recursion depth enforcement</li>
+<li>strict parser and validator conformance for generated content payload</li>
+</ol>
+<p>Reference tests: <a href="locus-sdk/src/application/memory_composition.rs">locus-sdk/src/application/memory_composition.rs</a></p>
+<h2 id="10-integration-notes"><a class="header" href="#10-integration-notes">10. Integration Notes</a></h2>
+<ol>
+<li>This workflow currently returns content-layer payload plus AVEC resolution stats.</li>
+<li>It does not replace typed IR grammar; it composes spec-safe content for insertion into full STTP node workflows.</li>
+<li>Recommended next step is a full store-ready recipe that assembles the complete four-layer node from this content payload.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="deployment"><a class="header" href="#deployment">Deployment</a></h1>
+<h2 id="audience-and-use-3"><a class="header" href="#audience-and-use-3">Audience and Use</a></h2>
+<p>This page is for teams deploying Locus in development, staging, and production environments.</p>
+<p>Use it to:</p>
+<ol>
+<li>Select an operating model by environment.</li>
+<li>Apply release checks before rollout.</li>
+<li>Keep runtime behavior consistent across deployment targets.</li>
+</ol>
+<p>For prerequisite tooling and baseline readiness checks, see <code>Environment Setup</code>.</p>
+<h2 id="supported-runtime-modes"><a class="header" href="#supported-runtime-modes">Supported Runtime Modes</a></h2>
+<ol>
+<li>Embedded/local development mode.</li>
+<li>Remote SurrealDB mode.</li>
+<li>Hybrid host mode where gateway and MCP share the same underlying Locus behavior.</li>
+</ol>
+<h2 id="environment-matrix"><a class="header" href="#environment-matrix">Environment Matrix</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Environment</th><th>Storage Mode</th><th>Host Profile</th><th>Primary Goal</th></tr>
+</thead>
+<tbody>
+<tr><td>Local Development</td><td>In-memory or embedded Surreal</td><td>single-process</td><td>fast iteration and debugging</td></tr>
+<tr><td>CI Validation</td><td>In-memory plus deterministic fixtures</td><td>test-only jobs</td><td>regression detection and compatibility checks</td></tr>
+<tr><td>Staging</td><td>Remote SurrealDB with isolated tenant space</td><td>gateway plus mcp parity checks</td><td>release verification and migration rehearsal</td></tr>
+<tr><td>Production</td><td>Remote SurrealDB with restricted access</td><td>managed gateway and mcp deployments</td><td>reliability, auditability, and scale</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="build-prerequisites"><a class="header" href="#build-prerequisites">Build Prerequisites</a></h2>
+<ol>
+<li>Rust toolchain (stable).</li>
+<li>cargo available in PATH.</li>
+<li>Optional: SurrealDB endpoint for integration environments.</li>
+</ol>
+<h2 id="platform-and-runtime-support"><a class="header" href="#platform-and-runtime-support">Platform and Runtime Support</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Area</th><th>Baseline</th></tr>
+</thead>
+<tbody>
+<tr><td>Rust</td><td>Stable toolchain</td></tr>
+<tr><td>Host OS</td><td>Linux, macOS, Windows (WSL2 recommended)</td></tr>
+<tr><td>Container runtime</td><td>Docker Engine or compatible runtime</td></tr>
+<tr><td>Storage</td><td>In-memory, SurrealDB v3</td></tr>
+<tr><td>Docs build</td><td>mdbook, mdbook-mermaid</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="build-commands"><a class="header" href="#build-commands">Build Commands</a></h2>
+<p>From repository root:</p>
+<pre><code class="language-bash">cargo check --workspace --examples
+cargo test -p locus-core --lib
+cargo test -p locus-sdk
+</code></pre>
+<h2 id="packaging"><a class="header" href="#packaging">Packaging</a></h2>
+<p>Core package helper:</p>
+<pre><code class="language-bash">./locus-core/build-package.sh
+</code></pre>
+<p>Publish preflight helper:</p>
+<pre><code class="language-bash">./locus-core/publish-crates.sh
+</code></pre>
+<h2 id="configuration-guidance"><a class="header" href="#configuration-guidance">Configuration Guidance</a></h2>
+<ol>
+<li>Keep environment-specific endpoint credentials out of repository files.</li>
+<li>Set explicit session/tenant scoping in host integrations.</li>
+<li>Prefer pinned model/provider settings for repeatable production behavior.</li>
+<li>Separate development and production provider endpoints.</li>
+<li>Use explicit tenant/session scoping in host runtime configs.</li>
+</ol>
+<p>These controls reduce configuration drift and support predictable operations during upgrades.</p>
+<h2 id="host-deployment-profiles"><a class="header" href="#host-deployment-profiles">Host Deployment Profiles</a></h2>
+<ol>
+<li>
+<p>MCP host profile:
+MCP prioritizes tool contract stability and strict parser and validator checks in smoke tests.</p>
+</li>
+<li>
+<p>Gateway host profile:
+Gateway prioritizes stable HTTP and gRPC mapping to SDK primitives with health checks and retrieval policy observability.</p>
+</li>
+</ol>
+<h2 id="release-readiness-checklist"><a class="header" href="#release-readiness-checklist">Release Readiness Checklist</a></h2>
+<ol>
+<li>Workspace compile and tests pass.</li>
+<li>Example binaries compile and execute in CI smoke path.</li>
+<li>Integration hosts confirm SDK contract compatibility.</li>
+<li>Changelog and migration notes updated.</li>
+<li>Versioning and compatibility policy reviewed for this release.</li>
+<li>Security checklist validated for secrets and logging hygiene.</li>
+</ol>
+<p>Releases that do not meet this checklist should not be promoted to production.</p>
+<h2 id="release-gates-by-environment"><a class="header" href="#release-gates-by-environment">Release Gates by Environment</a></h2>
+<h3 id="local-development-gate"><a class="header" href="#local-development-gate">Local Development Gate</a></h3>
+<ol>
+<li>Workspace compile succeeds.</li>
+<li>Targeted crate tests pass for changed modules.</li>
+<li>At least one example path executes without contract errors.</li>
+</ol>
+<h3 id="ci-validation-gate"><a class="header" href="#ci-validation-gate">CI Validation Gate</a></h3>
+<ol>
+<li>Workspace test matrix passes.</li>
+<li>Lint and docs build complete in CI.</li>
+<li>No parser or validator regressions in changed paths.</li>
+</ol>
+<h3 id="staging-gate"><a class="header" href="#staging-gate">Staging Gate</a></h3>
+<ol>
+<li>Gateway and MCP parity checks pass against the same dataset.</li>
+<li>Retrieval path distribution stays within expected baseline variance.</li>
+<li>Rollback procedure is rehearsed and time-bounded.</li>
+</ol>
+<h3 id="production-promotion-gate"><a class="header" href="#production-promotion-gate">Production Promotion Gate</a></h3>
+<ol>
+<li>Staging sign-off is recorded.</li>
+<li>Observability alerts and dashboards are active.</li>
+<li>Release note includes compatibility and rollback instructions.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="operations"><a class="header" href="#operations">Operations</a></h1>
+<h2 id="observability-priorities"><a class="header" href="#observability-priorities">Observability Priorities</a></h2>
+<ol>
+<li>Retrieval path visibility for recall workflows.</li>
+<li>Fallback policy trigger visibility.</li>
+<li>Transform execution counters and failure reasons.</li>
+<li>Parser and validator error surface for malformed nodes.</li>
+</ol>
+<h2 id="golden-signals"><a class="header" href="#golden-signals">Golden Signals</a></h2>
+<ol>
+<li>Latency: recall and transform response times by percentile.</li>
+<li>Errors: parser, validator, retrieval, and transform failure rates.</li>
+<li>Throughput: query volume and transform batch throughput.</li>
+<li>Saturation: host and storage pressure indicators under load.</li>
+</ol>
+<h2 id="runtime-health-signals"><a class="header" href="#runtime-health-signals">Runtime Health Signals</a></h2>
+<ol>
+<li>Parse success ratio.</li>
+<li>Validation failure ratio.</li>
+<li>Recall latency percentiles.</li>
+<li>Transform batch success and failure counts.</li>
+<li>Embedding backfill throughput and error rates.</li>
+</ol>
+<h2 id="alert-triggers"><a class="header" href="#alert-triggers">Alert Triggers</a></h2>
+<ol>
+<li>Sudden rise in validation failures.</li>
+<li>Recall latency p95 breach sustained over multiple intervals.</li>
+<li>Unexpected shift in retrieval_path distribution.</li>
+<li>Transform failure ratio above configured threshold.</li>
+</ol>
+<h2 id="incident-severity-model"><a class="header" href="#incident-severity-model">Incident Severity Model</a></h2>
+<ol>
+<li>SEV-1: broad service impact or data integrity risk.</li>
+<li>SEV-2: degraded behavior with viable workaround.</li>
+<li>SEV-3: localized or non-critical workflow degradation.</li>
+</ol>
+<p>Severity guides response urgency, escalation path, and communication cadence.</p>
+<h2 id="suggested-starting-thresholds"><a class="header" href="#suggested-starting-thresholds">Suggested Starting Thresholds</a></h2>
+<p>These baseline thresholds are starting points and should be tuned per environment.</p>
+<ol>
+<li>Recall p95 latency: page at sustained breach over 15 minutes.</li>
+<li>Validation failure ratio: page when sustained above 2 percent.</li>
+<li>Transform failure ratio: page when sustained above 1 percent.</li>
+<li>Retrieval path drift: investigate when lexical fallback share doubles from baseline.</li>
+</ol>
+<h2 id="severity-to-response-mapping"><a class="header" href="#severity-to-response-mapping">Severity-to-Response Mapping</a></h2>
+<ol>
+<li>SEV-1: immediate incident bridge, continuous updates, executive and stakeholder notification.</li>
+<li>SEV-2: active triage with scheduled updates and rollback decision checkpoint.</li>
+<li>SEV-3: normal triage queue with documented mitigation and scheduled follow-up.</li>
+</ol>
+<h2 id="logging-recommendations"><a class="header" href="#logging-recommendations">Logging Recommendations</a></h2>
+<ol>
+<li>Log explicit policy settings for recall and transform requests.</li>
+<li>Log retrieval path and fallback reason for each recall request.</li>
+<li>Log session and tenant scope used for each operation.</li>
+<li>Keep request payload snapshots in redacted form for incident replay.</li>
+</ol>
+<h2 id="incident-response-playbook"><a class="header" href="#incident-response-playbook">Incident Response Playbook</a></h2>
+<ol>
+<li>Determine whether failure is parser, policy, or storage related.</li>
+<li>Reproduce with the same request payload and explicit limits.</li>
+<li>Use explain workflows to isolate ranking or fallback regressions.</li>
+<li>Run dry-run transforms before any broad mutation in recovery paths.</li>
+</ol>
+<h2 id="runbooks"><a class="header" href="#runbooks">Runbooks</a></h2>
+<h3 id="runbook-a-parservalidation-spike"><a class="header" href="#runbook-a-parservalidation-spike">Runbook A: Parser/Validation Spike</a></h3>
+<ol>
+<li>Capture representative failing payloads.</li>
+<li>Validate four-layer ordering and content confidence key format.</li>
+<li>Compare with last known-good release behavior.</li>
+<li>Roll back host version if failures are release-correlated.</li>
+</ol>
+<h3 id="runbook-b-retrieval-regression"><a class="header" href="#runbook-b-retrieval-regression">Runbook B: Retrieval Regression</a></h3>
+<ol>
+<li>Capture request payload, scoring settings, and retrieval_path.</li>
+<li>Execute explain workflow with same request.</li>
+<li>Compare channel scores and fallback behavior against baseline.</li>
+<li>Patch policy defaults only with regression test coverage.</li>
+</ol>
+<h3 id="runbook-c-transform-job-instability"><a class="header" href="#runbook-c-transform-job-instability">Runbook C: Transform Job Instability</a></h3>
+<ol>
+<li>Switch affected operations to dry-run mode.</li>
+<li>Validate selected node set and provider capabilities.</li>
+<li>Reduce batch_size and re-run with checkpoint controls.</li>
+<li>Resume full run only after zero-failure dry-run parity.</li>
+</ol>
+<h2 id="slo-suggestions"><a class="header" href="#slo-suggestions">SLO Suggestions</a></h2>
+<ol>
+<li>Recall p95 latency target per environment.</li>
+<li>Parse/validate success target for ingested nodes.</li>
+<li>Transform job success target and bounded failure budget.</li>
+</ol>
+<p>Teams should define environment-specific numeric targets and review them at each release cycle.</p>
+<h2 id="maintenance"><a class="header" href="#maintenance">Maintenance</a></h2>
+<ol>
+<li>Keep crate versions aligned within workspace releases.</li>
+<li>Re-run examples as part of regression verification.</li>
+<li>Audit docs links and command validity each release cycle.</li>
+<li>Rehearse incident runbooks quarterly.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="integration"><a class="header" href="#integration">Integration</a></h1>
+<h2 id="audience-and-use-4"><a class="header" href="#audience-and-use-4">Audience and Use</a></h2>
+<p>This page is for developers integrating Locus into applications, services, and agent tooling.</p>
+<p>Use it to:</p>
+<ol>
+<li>Define a stable integration boundary.</li>
+<li>Migrate existing retrieval logic without contract breakage.</li>
+<li>Validate behavior parity before cutover.</li>
+</ol>
+<h2 id="goal"><a class="header" href="#goal">Goal</a></h2>
+<p>Integrate host transports with Locus crates while keeping STTP protocol semantics stable.</p>
+<h2 id="recommended-integration-boundary"><a class="header" href="#recommended-integration-boundary">Recommended Integration Boundary</a></h2>
+<ol>
+<li>Parse and validate at ingestion boundary.</li>
+<li>Convert transport payloads into SDK DTOs.</li>
+<li>Execute SDK workflows in application services.</li>
+<li>Map results back to transport contracts.</li>
+</ol>
+<h2 id="host-migration-pattern"><a class="header" href="#host-migration-pattern">Host Migration Pattern</a></h2>
+<ol>
+<li>Replace transport-owned retrieval logic with locus-sdk primitives.</li>
+<li>Keep endpoint names stable during migration.</li>
+<li>Add compatibility tests for behavior parity.</li>
+<li>Remove deprecated transport-local logic after one release cycle.</li>
+</ol>
+<h2 id="compatibility-policy"><a class="header" href="#compatibility-policy">Compatibility Policy</a></h2>
+<ol>
+<li>Keep external MCP tool and gateway endpoint contracts stable during internal rewires.</li>
+<li>Prefer additive fields and optional settings over contract replacement.</li>
+<li>Any unavoidable breaking change requires migration notes and version bump alignment.</li>
+<li>Retrieval policy defaults must remain explicit and test-covered.</li>
+</ol>
+<p>This policy enables staged migrations while preserving downstream client compatibility.</p>
+<h2 id="mcp-integration-notes"><a class="header" href="#mcp-integration-notes">MCP Integration Notes</a></h2>
+<ol>
+<li>Prefer SDK primitives for list and context tools.</li>
+<li>Keep tool contracts stable; change only internals first.</li>
+<li>Add tests for fallback policy behavior and explain parity.</li>
+</ol>
+<h2 id="gateway-integration-notes"><a class="header" href="#gateway-integration-notes">Gateway Integration Notes</a></h2>
+<ol>
+<li>Route HTTP and gRPC handlers into SDK service layer.</li>
+<li>Share one request mapping strategy across transports.</li>
+<li>Keep response payload fields stable until formal API revision.</li>
+</ol>
+<h2 id="safety-checks-during-migration"><a class="header" href="#safety-checks-during-migration">Safety Checks During Migration</a></h2>
+<ol>
+<li>Compare retrieval_path results before and after migration.</li>
+<li>Compare transform counters and side effects in dry-run first.</li>
+<li>Validate strict parser compatibility for generated nodes.</li>
+</ol>
+<h2 id="migration-acceptance-criteria"><a class="header" href="#migration-acceptance-criteria">Migration Acceptance Criteria</a></h2>
+<ol>
+<li>Contract parity tests pass for migrated host routes/tools.</li>
+<li>Explain outputs are consistent with recall behavior before and after migration.</li>
+<li>Transform counters and dry-run selection remain behaviorally equivalent.</li>
+<li>Compile and runtime smoke checks pass in workspace and host deployment jobs.</li>
+</ol>
+<p>Migration is complete only when all acceptance criteria are met.</p>
+<h2 id="integration-acceptance-templates"><a class="header" href="#integration-acceptance-templates">Integration Acceptance Templates</a></h2>
+<h3 id="contract-parity-template"><a class="header" href="#contract-parity-template">Contract Parity Template</a></h3>
+<ol>
+<li>Endpoint or tool name unchanged.</li>
+<li>Request field semantics unchanged or additive.</li>
+<li>Response field semantics unchanged or additive.</li>
+<li>Error code and message class behavior unchanged.</li>
+</ol>
+<h3 id="retrieval-behavior-template"><a class="header" href="#retrieval-behavior-template">Retrieval Behavior Template</a></h3>
+<ol>
+<li>retrieval_path distribution aligned with baseline behavior.</li>
+<li>Explain output aligns with returned recall results.</li>
+<li>Fallback activation remains policy-consistent.</li>
+<li>Latency profile remains within agreed operational bounds.</li>
+</ol>
+<h3 id="rollout-gate-template"><a class="header" href="#rollout-gate-template">Rollout Gate Template</a></h3>
+<ol>
+<li>Local and CI validation complete.</li>
+<li>Staging parity checks complete.</li>
+<li>Rollback path validated.</li>
+<li>Monitoring and alert hooks confirmed in target environment.</li>
+</ol>
+<h2 id="cutover-checklist-template"><a class="header" href="#cutover-checklist-template">Cutover Checklist Template</a></h2>
+<h3 id="pre-cutover-checks"><a class="header" href="#pre-cutover-checks">Pre-Cutover Checks</a></h3>
+<ol>
+<li>Freeze incompatible contract changes during the cutover window.</li>
+<li>Confirm request and response snapshots for baseline comparison.</li>
+<li>Confirm on-call ownership and escalation path.</li>
+</ol>
+<h3 id="parity-checks-during-cutover"><a class="header" href="#parity-checks-during-cutover">Parity Checks During Cutover</a></h3>
+<ol>
+<li>Compare retrieval_path and explain behavior between old and new integration paths.</li>
+<li>Compare latency and error rate against baseline windows.</li>
+<li>Validate parser and validator success ratios remain stable.</li>
+</ol>
+<h3 id="rollback-criteria"><a class="header" href="#rollback-criteria">Rollback Criteria</a></h3>
+<ol>
+<li>Error-rate increase exceeds agreed threshold.</li>
+<li>Contract mismatch is observed in client-visible payloads.</li>
+<li>Retrieval behavior diverges from baseline without approved policy change.</li>
+</ol>
+<h3 id="post-cutover-verification"><a class="header" href="#post-cutover-verification">Post-Cutover Verification</a></h3>
+<ol>
+<li>Re-run acceptance templates in production mode.</li>
+<li>Confirm no delayed transform or ingestion side effects.</li>
+<li>Publish cutover summary with observed deltas and follow-up actions.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="examples"><a class="header" href="#examples">Examples</a></h1>
+<h2 id="audience-and-use-5"><a class="header" href="#audience-and-use-5">Audience and Use</a></h2>
+<p>This page is for developers using Locus patterns in their own systems.</p>
+<p>Use examples to:</p>
+<ol>
+<li>Start from known-good integration patterns.</li>
+<li>Validate behavior quickly in local environments.</li>
+<li>Translate reference workflows into production service code.</li>
+</ol>
+<h2 id="available-example-binaries"><a class="header" href="#available-example-binaries">Available Example Binaries</a></h2>
+<ol>
+<li>../locus-sdk/examples/provider_registry_setup.rs</li>
+<li>../locus-sdk/examples/memory_composition.rs</li>
+<li>../locus-sdk/examples/recursive_composite_pipeline.rs</li>
+<li>../locus-sdk/examples/generate_faker_fixture.rs</li>
+</ol>
+<h2 id="run-examples"><a class="header" href="#run-examples">Run Examples</a></h2>
+<p>From repository root:</p>
+<pre><code class="language-bash">cargo run -p locus-sdk --example provider_registry_setup
+cargo run -p locus-sdk --example memory_composition
+cargo run -p locus-sdk --example recursive_composite_pipeline
+cargo run -p locus-sdk --example generate_faker_fixture -- --help
+</code></pre>
+<h2 id="example-coverage"><a class="header" href="#example-coverage">Example Coverage</a></h2>
+<ol>
+<li>Provider capability registry wiring.</li>
+<li>Composition workflows and multi-step orchestration.</li>
+<li>Recursive deterministic content construction plus strict parser and validator checks.</li>
+<li>Deterministic fixture generation for load and quality testing.</li>
+</ol>
+<p>For domain-specific multi-agent setup patterns, see <a href="#agent-blueprints-by-domain">Agent Blueprints by Domain</a>.</p>
+<p>For practical GenAI plus STTP memory orchestration recipes, see <a href="#mini-orchestration-cookbooks">Mini Orchestration Cookbooks</a>.</p>
+<p>If you want a fast path chooser by outcome and build style, start with <a href="#cookbook-overview">Cookbook Overview</a>.</p>
+<h2 id="example-decision-guide"><a class="header" href="#example-decision-guide">Example Decision Guide</a></h2>
+<h3 id="provider_registry_setup"><a class="header" href="#provider_registry_setup">provider_registry_setup</a></h3>
+<p>Use when:</p>
+<ol>
+<li>You are wiring provider capability routing for the first time.</li>
+<li>You need to validate task-to-provider matching rules.</li>
+</ol>
+<p>Expected outcome:</p>
+<ol>
+<li>Registry contains expected providers and capability visibility.</li>
+<li>Unsupported provider and task combinations fail with explicit errors.</li>
+</ol>
+<p>Common failure checks:</p>
+<ol>
+<li>Provider IDs differ between config and runtime registration.</li>
+<li>Required capabilities are missing from selected providers.</li>
+</ol>
+<p>Next integration step:</p>
+<ol>
+<li>Wire registry initialization into your service startup path and fail fast on missing capabilities.</li>
+</ol>
+<h3 id="memory_composition"><a class="header" href="#memory_composition">memory_composition</a></h3>
+<p>Use when:</p>
+<ol>
+<li>You want a reference for multi-step memory workflows.</li>
+<li>You need recall and explain behavior in one composed flow.</li>
+</ol>
+<p>Expected outcome:</p>
+<ol>
+<li>Composed workflow returns stable result shapes.</li>
+<li>Explain path aligns with recall outcome.</li>
+</ol>
+<p>Common failure checks:</p>
+<ol>
+<li>Request policy settings are implicit instead of explicit.</li>
+<li>Scope filters are omitted, causing noisy result sets.</li>
+</ol>
+<p>Next integration step:</p>
+<ol>
+<li>Promote composed request defaults into a shared app-level policy module.</li>
+</ol>
+<h3 id="recursive_composite_pipeline"><a class="header" href="#recursive_composite_pipeline">recursive_composite_pipeline</a></h3>
+<p>Use when:</p>
+<ol>
+<li>You are building structured content from recursive composition.</li>
+<li>You need deterministic recursion-depth behavior.</li>
+</ol>
+<p>Expected outcome:</p>
+<ol>
+<li>Recursive output respects depth and schema constraints.</li>
+<li>Content remains parser and validator compatible.</li>
+</ol>
+<p>Common failure checks:</p>
+<ol>
+<li>Recursion depth exceeds configured limits.</li>
+<li>Output shape drifts from expected typed content structure.</li>
+</ol>
+<p>Next integration step:</p>
+<ol>
+<li>Add schema-level response assertions in CI to prevent output drift before deployment.</li>
+</ol>
+<h3 id="generate_faker_fixture"><a class="header" href="#generate_faker_fixture">generate_faker_fixture</a></h3>
+<p>Use when:</p>
+<ol>
+<li>You need reproducible fixture data for tests and benchmarking.</li>
+<li>You want fast local workload simulation.</li>
+</ol>
+<p>Expected outcome:</p>
+<ol>
+<li>Fixture generation is deterministic for the same parameters.</li>
+<li>Generated payloads are valid for ingest and retrieval tests.</li>
+</ol>
+<p>Common failure checks:</p>
+<ol>
+<li>Parameter ranges produce unrealistic payload distributions.</li>
+<li>Fixture output is not validated before being used in regression tests.</li>
+</ol>
+<p>Next integration step:</p>
+<ol>
+<li>Add fixture generation to CI pre-test setup with deterministic seed controls.</li>
+</ol>
+<h2 id="production-usage-guidance"><a class="header" href="#production-usage-guidance">Production Usage Guidance</a></h2>
+<ol>
+<li>Treat examples as reference patterns, not deployment templates.</li>
+<li>Externalize credentials and environment-specific endpoints.</li>
+<li>Keep explicit limits and fallback policies in runtime requests.</li>
+<li>Add environment-specific observability and failure handling before production rollout.</li>
+</ol>
+<h2 id="promotion-checklist"><a class="header" href="#promotion-checklist">Promotion Checklist</a></h2>
+<p>Before promoting an example pattern into production code:</p>
+<ol>
+<li>Add scope controls and policy defaults explicitly.</li>
+<li>Add structured error handling and retry boundaries.</li>
+<li>Add telemetry for latency, fallback behavior, and failures.</li>
+<li>Add regression tests for request and response shape stability.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cookbook-overview"><a class="header" href="#cookbook-overview">Cookbook Overview</a></h1>
+<h2 id="start-here"><a class="header" href="#start-here">Start Here</a></h2>
+<p>This is the fastest way to choose the right Locus cookbook for your use case.</p>
+<p>Pick by outcome, not by internal architecture.</p>
+<h2 id="choose-by-outcome"><a class="header" href="#choose-by-outcome">Choose by Outcome</a></h2>
+<h3 id="i-need-better-answers-in-customer-facing-workflows"><a class="header" href="#i-need-better-answers-in-customer-facing-workflows">I need better answers in customer-facing workflows</a></h3>
+<p>Start with:</p>
+<ol>
+<li><a href="#cookbook-1-support-copilot-fast-resolution">Mini Orchestration Cookbooks</a></li>
+<li><a href="#blueprint-1-customer-support-resolution-agent">Agent Blueprints by Domain</a></li>
+</ol>
+<h3 id="i-need-safer-incident-or-operations-decisions"><a class="header" href="#i-need-safer-incident-or-operations-decisions">I need safer incident or operations decisions</a></h3>
+<p>Start with:</p>
+<ol>
+<li><a href="#cookbook-2-incident-triage-captain-explain-before-escalate">Mini Orchestration Cookbooks</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#operations">Operations</a></li>
+</ol>
+<h3 id="i-need-rollout-safe-automation-with-dry-run-controls"><a class="header" href="#i-need-rollout-safe-automation-with-dry-run-controls">I need rollout-safe automation with dry-run controls</a></h3>
+<p>Start with:</p>
+<ol>
+<li><a href="#cookbook-3-release-reliability-coach-dry-run-first">Mini Orchestration Cookbooks</a></li>
+<li><a href="#integration">Integration</a></li>
+<li><a href="#deployment">Deployment</a></li>
+</ol>
+<h3 id="i-need-research-and-synthesis-across-sessions"><a class="header" href="#i-need-research-and-synthesis-across-sessions">I need research and synthesis across sessions</a></h3>
+<p>Start with:</p>
+<ol>
+<li><a href="#cookbook-4-research-synthesizer-deterministic-memory-build">Mini Orchestration Cookbooks</a></li>
+<li><a href="#blueprint-6-research-and-policy-analysis-agent">Agent Blueprints by Domain</a></li>
+</ol>
+<h2 id="choose-by-build-style"><a class="header" href="#choose-by-build-style">Choose by Build Style</a></h2>
+<h3 id="i-want-code-first-sdk-examples"><a class="header" href="#i-want-code-first-sdk-examples">I want code-first SDK examples</a></h3>
+<p>Start with <a href="#examples">Examples</a>.</p>
+<h3 id="i-want-orchestration-recipes-plus-prompt-templates"><a class="header" href="#i-want-orchestration-recipes-plus-prompt-templates">I want orchestration recipes plus prompt templates</a></h3>
+<p>Start with <a href="#mini-orchestration-cookbooks">Mini Orchestration Cookbooks</a>.</p>
+<h3 id="i-want-domain-presets-and-starter-config-values"><a class="header" href="#i-want-domain-presets-and-starter-config-values">I want domain presets and starter config values</a></h3>
+<p>Start with <a href="#agent-blueprints-by-domain">Agent Blueprints by Domain</a>.</p>
+<h2 id="quick-path-matrix"><a class="header" href="#quick-path-matrix">Quick Path Matrix</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Goal</th><th>First Page</th><th>Time to First Value</th></tr>
+</thead>
+<tbody>
+<tr><td>Support copilot with memory grounding</td><td><a href="#cookbook-1-support-copilot-fast-resolution">Cookbook 1</a></td><td>30-60 minutes</td></tr>
+<tr><td>Incident triage with explain guardrails</td><td><a href="#cookbook-2-incident-triage-captain-explain-before-escalate">Cookbook 2</a></td><td>45-90 minutes</td></tr>
+<tr><td>Release decision workflow with dry-run transforms</td><td><a href="#cookbook-3-release-reliability-coach-dry-run-first">Cookbook 3</a></td><td>60-120 minutes</td></tr>
+<tr><td>Research synthesis with deterministic context shaping</td><td><a href="#cookbook-4-research-synthesizer-deterministic-memory-build">Cookbook 4</a></td><td>45-90 minutes</td></tr>
+<tr><td>Domain-specific rollout preset</td><td><a href="#agent-blueprints-by-domain">Agent Blueprints</a></td><td>30-60 minutes</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="implementation-flow-we-recommend"><a class="header" href="#implementation-flow-we-recommend">Implementation Flow We Recommend</a></h2>
+<ol>
+<li>Start with one cookbook and keep scope narrow.</li>
+<li>Run recall plus explain before writing any policy automation.</li>
+<li>Add transform dry-run as a safety default.</li>
+<li>Promote to production only after integration acceptance checks.</li>
+</ol>
+<h2 id="competitive-positioning"><a class="header" href="#competitive-positioning">Competitive Positioning</a></h2>
+<p>Locus is optimized for teams that need:</p>
+<ol>
+<li>memory behavior that is observable and explainable,</li>
+<li>deterministic workflow composition options,</li>
+<li>transport-neutral integration paths across SDK, MCP, and gateway.</li>
+</ol>
+<p>Use this hub as your entrypoint, then deepen into the linked pages.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="mini-orchestration-cookbooks"><a class="header" href="#mini-orchestration-cookbooks">Mini Orchestration Cookbooks</a></h1>
+<h2 id="why-this-exists"><a class="header" href="#why-this-exists">Why This Exists</a></h2>
+<p>This chapter is for builders who want working patterns, not theory.</p>
+<p>Use these cookbooks when you want:</p>
+<ol>
+<li>GenAI to handle model-facing intelligence.</li>
+<li>Locus to handle memory, recall policy, explainability, and safe transforms.</li>
+<li>A repeatable orchestration shape you can adapt by domain.</li>
+</ol>
+<p>For a fast picker by outcome, go to <a href="#cookbook-overview">Cookbook Overview</a>.</p>
+<h2 id="core-pattern"><a class="header" href="#core-pattern">Core Pattern</a></h2>
+<p>Every cookbook in this chapter follows the same loop:</p>
+<ol>
+<li>Ingest events into STTP memory.</li>
+<li>Recall context with explicit scoring and fallback policy.</li>
+<li>Explain the retrieval path before high-impact actions.</li>
+<li>Optionally run transform in dry-run before mutation.</li>
+<li>Pass grounded context into a prompt template for model response.</li>
+</ol>
+<h2 id="genai-hookup-provider-and-routing"><a class="header" href="#genai-hookup-provider-and-routing">GenAI Hookup: Provider and Routing</a></h2>
+<p>Use GenAI as the model interface and keep memory orchestration in Locus.</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::collections::HashMap;
+use std::sync::Arc;
+
+use anyhow::Result;
+use locus_sdk::prelude::{
+    AiRoutingConfig, InMemoryAiProviderRegistry, ProviderModelProfile,
+};
+#[cfg(feature = "genai-provider")]
+use locus_sdk::prelude::GenaiProviderAdapter;
+
+fn build_registry_and_routing() -&gt; Result&lt;(Arc&lt;InMemoryAiProviderRegistry&gt;, AiRoutingConfig)&gt; {
+    let mut registry = InMemoryAiProviderRegistry::new();
+
+    #[cfg(feature = "genai-provider")]
+    registry.register(GenaiProviderAdapter::new(
+        "genai",
+        Some("text-embedding-3-small".to_string()),
+    ));
+
+    let mut providers = HashMap::new();
+    providers.insert(
+        "genai".to_string(),
+        ProviderModelProfile {
+            semantic_model: Some("text-embedding-3-small".to_string()),
+            avec_embedding_model: Some("text-embedding-3-small".to_string()),
+            avec_scoring_model: Some("gpt-4o-mini".to_string()),
+        },
+    );
+
+    let routing = AiRoutingConfig {
+        default_provider_id: Some("genai".to_string()),
+        providers,
+    };
+
+    Ok((Arc::new(registry), routing))
+}
+<span class="boring">}</span></code></pre>
+<p>Integration note:</p>
+<ol>
+<li>Configure credentials for your selected GenAI provider in environment variables.</li>
+<li>Keep provider IDs stable across environments for predictable routing behavior.</li>
+</ol>
+<h2 id="composition-primer"><a class="header" href="#composition-primer">Composition Primer</a></h2>
+<p>The <code>MemoryCompositionService</code> gives you high-level orchestration:</p>
+<ol>
+<li><code>recall_with_explain</code> for grounded context with retrieval diagnostics.</li>
+<li><code>daily_rollup</code> for memory compression over time windows.</li>
+<li><code>transform_then_recall_verify</code> for safe write-preview and immediate validation.</li>
+<li><code>build_content_from_text</code> for deterministic content construction.</li>
+</ol>
+<h2 id="cookbook-1-support-copilot-fast-resolution"><a class="header" href="#cookbook-1-support-copilot-fast-resolution">Cookbook 1: Support Copilot (Fast Resolution)</a></h2>
+<p>Intent:</p>
+<ol>
+<li>Pull the smallest high-confidence context window.</li>
+<li>Generate a customer-safe next action grounded in prior resolutions.</li>
+</ol>
+<pre class="playground"><code class="language-rust">use anyhow::Result;
+use std::sync::Arc;
+use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_sdk::prelude::{
+    FallbackPolicy, MemoryCompositionService, MemoryRecallRequest, MemoryScoring,
+};
+
+#[tokio::main]
+async fn main() -&gt; Result&lt;()&gt; {
+    let store: Arc&lt;dyn NodeStore&gt; = Arc::new(InMemoryNodeStore::new());
+    let composition = MemoryCompositionService::new(store);
+
+    let result = composition
+        .recall_with_explain(&amp;MemoryRecallRequest {
+            query_text: Some("billing mismatch after plan upgrade".to_string()),
+            scoring: MemoryScoring {
+                alpha: 0.70,
+                beta: 0.30,
+                fallback_policy: FallbackPolicy::OnEmpty,
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .await?;
+
+    println!(
+        "retrieved={}, path={:?}, stages={}",
+        result.recall.retrieved,
+        result.explain.retrieval_path,
+        result.explain.stages.len()
+    );
+
+    Ok(())
+}</code></pre>
+<p>Prompt template:</p>
+<pre><code class="language-text">system:
+You are a support resolution assistant.
+Use only provided context. If evidence is weak, say so explicitly.
+
+user:
+Issue: {{live_issue_summary}}
+Top memory context:
+{{ranked_context_snippets}}
+
+Return:
+1) likely root cause
+2) next best action
+3) confidence (0-1)
+4) what evidence is still missing
+</code></pre>
+<h2 id="cookbook-2-incident-triage-captain-explain-before-escalate"><a class="header" href="#cookbook-2-incident-triage-captain-explain-before-escalate">Cookbook 2: Incident Triage Captain (Explain Before Escalate)</a></h2>
+<p>Intent:</p>
+<ol>
+<li>Keep response speed high.</li>
+<li>Require explain trace before severity escalation.</li>
+</ol>
+<pre class="playground"><code class="language-rust">use anyhow::Result;
+use std::sync::Arc;
+use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_sdk::prelude::{
+    FallbackPolicy, MemoryCompositionService, MemoryRecallRequest, MemoryScoring,
+    StrictnessMode,
+};
+
+#[tokio::main]
+async fn main() -&gt; Result&lt;()&gt; {
+    let store: Arc&lt;dyn NodeStore&gt; = Arc::new(InMemoryNodeStore::new());
+    let composition = MemoryCompositionService::new(store);
+
+    let triage = composition
+        .recall_with_explain(&amp;MemoryRecallRequest {
+            query_text: Some("unusual outbound auth failures".to_string()),
+            scoring: MemoryScoring {
+                alpha: 0.75,
+                beta: 0.25,
+                fallback_policy: FallbackPolicy::Always,
+                strictness: StrictnessMode::Precision,
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .await?;
+
+    println!("path={:?}", triage.explain.retrieval_path);
+    println!("fallback_triggered={}", triage.explain.fallback_triggered);
+    Ok(())
+}</code></pre>
+<p>Prompt template:</p>
+<pre><code class="language-text">system:
+You are an incident triage assistant. Never recommend irreversible action without evidence.
+
+user:
+Signal summary: {{signal_summary}}
+Explain trace:
+{{explain_stages}}
+Top evidence:
+{{context_snippets}}
+
+Return:
+1) severity recommendation
+2) containment candidates
+3) risks of false positive
+4) evidence citations
+</code></pre>
+<h2 id="cookbook-3-release-reliability-coach-dry-run-first"><a class="header" href="#cookbook-3-release-reliability-coach-dry-run-first">Cookbook 3: Release Reliability Coach (Dry-Run First)</a></h2>
+<p>Intent:</p>
+<ol>
+<li>Preview transform impact before writes.</li>
+<li>Validate retrieval quality immediately after transform simulation.</li>
+</ol>
+<pre class="playground"><code class="language-rust">use anyhow::Result;
+use std::sync::Arc;
+use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_sdk::prelude::{
+    InMemoryAiProviderRegistry, MemoryCompositionService, MemoryRecallRequest,
+    MemoryTransformOperation, MemoryTransformRequest, MemoryTransformThenRecallRequest,
+};
+
+#[tokio::main]
+async fn main() -&gt; Result&lt;()&gt; {
+    let store: Arc&lt;dyn NodeStore&gt; = Arc::new(InMemoryNodeStore::new());
+    let composition = MemoryCompositionService::new(store);
+    let providers = Arc::new(InMemoryAiProviderRegistry::new());
+
+    let result = composition
+        .transform_then_recall_verify(
+            providers,
+            &amp;MemoryTransformThenRecallRequest {
+                transform: MemoryTransformRequest {
+                    operation: MemoryTransformOperation::EmbedBackfill,
+                    dry_run: true,
+                    batch_size: 25,
+                    max_nodes: 500,
+                    ..Default::default()
+                },
+                recall: MemoryRecallRequest {
+                    query_text: Some("release rollback patterns".to_string()),
+                    ..Default::default()
+                },
+            },
+        )
+        .await?;
+
+    println!("selected={}, updated={}", result.transform.selected, result.transform.updated);
+    println!("retrieved={}", result.recall.retrieved);
+    Ok(())
+}</code></pre>
+<p>Prompt template:</p>
+<pre><code class="language-text">system:
+You are a release reliability assistant.
+Prefer conservative recommendations when regression evidence is incomplete.
+
+user:
+Release context: {{release_context}}
+Transform preview: {{transform_summary}}
+Recall context: {{recall_summary}}
+
+Return:
+1) promote / hold / rollback recommendation
+2) top risk factors
+3) confidence
+4) mandatory verification checks
+</code></pre>
+<h2 id="cookbook-4-research-synthesizer-deterministic-memory-build"><a class="header" href="#cookbook-4-research-synthesizer-deterministic-memory-build">Cookbook 4: Research Synthesizer (Deterministic Memory Build)</a></h2>
+<p>Intent:</p>
+<ol>
+<li>Structure raw research notes into deterministic memory content.</li>
+<li>Ask the model to synthesize only after context is structured and scoped.</li>
+</ol>
+<pre class="playground"><code class="language-rust">use anyhow::Result;
+use std::sync::Arc;
+use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_sdk::prelude::{
+    CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
+    CompositeRole, MemoryCompositionService,
+};
+
+fn main() -&gt; Result&lt;()&gt; {
+    let store: Arc&lt;dyn NodeStore&gt; = Arc::new(InMemoryNodeStore::new());
+    let composition = MemoryCompositionService::new(store);
+
+    let structured = composition.build_content_from_text(&amp;CompositeNodeFromTextRequest {
+        items: vec![CompositeInputItem {
+            role: CompositeRole::Document,
+            text: "Policy memo highlights housing supply bottlenecks".to_string(),
+            avec_override: None,
+            context: vec![],
+        }],
+        options: CompositeNodeFromTextOptions {
+            allow_llm_avec_fallback: false,
+            max_recursion_depth: 3,
+            ..Default::default()
+        },
+    })?;
+
+    println!("resolved_avec_count={}", structured.resolved_avec_count);
+    println!("requires_llm_avec={}", structured.requires_llm_avec);
+    Ok(())
+}</code></pre>
+<p>Prompt template:</p>
+<pre><code class="language-text">system:
+You are a research synthesis assistant.
+Preserve uncertainty and disagreement; do not collapse conflicting evidence.
+
+user:
+Question: {{research_question}}
+Structured context payload:
+{{structured_content}}
+
+Return:
+1) synthesis
+2) competing interpretations
+3) confidence per claim
+4) additional evidence needed
+</code></pre>
+<h2 id="prompting-rules-that-work-well-with-sttp"><a class="header" href="#prompting-rules-that-work-well-with-sttp">Prompting Rules That Work Well With STTP</a></h2>
+<ol>
+<li>Require evidence-cited outputs for high-impact decisions.</li>
+<li>Ask for explicit confidence fields rather than vague certainty language.</li>
+<li>Pass retrieval metadata to the prompt when using explain-driven guardrails.</li>
+<li>Preserve contradictions in output instead of forcing a single narrative.</li>
+</ol>
+<h2 id="anti-patterns"><a class="header" href="#anti-patterns">Anti-Patterns</a></h2>
+<ol>
+<li>Letting model responses bypass retrieval and explain checks.</li>
+<li>Running transforms without dry-run in fresh environments.</li>
+<li>Using broad session scopes that mix unrelated workflows.</li>
+<li>Tuning alpha and beta without checking retrieval_path drift.</li>
+</ol>
+<h2 id="where-to-go-next"><a class="header" href="#where-to-go-next">Where To Go Next</a></h2>
+<ol>
+<li>For domain presets, continue with <a href="#agent-blueprints-by-domain">Agent Blueprints by Domain</a>.</li>
+<li>For API-level examples, use <a href="#examples">Examples</a>.</li>
+<li>For rollout safeguards, use <a href="#integration">Integration</a> and <a href="#operations">Operations</a>.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="agent-blueprints-by-domain"><a class="header" href="#agent-blueprints-by-domain">Agent Blueprints by Domain</a></h1>
+<h2 id="audience-and-use-6"><a class="header" href="#audience-and-use-6">Audience and Use</a></h2>
+<p>This page is for teams designing task-specific agents that share one STTP memory backbone.</p>
+<p>Use it to:</p>
+<ol>
+<li>Map business tasks to concrete agent memory behavior.</li>
+<li>Reuse reliable STTP patterns across multiple domains.</li>
+<li>Start with practical defaults before deep customization.</li>
+</ol>
+<h2 id="blueprint-format"><a class="header" href="#blueprint-format">Blueprint Format</a></h2>
+<p>Each blueprint defines:</p>
+<ol>
+<li>Primary task and success criteria.</li>
+<li>Memory ingestion pattern across raw, daily, and weekly tiers.</li>
+<li>Retrieval policy defaults.</li>
+<li>Operational guardrails and handoff points.</li>
+</ol>
+<h2 id="shared-foundation-for-all-blueprints"><a class="header" href="#shared-foundation-for-all-blueprints">Shared Foundation for All Blueprints</a></h2>
+<p>Start each agent with these defaults:</p>
+<ol>
+<li>Parse and validate all stored nodes before persistence.</li>
+<li>Require explicit tenant and session scope on write and recall.</li>
+<li>Store key runtime policy values alongside each operation.</li>
+<li>Keep explain-capable recall enabled for incident diagnostics.</li>
+</ol>
+<h2 id="blueprint-1-customer-support-resolution-agent"><a class="header" href="#blueprint-1-customer-support-resolution-agent">Blueprint 1: Customer Support Resolution Agent</a></h2>
+<p>Primary task:</p>
+<ol>
+<li>Resolve customer issues faster while preserving account context.</li>
+</ol>
+<p>Memory pattern:</p>
+<ol>
+<li>raw: ticket transcript fragments, action decisions, workaround attempts.</li>
+<li>daily: condensed issue timeline and resolution outcomes.</li>
+<li>weekly: recurring issue clusters and escalation themes.</li>
+</ol>
+<p>Retrieval defaults:</p>
+<ol>
+<li>Start with hybrid retrieval when embeddings exist.</li>
+<li>Enable lexical fallback for sparse or new accounts.</li>
+<li>Limit recall result set to a small operator-reviewable window.</li>
+</ol>
+<p>Guardrails:</p>
+<ol>
+<li>Escalate when confidence on root-cause fields falls below policy threshold.</li>
+<li>Require human approval before customer-visible policy exceptions.</li>
+</ol>
+<h2 id="blueprint-2-revenue-and-account-strategy-agent"><a class="header" href="#blueprint-2-revenue-and-account-strategy-agent">Blueprint 2: Revenue and Account Strategy Agent</a></h2>
+<p>Primary task:</p>
+<ol>
+<li>Prepare account intelligence summaries for sales and success teams.</li>
+</ol>
+<p>Memory pattern:</p>
+<ol>
+<li>raw: call notes, objections, product-fit signals, next-step commitments.</li>
+<li>daily: account momentum summary with confidence annotations.</li>
+<li>weekly: pipeline risk and expansion opportunity themes.</li>
+</ol>
+<p>Retrieval defaults:</p>
+<ol>
+<li>Prioritize recent daily and weekly tiers for executive summaries.</li>
+<li>Pull raw evidence snippets for every high-impact recommendation.</li>
+</ol>
+<p>Guardrails:</p>
+<ol>
+<li>Block outbound recommendations lacking supporting evidence links.</li>
+<li>Flag contradictory account signals for manual review.</li>
+</ol>
+<h2 id="blueprint-3-security-incident-triage-agent"><a class="header" href="#blueprint-3-security-incident-triage-agent">Blueprint 3: Security Incident Triage Agent</a></h2>
+<p>Primary task:</p>
+<ol>
+<li>Speed investigation and containment decisions during active incidents.</li>
+</ol>
+<p>Memory pattern:</p>
+<ol>
+<li>raw: alerts, timeline events, containment steps, IOC references.</li>
+<li>daily: incident narrative with mitigation state.</li>
+<li>weekly: recurring attack pattern and control-gap rollups.</li>
+</ol>
+<p>Retrieval defaults:</p>
+<ol>
+<li>Bias toward strict time-window filtering during active incidents.</li>
+<li>Use explain flows on every severity upgrade recommendation.</li>
+</ol>
+<p>Guardrails:</p>
+<ol>
+<li>Require dual confirmation before irreversible containment actions.</li>
+<li>Freeze autonomous remediation if retrieval path deviates from baseline.</li>
+</ol>
+<h2 id="blueprint-4-clinical-operations-coordination-agent"><a class="header" href="#blueprint-4-clinical-operations-coordination-agent">Blueprint 4: Clinical Operations Coordination Agent</a></h2>
+<p>Primary task:</p>
+<ol>
+<li>Improve handoff quality across clinical operations teams.</li>
+</ol>
+<p>Memory pattern:</p>
+<ol>
+<li>raw: triage notes, operational handoff details, care coordination tasks.</li>
+<li>daily: shift-level summary and unresolved coordination items.</li>
+<li>weekly: recurring workflow bottlenecks and staffing friction themes.</li>
+</ol>
+<p>Retrieval defaults:</p>
+<ol>
+<li>Prefer deterministic recall windows scoped to active handoff queues.</li>
+<li>Keep retrieval limits tight for auditability and review speed.</li>
+</ol>
+<p>Guardrails:</p>
+<ol>
+<li>Restrict memory access by role and operational scope.</li>
+<li>Require explicit redaction policy for sensitive fields before storage.</li>
+</ol>
+<h2 id="blueprint-5-engineering-release-reliability-agent"><a class="header" href="#blueprint-5-engineering-release-reliability-agent">Blueprint 5: Engineering Release Reliability Agent</a></h2>
+<p>Primary task:</p>
+<ol>
+<li>Reduce regressions by preserving release and rollback context.</li>
+</ol>
+<p>Memory pattern:</p>
+<ol>
+<li>raw: deploy events, test failures, rollback attempts, mitigation notes.</li>
+<li>daily: release status summary and unresolved risks.</li>
+<li>weekly: stability trend and recurring failure-class rollup.</li>
+</ol>
+<p>Retrieval defaults:</p>
+<ol>
+<li>Compare current release signals against recent weekly baselines.</li>
+<li>Use explain traces to justify promote, hold, or rollback decisions.</li>
+</ol>
+<p>Guardrails:</p>
+<ol>
+<li>Require rollback recommendation when failure classes repeat beyond threshold.</li>
+<li>Block promotion if validation success metrics regress from baseline.</li>
+</ol>
+<h2 id="blueprint-6-research-and-policy-analysis-agent"><a class="header" href="#blueprint-6-research-and-policy-analysis-agent">Blueprint 6: Research and Policy Analysis Agent</a></h2>
+<p>Primary task:</p>
+<ol>
+<li>Build traceable recommendations from large document sets.</li>
+</ol>
+<p>Memory pattern:</p>
+<ol>
+<li>raw: source excerpts with provenance and extraction rationale.</li>
+<li>daily: topic summaries with confidence-scored claims.</li>
+<li>weekly: cross-source synthesis with contradiction tracking.</li>
+</ol>
+<p>Retrieval defaults:</p>
+<ol>
+<li>Retrieve source-backed evidence first, synthesized claims second.</li>
+<li>Use lexical fallback for low-embedding or highly technical terminology.</li>
+</ol>
+<p>Guardrails:</p>
+<ol>
+<li>Do not emit conclusions without source-linked evidence fields.</li>
+<li>Route high-impact policy conclusions through human review.</li>
+</ol>
+<h2 id="implementation-template"><a class="header" href="#implementation-template">Implementation Template</a></h2>
+<p>Use this checklist when instantiating any blueprint:</p>
+<ol>
+<li>Define task-specific session naming and tenant strategy.</li>
+<li>Define required content fields and confidence expectations.</li>
+<li>Define fallback policy and acceptable retrieval_path behavior.</li>
+<li>Define transform workflows and dry-run policy.</li>
+<li>Define escalation, rollback, and audit logging requirements.</li>
+</ol>
+<h2 id="starter-request-shape"><a class="header" href="#starter-request-shape">Starter Request Shape</a></h2>
+<p>Use a request profile like this as a baseline for domain agents:</p>
+<pre><code class="language-text">session scope: &lt;tenant&gt;::&lt;agent-role&gt;::&lt;workstream&gt;
+tiers: ["raw", "daily", "weekly"]
+retrieval policy:
+  mode: hybrid-preferred
+  lexical_fallback: enabled
+  limit: 5-20 depending on operator review mode
+explain: enabled for all high-impact actions
+transform mode: dry-run first in new environments
+</code></pre>
+<h2 id="drop-in-starter-configs"><a class="header" href="#drop-in-starter-configs">Drop-In Starter Configs</a></h2>
+<p>Use these as first-pass defaults. Tune only after collecting baseline metrics.</p>
+<h3 id="config-a-customer-support-resolution"><a class="header" href="#config-a-customer-support-resolution">Config A: Customer Support Resolution</a></h3>
+<pre><code class="language-text">session pattern: tenant::&lt;account-id&gt;::agent::support-resolution::&lt;ticket-id&gt;
+tiers: ["raw", "daily", "weekly"]
+limit: 8
+alpha: 0.70
+beta: 0.30
+retrieval mode: hybrid-preferred
+lexical fallback: enabled
+time window: last 30 days by default
+explain: required for escalation and exception decisions
+transform mode: dry-run for new policy revisions
+</code></pre>
+<h3 id="config-b-revenue-and-account-strategy"><a class="header" href="#config-b-revenue-and-account-strategy">Config B: Revenue and Account Strategy</a></h3>
+<pre><code class="language-text">session pattern: tenant::&lt;account-id&gt;::agent::revenue-strategy::&lt;quarter&gt;
+tiers: ["daily", "weekly", "raw"]
+limit: 12
+alpha: 0.60
+beta: 0.40
+retrieval mode: hybrid-preferred
+lexical fallback: enabled
+time window: last 90 days by default
+explain: required for outbound recommendation generation
+transform mode: dry-run for scoring-model changes
+</code></pre>
+<h3 id="config-c-security-incident-triage"><a class="header" href="#config-c-security-incident-triage">Config C: Security Incident Triage</a></h3>
+<pre><code class="language-text">session pattern: tenant::&lt;org-id&gt;::agent::security-triage::&lt;incident-id&gt;
+tiers: ["raw", "daily"]
+limit: 6
+alpha: 0.75
+beta: 0.25
+retrieval mode: hybrid-preferred with strict time filtering
+lexical fallback: enabled
+time window: incident start to now
+explain: required for severity upgrade and containment recommendations
+transform mode: dry-run first, then controlled batch execution
+</code></pre>
+<h3 id="config-d-clinical-operations-coordination"><a class="header" href="#config-d-clinical-operations-coordination">Config D: Clinical Operations Coordination</a></h3>
+<pre><code class="language-text">session pattern: tenant::&lt;facility-id&gt;::agent::clinical-ops::&lt;shift-id&gt;
+tiers: ["raw", "daily"]
+limit: 7
+alpha: 0.65
+beta: 0.35
+retrieval mode: deterministic-first with hybrid fallback
+lexical fallback: enabled
+time window: active shift plus previous shift handoff window
+explain: required for unresolved handoff item recommendations
+transform mode: dry-run until handoff schema is stable
+</code></pre>
+<h3 id="config-e-engineering-release-reliability"><a class="header" href="#config-e-engineering-release-reliability">Config E: Engineering Release Reliability</a></h3>
+<pre><code class="language-text">session pattern: tenant::&lt;org-id&gt;::agent::release-reliability::&lt;release-id&gt;
+tiers: ["raw", "daily", "weekly"]
+limit: 10
+alpha: 0.68
+beta: 0.32
+retrieval mode: hybrid-preferred
+lexical fallback: enabled
+time window: release window plus previous two release cycles
+explain: required for promote, hold, and rollback recommendations
+transform mode: dry-run for migration and backfill operations
+</code></pre>
+<h3 id="config-f-research-and-policy-analysis"><a class="header" href="#config-f-research-and-policy-analysis">Config F: Research and Policy Analysis</a></h3>
+<pre><code class="language-text">session pattern: tenant::&lt;program-id&gt;::agent::policy-analysis::&lt;topic-id&gt;
+tiers: ["raw", "daily", "weekly"]
+limit: 14
+alpha: 0.55
+beta: 0.45
+retrieval mode: hybrid-preferred with source-first ordering
+lexical fallback: enabled
+time window: topic-defined research horizon
+explain: required for all high-impact conclusions
+transform mode: dry-run for synthesis template updates
+</code></pre>
+<h2 id="tuning-sequence"><a class="header" href="#tuning-sequence">Tuning Sequence</a></h2>
+<p>When adjusting any config:</p>
+<ol>
+<li>Tune limit first to match operator review capacity.</li>
+<li>Tune alpha and beta second to control resonance versus semantic emphasis.</li>
+<li>Tune time window third to reduce noise without losing critical context.</li>
+<li>Keep explain enabled while tuning to verify retrieval_path behavior.</li>
+</ol>
+<h2 id="end-to-end-sample-flows"><a class="header" href="#end-to-end-sample-flows">End-to-End Sample Flows</a></h2>
+<p>Each flow uses the same four-step runtime pattern:</p>
+<ol>
+<li>Ingest: store raw node events.</li>
+<li>Recall: retrieve relevant context using scoped policy.</li>
+<li>Explain: inspect retrieval path and score behavior.</li>
+<li>Transform dry-run: preview rollups or embedding updates before mutation.</li>
+</ol>
+<h3 id="flow-a-customer-support-resolution"><a class="header" href="#flow-a-customer-support-resolution">Flow A: Customer Support Resolution</a></h3>
+<pre><code class="language-text">step 1 ingest
+  session_id: tenant::acme::agent::support-resolution::ticket-1042
+  tier: raw
+  content focus: issue summary, attempted fix, customer impact
+
+step 2 recall
+  tiers: ["raw", "daily", "weekly"]
+  limit: 8
+  alpha: 0.70
+  beta: 0.30
+  lexical fallback: enabled
+
+step 3 explain
+  verify retrieval_path is hybrid or lexical_fallback as expected
+  confirm top results include prior resolutions for same issue family
+
+step 4 transform dry-run
+  operation: monthly_rollup
+  dry_run: true
+  expected: projected counts and no persisted mutations
+</code></pre>
+<h3 id="flow-b-revenue-and-account-strategy"><a class="header" href="#flow-b-revenue-and-account-strategy">Flow B: Revenue and Account Strategy</a></h3>
+<pre><code class="language-text">step 1 ingest
+  session_id: tenant::acme::agent::revenue-strategy::2026-q2
+  tier: raw
+  content focus: objection notes, expansion signals, decision stakeholders
+
+step 2 recall
+  tiers: ["daily", "weekly", "raw"]
+  limit: 12
+  alpha: 0.60
+  beta: 0.40
+  lexical fallback: enabled
+
+step 3 explain
+  verify top recommendations are linked to supporting evidence
+  verify contradictory signals are surfaced in results
+
+step 4 transform dry-run
+  operation: weekly_rollup
+  dry_run: true
+  expected: account momentum summary preview without writes
+</code></pre>
+<h3 id="flow-c-security-incident-triage"><a class="header" href="#flow-c-security-incident-triage">Flow C: Security Incident Triage</a></h3>
+<pre><code class="language-text">step 1 ingest
+  session_id: tenant::acme-sec::agent::security-triage::inc-8891
+  tier: raw
+  content focus: alert details, IOC artifacts, containment actions
+
+step 2 recall
+  tiers: ["raw", "daily"]
+  limit: 6
+  alpha: 0.75
+  beta: 0.25
+  lexical fallback: enabled
+  time window: incident_start..now
+
+step 3 explain
+  verify severity recommendation is traceable to matching indicators
+  verify retrieval_path remains stable across repeated calls
+
+step 4 transform dry-run
+  operation: embed_backfill
+  dry_run: true
+  expected: selected node count for embedding without updates
+</code></pre>
+<h3 id="flow-d-clinical-operations-coordination"><a class="header" href="#flow-d-clinical-operations-coordination">Flow D: Clinical Operations Coordination</a></h3>
+<pre><code class="language-text">step 1 ingest
+  session_id: tenant::north-hospital::agent::clinical-ops::shift-2026-05-05-n1
+  tier: raw
+  content focus: handoff notes, unresolved tasks, time-critical blockers
+
+step 2 recall
+  tiers: ["raw", "daily"]
+  limit: 7
+  alpha: 0.65
+  beta: 0.35
+  lexical fallback: enabled
+  time window: active_shift_plus_prior_handoff
+
+step 3 explain
+  verify unresolved handoff items rank ahead of historical summaries
+  verify retrieval_path reflects deterministic-first policy intent
+
+step 4 transform dry-run
+  operation: daily_rollup
+  dry_run: true
+  expected: shift summary preview for coordinator review
+</code></pre>
+<h3 id="flow-e-engineering-release-reliability"><a class="header" href="#flow-e-engineering-release-reliability">Flow E: Engineering Release Reliability</a></h3>
+<pre><code class="language-text">step 1 ingest
+  session_id: tenant::acme-eng::agent::release-reliability::release-2.7.0
+  tier: raw
+  content focus: test failures, deploy checkpoints, rollback notes
+
+step 2 recall
+  tiers: ["raw", "daily", "weekly"]
+  limit: 10
+  alpha: 0.68
+  beta: 0.32
+  lexical fallback: enabled
+  time window: current_release_plus_two_prior
+
+step 3 explain
+  verify recurring failure classes are present in top-ranked context
+  verify promote or rollback suggestion is evidence-backed
+
+step 4 transform dry-run
+  operation: monthly_rollup
+  dry_run: true
+  expected: release stability trend preview with no writes
+</code></pre>
+<h3 id="flow-f-research-and-policy-analysis"><a class="header" href="#flow-f-research-and-policy-analysis">Flow F: Research and Policy Analysis</a></h3>
+<pre><code class="language-text">step 1 ingest
+  session_id: tenant::policy-lab::agent::policy-analysis::housing-supply
+  tier: raw
+  content focus: source excerpts, claims, contradiction annotations
+
+step 2 recall
+  tiers: ["raw", "daily", "weekly"]
+  limit: 14
+  alpha: 0.55
+  beta: 0.45
+  lexical fallback: enabled
+  ordering intent: source-first then synthesis
+
+step 3 explain
+  verify every high-impact conclusion maps to source-backed entries
+  verify contradiction nodes are retained in top context window
+
+step 4 transform dry-run
+  operation: weekly_rollup
+  dry_run: true
+  expected: synthesis preview with confidence-bearing claim structure
+</code></pre>
+<h2 id="fast-adaptation-notes"><a class="header" href="#fast-adaptation-notes">Fast Adaptation Notes</a></h2>
+<ol>
+<li>Keep the four-step flow constant across domains.</li>
+<li>Change session naming and time windows first for domain fit.</li>
+<li>Change alpha and beta only after baseline explain traces are stable.</li>
+<li>Keep transform in dry-run mode until rollback criteria are documented.</li>
+</ol>
+<h2 id="choosing-your-first-blueprint"><a class="header" href="#choosing-your-first-blueprint">Choosing Your First Blueprint</a></h2>
+<ol>
+<li>High-volume interaction workflows: start with Customer Support Resolution.</li>
+<li>Time-critical response workflows: start with Security Incident Triage.</li>
+<li>Cross-team handoff workflows: start with Clinical Operations Coordination.</li>
+<li>Decision-justification workflows: start with Research and Policy Analysis.</li>
+</ol>
+<p>Then adapt the same STTP patterns to your domain-specific contracts and controls.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h1>
+<h2 id="triage-workflow"><a class="header" href="#triage-workflow">Triage Workflow</a></h2>
+<p>Use this sequence to reduce time-to-diagnosis:</p>
+<ol>
+<li>Reproduce with the smallest failing input.</li>
+<li>Classify failure domain: build/test, parser/validator, retrieval, or transform.</li>
+<li>Run the command pack for that domain.</li>
+<li>Capture escalation bundle before changing runtime defaults.</li>
+</ol>
+<h2 id="command-packs"><a class="header" href="#command-packs">Command Packs</a></h2>
+<h3 id="build-and-test-command-pack"><a class="header" href="#build-and-test-command-pack">Build and Test Command Pack</a></h3>
+<p>Run from repository root:</p>
+<pre><code class="language-bash">cargo check --workspace --examples
+cargo test --workspace
+cargo test -p locus-core --lib
+cargo test -p locus-sdk
+</code></pre>
+<p>Use when:</p>
+<ol>
+<li>CI fails but local state is unclear.</li>
+<li>A release candidate needs a fast baseline confidence pass.</li>
+</ol>
+<h3 id="parser-and-validator-command-pack"><a class="header" href="#parser-and-validator-command-pack">Parser and Validator Command Pack</a></h3>
+<p>Run from repository root:</p>
+<pre><code class="language-bash">cargo test -p locus-core parser_tests
+cargo test -p locus-core validator_tests
+cargo test -p locus-core end_to_end_parsing_tests
+</code></pre>
+<p>Use when:</p>
+<ol>
+<li>Ingestion rejects node payloads.</li>
+<li>Strict profile compatibility appears unstable.</li>
+</ol>
+<h3 id="retrieval-command-pack"><a class="header" href="#retrieval-command-pack">Retrieval Command Pack</a></h3>
+<p>Run from repository root:</p>
+<pre><code class="language-bash">cargo test -p locus-core context_query_service_tests
+cargo test -p locus-sdk --example memory_composition
+cargo test -p locus-sdk --example provider_registry_setup
+</code></pre>
+<p>Use when:</p>
+<ol>
+<li>retrieval_path behavior diverges from expected baseline.</li>
+<li>recall and explain outputs are not aligned.</li>
+</ol>
+<h3 id="transform-and-sync-command-pack"><a class="header" href="#transform-and-sync-command-pack">Transform and Sync Command Pack</a></h3>
+<p>Run from repository root:</p>
+<pre><code class="language-bash">cargo test -p locus-core monthly_rollup_service_tests
+cargo test -p locus-core sync_coordinator_service_tests
+cargo test -p locus-core surrealdb_node_store_tests
+cargo test -p locus-core surrealdb_runtime_tests
+</code></pre>
+<p>Use when:</p>
+<ol>
+<li>Backfill, rollup, or sync progression stalls.</li>
+<li>selected/updated/skipped counts are inconsistent.</li>
+</ol>
+<h2 id="build-and-test-failures"><a class="header" href="#build-and-test-failures">Build and Test Failures</a></h2>
+<h3 id="buildtest-symptom"><a class="header" href="#buildtest-symptom">Build/Test Symptom</a></h3>
+<p><code>cargo test</code> fails in integration targets while unit tests pass.</p>
+<h3 id="buildtest-actions"><a class="header" href="#buildtest-actions">Build/Test Actions</a></h3>
+<ol>
+<li>Run crate-scoped tests first to isolate failure domain.</li>
+<li>Run failing target with single thread when test state leakage is suspected.</li>
+<li>Compare behavior against known baseline in source repository if migrating.</li>
+<li>Capture failing command output and the exact crate version set.</li>
+</ol>
+<h3 id="buildtest-common-signatures"><a class="header" href="#buildtest-common-signatures">Build/Test Common Signatures</a></h3>
+<ol>
+<li>Integration tests fail while crate lib tests pass: likely environment or fixture state isolation issue.</li>
+<li>Workspace build passes but host runtime fails: likely endpoint/config mismatch.</li>
+</ol>
+<h2 id="parser-and-validation-errors"><a class="header" href="#parser-and-validation-errors">Parser and Validation Errors</a></h2>
+<h3 id="parservalidation-symptom"><a class="header" href="#parservalidation-symptom">Parser/Validation Symptom</a></h3>
+<p>Stored node rejected or strict parser fails.</p>
+<h3 id="parservalidation-actions"><a class="header" href="#parservalidation-actions">Parser/Validation Actions</a></h3>
+<ol>
+<li>Confirm four-layer ordering is preserved.</li>
+<li>Confirm content keys use field_name(.confidence) format.</li>
+<li>Confirm content nesting depth does not exceed five.</li>
+<li>Re-run parser and validator command pack and compare strict versus tolerant outcomes.</li>
+</ol>
+<h3 id="parservalidation-common-signatures"><a class="header" href="#parservalidation-common-signatures">Parser/Validation Common Signatures</a></h3>
+<ol>
+<li>Missing required layer errors indicate malformed STTP spine.</li>
+<li>Invalid key format errors indicate content keys not using field_name(.confidence).</li>
+<li>Nesting depth errors indicate recursive payload exceeded protocol constraints.</li>
+</ol>
+<h2 id="retrieval-behavior-mismatch"><a class="header" href="#retrieval-behavior-mismatch">Retrieval Behavior Mismatch</a></h2>
+<h3 id="retrieval-symptom"><a class="header" href="#retrieval-symptom">Retrieval Symptom</a></h3>
+<p>Unexpected recall ranking or fallback path.</p>
+<h3 id="retrieval-actions"><a class="header" href="#retrieval-actions">Retrieval Actions</a></h3>
+<ol>
+<li>Log full scoring policy and scope.</li>
+<li>Verify alpha and beta values are explicitly set.</li>
+<li>Use explain workflow to inspect fallback triggers and stage counts.</li>
+<li>Compare retrieval_path distribution to recent baseline window before changing policy defaults.</li>
+</ol>
+<h3 id="retrieval-common-signatures"><a class="header" href="#retrieval-common-signatures">Retrieval Common Signatures</a></h3>
+<ol>
+<li>Unexpected lexical_fallback path often indicates sparse embeddings or strict filter scope.</li>
+<li>Score drift with unchanged input usually indicates policy defaults changed between versions.</li>
+</ol>
+<h2 id="transformmigration-issues"><a class="header" href="#transformmigration-issues">Transform/Migration Issues</a></h2>
+<h3 id="transformmigration-symptom"><a class="header" href="#transformmigration-symptom">Transform/Migration Symptom</a></h3>
+<p>Embedding backfill updates fewer nodes than expected.</p>
+<h3 id="transformmigration-actions"><a class="header" href="#transformmigration-actions">Transform/Migration Actions</a></h3>
+<ol>
+<li>Run dry-run first and inspect selected counts.</li>
+<li>Validate filter scope and has_embedding settings.</li>
+<li>Validate provider capability routing and model configuration.</li>
+<li>Verify checkpoint progression and sync cursor ordering when running incremental jobs.</li>
+</ol>
+<h3 id="transformmigration-common-signatures"><a class="header" href="#transformmigration-common-signatures">Transform/Migration Common Signatures</a></h3>
+<ol>
+<li>Selected count near zero in dry-run usually indicates filter constraints are too narrow.</li>
+<li>Update counts diverge from selected counts when provider or storage writes are failing.</li>
+</ol>
+<h2 id="escalation-data-to-capture"><a class="header" href="#escalation-data-to-capture">Escalation Data To Capture</a></h2>
+<ol>
+<li>Exact request payload.</li>
+<li>Retrieval path and fallback reason.</li>
+<li>Validation and parser error text.</li>
+<li>Relevant crate versions and commit sha.</li>
+<li>Environment profile and runtime mode used during failure.</li>
+</ol>
+<h2 id="rollback-triggers"><a class="header" href="#rollback-triggers">Rollback Triggers</a></h2>
+<p>Initiate rollback when any of the following occur:</p>
+<ol>
+<li>Client-visible contract mismatch appears in migrated host routes.</li>
+<li>Error rate or latency breaches remain sustained after initial mitigation window.</li>
+<li>Parser or validator strict failures correlate with the latest release.</li>
+</ol>
+<h2 id="escalation-bundle-template"><a class="header" href="#escalation-bundle-template">Escalation Bundle Template</a></h2>
+<p>Capture the following in one incident record:</p>
+<ol>
+<li>Failing command and timestamp.</li>
+<li>Environment profile: local, CI, staging, or production.</li>
+<li>Request payload and redacted response sample.</li>
+<li>retrieval_path or transform result counters.</li>
+<li>Recent change references and suspected blast radius.</li>
+</ol>
+<p>This bundle enables rapid handoff across development, platform, and on-call teams.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="versioning-and-compatibility"><a class="header" href="#versioning-and-compatibility">Versioning and Compatibility</a></h1>
+<h2 id="scope"><a class="header" href="#scope">Scope</a></h2>
+<p>This policy defines versioning expectations for Locus crates and host integrations.</p>
+<p>It also defines dependency governance requirements used to keep releases stable over time.</p>
+<h2 id="package-versioning"><a class="header" href="#package-versioning">Package Versioning</a></h2>
+<ol>
+<li>locus-core and locus-sdk use SemVer.</li>
+<li>Pre-1.0 versions may evolve rapidly but should still document behavior changes clearly.</li>
+<li>Breaking changes require explicit migration notes in release documentation.</li>
+</ol>
+<h2 id="compatibility-rules"><a class="header" href="#compatibility-rules">Compatibility Rules</a></h2>
+<ol>
+<li>SDK should remain additive where possible.</li>
+<li>Core model changes should preserve parse/load compatibility for legacy node rows.</li>
+<li>Host integrations should keep external endpoint/tool contracts stable during internal rewires.</li>
+<li>Deprecated contract paths should remain available for at least one release cycle unless security or correctness requires immediate removal.</li>
+</ol>
+<h2 id="release-channels"><a class="header" href="#release-channels">Release Channels</a></h2>
+<ol>
+<li>Patch: bug fixes, non-breaking behavior corrections, docs-only changes.</li>
+<li>Minor: additive APIs, new optional workflows, new integration hooks.</li>
+<li>Major: intentional API/contract breaks with migration guide.</li>
+</ol>
+<h2 id="migration-guarantees"><a class="header" href="#migration-guarantees">Migration Guarantees</a></h2>
+<ol>
+<li>Every breaking change requires a migration section with before/after payload examples.</li>
+<li>Behavior changes in retrieval or fallback policy must include validation evidence and parity notes.</li>
+<li>Parser and validator contract shifts must include strict-profile regression tests.</li>
+</ol>
+<h2 id="version-alignment"><a class="header" href="#version-alignment">Version Alignment</a></h2>
+<ol>
+<li>Workspace releases should keep crate versions intentionally aligned when shipped together.</li>
+<li>If independent crate version bumps are required, release notes must explain compatibility implications.</li>
+</ol>
+<h2 id="dependency-governance"><a class="header" href="#dependency-governance">Dependency Governance</a></h2>
+<h3 id="dependency-update-cadence"><a class="header" href="#dependency-update-cadence">Dependency Update Cadence</a></h3>
+<ol>
+<li>Security updates: prioritized and released on an expedited path.</li>
+<li>Patch and minor dependency updates: batched on regular release cadence.</li>
+<li>Major dependency updates: planned with explicit compatibility validation and rollback criteria.</li>
+</ol>
+<h3 id="dependency-change-controls"><a class="header" href="#dependency-change-controls">Dependency Change Controls</a></h3>
+<ol>
+<li>Dependency changes must include rationale and impact scope in release notes.</li>
+<li>Runtime-facing dependencies require integration smoke checks before release.</li>
+<li>Changes affecting transport, storage, or crypto behavior require targeted regression coverage.</li>
+</ol>
+<h3 id="security-patch-handling"><a class="header" href="#security-patch-handling">Security Patch Handling</a></h3>
+<ol>
+<li>Vulnerabilities with active exposure are patched on the nearest release path.</li>
+<li>Mitigations and operational impact are documented with the release.</li>
+<li>Consumers receive upgrade guidance when patch behavior changes are observable.</li>
+</ol>
+<h3 id="compatibility-validation-for-dependency-changes"><a class="header" href="#compatibility-validation-for-dependency-changes">Compatibility Validation for Dependency Changes</a></h3>
+<ol>
+<li>Workspace compile and tests must pass.</li>
+<li>Host runtime smoke checks must pass for MCP and gateway.</li>
+<li>SDK example workflows must pass for reference integration patterns.</li>
+<li>Generated technical docs must build without warnings requiring manual interpretation.</li>
+</ol>
+<h3 id="semver-range-management-policy"><a class="header" href="#semver-range-management-policy">SemVer Range Management Policy</a></h3>
+<ol>
+<li>Internal workspace crate dependencies should use intentionally aligned versions at release time.</li>
+<li>External dependencies should avoid overly broad ranges that mask breaking behavior.</li>
+<li>Major version upgrades require explicit compatibility notes and rollout strategy.</li>
+<li>Lockfile and resolved-version deltas should be reviewed with dependency change rationale.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="security-and-data-handling"><a class="header" href="#security-and-data-handling">Security and Data Handling</a></h1>
+<h2 id="security-posture"><a class="header" href="#security-posture">Security Posture</a></h2>
+<p>Locus is a memory implementation layer and may process sensitive conversational state. Treat all stored node content as potentially sensitive.</p>
+<h2 id="data-classification-guidance"><a class="header" href="#data-classification-guidance">Data Classification Guidance</a></h2>
+<ol>
+<li>Treat raw node text and content layer fields as confidential by default.</li>
+<li>Treat session identifiers and tenant identifiers as sensitive metadata.</li>
+<li>Treat provider credentials and endpoint secrets as secrets at all times.</li>
+</ol>
+<h2 id="secret-management"><a class="header" href="#secret-management">Secret Management</a></h2>
+<ol>
+<li>Never commit credentials, tokens, or endpoint secrets to source control.</li>
+<li>Use environment variables or secret managers for runtime configuration.</li>
+<li>Rotate credentials on incident response or role changes.</li>
+</ol>
+<h2 id="pii-and-sensitive-content"><a class="header" href="#pii-and-sensitive-content">PII and Sensitive Content</a></h2>
+<ol>
+<li>Avoid storing direct PII when not required for product behavior.</li>
+<li>Apply redaction/minimization before persistence where possible.</li>
+<li>Ensure logs do not include raw secrets or unredacted sensitive payloads.</li>
+</ol>
+<h2 id="transport-and-storage-controls"><a class="header" href="#transport-and-storage-controls">Transport and Storage Controls</a></h2>
+<ol>
+<li>Use TLS-enabled transports for remote database and provider calls.</li>
+<li>Restrict database access using least privilege credentials.</li>
+<li>Scope operations by tenant/session to avoid cross-tenant data leakage.</li>
+</ol>
+<h2 id="operational-security-checklist"><a class="header" href="#operational-security-checklist">Operational Security Checklist</a></h2>
+<ol>
+<li>Validate dependency updates and lockfile changes during review.</li>
+<li>Run parser/validator tests to avoid unsafe ingestion regressions.</li>
+<li>Audit error paths for accidental raw payload leakage.</li>
+<li>Keep incident response runbooks updated with containment steps.</li>
+</ol>
+<h2 id="incident-handling-baseline"><a class="header" href="#incident-handling-baseline">Incident Handling Baseline</a></h2>
+<ol>
+<li>Contain by rotating keys and restricting affected endpoints.</li>
+<li>Identify scope using session/tenant trace data.</li>
+<li>Patch and verify with deterministic replay payloads.</li>
+<li>Document remediation and prevention actions in release notes.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sttp-typed-ir-language-specification"><a class="header" href="#sttp-typed-ir-language-specification">STTP Typed IR Language Specification</a></h1>
+<h2 id="formal-contract-for-cognitive-state-transfer"><a class="header" href="#formal-contract-for-cognitive-state-transfer">Formal Contract for Cognitive State Transfer</a></h2>
+<p>Status: Current
+Version: 1.1.0
+Last Updated: 2026-04-25</p>
+<h2 id="1-purpose-and-position"><a class="header" href="#1-purpose-and-position">1. Purpose and Position</a></h2>
+<p>STTP defines a typed intermediate representation for cognition state transfer between agents.</p>
+<p>This specification defines:</p>
+<ol>
+<li>the language surface,</li>
+<li>the structural and semantic contract,</li>
+<li>conformance profiles,</li>
+<li>security and verification obligations.</li>
+</ol>
+<p>This specification does not define:</p>
+<ol>
+<li>storage backend implementation details,</li>
+<li>sync authority policy,</li>
+<li>retrieval ranking policy.</li>
+</ol>
+<h2 id="2-normative-keywords"><a class="header" href="#2-normative-keywords">2. Normative Keywords</a></h2>
+<p>Keywords have normative meaning:</p>
+<ol>
+<li>MUST and MUST NOT indicate mandatory requirements.</li>
+<li>SHOULD and SHOULD NOT indicate strong recommendations.</li>
+<li>MAY indicates optional behavior.</li>
+</ol>
+<h2 id="3-conceptual-model"><a class="header" href="#3-conceptual-model">3. Conceptual Model</a></h2>
+<p>An STTP node is a four-layer typed artifact with ordered semantics.</p>
+<p>Required semantic order:</p>
+<ol>
+<li>Provenance: orientation and transmission contract.</li>
+<li>Envelope: temporal identity and dual actor state.</li>
+<li>Content: compressed meaning with confidence typing.</li>
+<li>Metrics: quality and compression state verification.</li>
+</ol>
+<p>Layer order is part of meaning. Reordering alters interpretation and invalidates strict conformance.</p>
+<h2 id="4-structural-symbols"><a class="header" href="#4-structural-symbols">4. Structural Symbols</a></h2>
+<p>Reserved protocol symbols:</p>
+<ol>
+<li>Node marker: ⏣</li>
+<li>Provenance marker: ⊕⟨</li>
+<li>Envelope marker: ⦿⟨</li>
+<li>Content marker: ◈⟨</li>
+<li>Metrics marker: ⍉⟨</li>
+<li>Layer stop marker: ⟩</li>
+</ol>
+<p>Implementations MUST treat these tokens as structural control symbols when encountered in structural positions.</p>
+<h2 id="5-lexical-domain"><a class="header" href="#5-lexical-domain">5. Lexical Domain</a></h2>
+<h3 id="51-required-token-classes"><a class="header" href="#51-required-token-classes">5.1 Required Token Classes</a></h3>
+<p>A conforming lexer MUST recognize:</p>
+<ol>
+<li>protocol markers,</li>
+<li>braces, brackets, and parentheses,</li>
+<li>delimiters,</li>
+<li>identifiers,</li>
+<li>numeric literals,</li>
+<li>string literals,</li>
+<li>boolean and null literals.</li>
+</ol>
+<h3 id="52-identifiers"><a class="header" href="#52-identifiers">5.2 Identifiers</a></h3>
+<p>Canonical identifier regex:</p>
+<ul>
+<li>[A-Za-z_][A-Za-z0-9_]*</li>
+</ul>
+<h3 id="53-scalars-and-containers"><a class="header" href="#53-scalars-and-containers">5.3 Scalars and Containers</a></h3>
+<p>Scalar values:</p>
+<ol>
+<li>String</li>
+<li>Number</li>
+<li>Boolean</li>
+<li>Null</li>
+</ol>
+<p>Container values:</p>
+<ol>
+<li>Object</li>
+<li>Array</li>
+</ol>
+<h2 id="6-grammar-skeleton"><a class="header" href="#6-grammar-skeleton">6. Grammar Skeleton</a></h2>
+<p>The following grammar is normative at the layer level.</p>
+<pre><code class="language-text">Node             := ProvenanceLayer EnvelopeLayer ContentLayer MetricsLayer
+
+ProvenanceLayer  := PROVENANCE_START NodeObject LAYER_END
+EnvelopeLayer    := ENVELOPE_START   NodeObject LAYER_END
+ContentLayer     := CONTENT_START    NodeObject LAYER_END
+MetricsLayer     := METRICS_START    NodeObject LAYER_END
+
+NodeObject       := OptionalNodeMarker Object
+OptionalNodeMarker := NODE_MARKER [NodeOrdinal]
+NodeOrdinal      := Integer
+
+Object           := '{' Members? '}'
+Members          := Pair (',' Pair)*
+Pair             := Key ':' Value
+Key              := Identifier | String
+Value            := Object | Array | String | Number | Boolean | Null
+Array            := '[' (Value (',' Value)*)? ']'
+</code></pre>
+<p>Note:</p>
+<ol>
+<li>legacy compact separators are non-canonical and profile-scoped to tolerant mode.</li>
+</ol>
+<h2 id="7-layer-schema-contract"><a class="header" href="#7-layer-schema-contract">7. Layer Schema Contract</a></h2>
+<h3 id="71-provenance-layer"><a class="header" href="#71-provenance-layer">7.1 Provenance Layer</a></h3>
+<p>Required keys:</p>
+<ol>
+<li>trigger</li>
+<li>response_format</li>
+<li>origin_session</li>
+<li>compression_depth</li>
+<li>parent_node</li>
+<li>prime</li>
+</ol>
+<p>trigger enum:</p>
+<ol>
+<li>scheduled</li>
+<li>threshold</li>
+<li>resonance</li>
+<li>seed</li>
+<li>manual</li>
+</ol>
+<p>response_format enum:</p>
+<ol>
+<li>temporal_node</li>
+<li>natural_language</li>
+<li>hybrid</li>
+</ol>
+<p>prime required keys:</p>
+<ol>
+<li>attractor_config</li>
+<li>context_summary</li>
+<li>relevant_tier</li>
+<li>retrieval_budget</li>
+</ol>
+<p>attractor_config required keys:</p>
+<ol>
+<li>stability</li>
+<li>friction</li>
+<li>logic</li>
+<li>autonomy</li>
+</ol>
+<h3 id="72-envelope-layer"><a class="header" href="#72-envelope-layer">7.2 Envelope Layer</a></h3>
+<p>Required keys:</p>
+<ol>
+<li>timestamp</li>
+<li>tier</li>
+<li>session_id</li>
+<li>user_avec</li>
+<li>model_avec</li>
+</ol>
+<p>Optional keys:</p>
+<ol>
+<li>schema_version</li>
+</ol>
+<p>tier enum:</p>
+<ol>
+<li>raw</li>
+<li>daily</li>
+<li>weekly</li>
+<li>monthly</li>
+<li>quarterly</li>
+<li>yearly</li>
+</ol>
+<p>AVEC required keys:</p>
+<ol>
+<li>stability</li>
+<li>friction</li>
+<li>logic</li>
+<li>autonomy</li>
+<li>psi</li>
+</ol>
+<h3 id="73-content-layer"><a class="header" href="#73-content-layer">7.3 Content Layer</a></h3>
+<p>Required shape:</p>
+<ol>
+<li>typed object containing one or more semantic fields.</li>
+</ol>
+<p>Canonical field signature:</p>
+<ol>
+<li>field_name(.confidence): value</li>
+</ol>
+<p>confidence rules:</p>
+<ol>
+<li>confidence MUST parse as float.</li>
+<li>strict range is [0.0, 1.0].</li>
+</ol>
+<p>depth rule:</p>
+<ol>
+<li>strict maximum nesting depth is 5.</li>
+</ol>
+<h3 id="74-metrics-layer"><a class="header" href="#74-metrics-layer">7.4 Metrics Layer</a></h3>
+<p>Required keys:</p>
+<ol>
+<li>rho</li>
+<li>kappa</li>
+<li>psi</li>
+<li>compression_avec</li>
+</ol>
+<p>compression_avec required keys:</p>
+<ol>
+<li>stability</li>
+<li>friction</li>
+<li>logic</li>
+<li>autonomy</li>
+<li>psi</li>
+</ol>
+<h2 id="8-semantic-invariants"><a class="header" href="#8-semantic-invariants">8. Semantic Invariants</a></h2>
+<p>Strict conformance requires all invariants below.</p>
+<p>S1 Layer order invariant:</p>
+<ol>
+<li>provenance precedes envelope.</li>
+<li>envelope precedes content.</li>
+<li>content precedes metrics.</li>
+</ol>
+<p>S2 Completeness invariant:</p>
+<ol>
+<li>all required keys exist in all required layers.</li>
+</ol>
+<p>S3 Type invariant:</p>
+<ol>
+<li>enum values are members of defined enum sets.</li>
+<li>required numeric fields parse as numeric values.</li>
+</ol>
+<p>S4 Confidence invariant:</p>
+<ol>
+<li>every canonical content field includes confidence annotation.</li>
+<li>every confidence annotation is range-valid in strict mode.</li>
+</ol>
+<p>S5 Structural depth invariant:</p>
+<ol>
+<li>content object nesting depth is less than or equal to 5.</li>
+</ol>
+<p>A node that violates any invariant MUST be marked strict-invalid.</p>
+<h2 id="9-compliance-profiles"><a class="header" href="#9-compliance-profiles">9. Compliance Profiles</a></h2>
+<h3 id="91-strict-profile"><a class="header" href="#91-strict-profile">9.1 Strict Profile</a></h3>
+<p>Strict profile MUST:</p>
+<ol>
+<li>enforce all syntax and invariants,</li>
+<li>fail closed on unresolved structure,</li>
+<li>reject non-canonical legacy forms.</li>
+</ol>
+<h3 id="92-tolerant-profile"><a class="header" href="#92-tolerant-profile">9.2 Tolerant Profile</a></h3>
+<p>Tolerant profile MAY accept legacy forms including:</p>
+<ol>
+<li>compact pipe-delimited key-value payloads,</li>
+<li>omitted internal node wrappers,</li>
+<li>unquoted enum-like values where unambiguous,</li>
+<li>mixed formatting and spacing variants.</li>
+</ol>
+<p>Tolerant profile MUST:</p>
+<ol>
+<li>preserve raw source,</li>
+<li>emit diagnostics for every deviation,</li>
+<li>produce canonical AST when recoverable,</li>
+<li>never claim strict-valid unless strict invariants pass.</li>
+</ol>
+<h2 id="10-diagnostics-specification"><a class="header" href="#10-diagnostics-specification">10. Diagnostics Specification</a></h2>
+<p>Recommended severities:</p>
+<ol>
+<li>Fatal</li>
+<li>Error</li>
+<li>Warning</li>
+<li>Info</li>
+</ol>
+<p>Diagnostic payload SHOULD include:</p>
+<ol>
+<li>code,</li>
+<li>message,</li>
+<li>source span,</li>
+<li>recovery action,</li>
+<li>strict impact.</li>
+</ol>
+<h2 id="11-canonicalization-rules"><a class="header" href="#11-canonicalization-rules">11. Canonicalization Rules</a></h2>
+<p>When tolerant recovery is used, implementation SHOULD canonicalize:</p>
+<ol>
+<li>layer ordering in AST output,</li>
+<li>known aliases into canonical keys,</li>
+<li>parent_node into normalized representation,</li>
+<li>unambiguous numeric strings into numeric values.</li>
+</ol>
+<p>Canonicalization MUST NOT:</p>
+<ol>
+<li>modify original raw text,</li>
+<li>alter identity-sensitive semantics,</li>
+<li>fabricate missing semantic values.</li>
+</ol>
+<h2 id="12-adversarial-and-security-considerations"><a class="header" href="#12-adversarial-and-security-considerations">12. Adversarial and Security Considerations</a></h2>
+<p>Threat classes:</p>
+<ol>
+<li>marker spoofing and layer confusion,</li>
+<li>malformed confidence signatures,</li>
+<li>delimiter smuggling in compact forms,</li>
+<li>layer bleed-through via unbalanced containers.</li>
+</ol>
+<p>Required response:</p>
+<ol>
+<li>strict profile fails closed,</li>
+<li>tolerant profile fails informative with bounded recovery,</li>
+<li>diagnostics remain deterministic for equal input.</li>
+</ol>
+<h2 id="13-backward-compatibility-contract"><a class="header" href="#13-backward-compatibility-contract">13. Backward Compatibility Contract</a></h2>
+<p>Language evolution policy is additive.</p>
+<p>Rules:</p>
+<ol>
+<li>optional fields MAY be introduced without invalidating old nodes.</li>
+<li>old nodes MAY be ingested via tolerant profile.</li>
+<li>strict profile remains the canonical generation target.</li>
+</ol>
+<h2 id="14-conformance-testing-requirements"><a class="header" href="#14-conformance-testing-requirements">14. Conformance Testing Requirements</a></h2>
+<p>A conformance suite SHOULD include:</p>
+<ol>
+<li>strict canonical fixtures,</li>
+<li>tolerant legacy fixtures,</li>
+<li>negative fixtures by invariant class,</li>
+<li>adversarial fixtures by threat class,</li>
+<li>canonical AST snapshot expectations.</li>
+</ol>
+<h2 id="15-canonical-example"><a class="header" href="#15-canonical-example">15. Canonical Example</a></h2>
+<pre><code class="language-text">⊕⟨ ⏣0{ trigger: manual, response_format: temporal_node, origin_session: "session-abc", compression_depth: 1, parent_node: null, prime: { attractor_config: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85 }, context_summary: "parser hardening session", relevant_tier: raw, retrieval_budget: 8 } } ⟩
+⦿⟨ ⏣0{ timestamp: "2026-04-25T00:00:00Z", tier: raw, session_id: "session-abc", schema_version: "sttp-1.0", user_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 }, model_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 } } ⟩
+◈⟨ ⏣0{ focus(.99): "grammar update", decision(.96): { parser_mode(.95): "strict_and_tolerant" } } ⟩
+⍉⟨ ⏣0{ rho: 0.95, kappa: 0.94, psi: 2.93, compression_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 } } ⟩
+</code></pre>
+<h2 id="16-change-control"><a class="header" href="#16-change-control">16. Change Control</a></h2>
+<p>When schema or grammar rules change, maintainers SHOULD update:</p>
+<ol>
+<li>this language specification,</li>
+<li>sttp_grammar_blueprint.md,</li>
+<li>parser conformance fixtures,</li>
+<li>parser implementation notes.</li>
+</ol>
+<h2 id="17-language-promise"><a class="header" href="#17-language-promise">17. Language Promise</a></h2>
+<p>STTP as typed IR is complete only when it can do all three simultaneously:</p>
+<ol>
+<li>represent cognition state faithfully,</li>
+<li>validate structure deterministically,</li>
+<li>survive historical reality without semantic drift.</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid-eefea253.min.js"></script>
+        <script src="mermaid-init-7e34e0f4.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>

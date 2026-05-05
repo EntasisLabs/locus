@@ -1,3 +1,8 @@
+//! `locus-mcp` binary.
+//!
+//! Exposes STTP memory operations over the Model Context Protocol (MCP)
+//! for assistant and agent runtimes.
+
 use std::sync::Arc;
 
 use anyhow::{Context, Result};

@@ -17,12 +17,17 @@ pub struct MemoryExplainService {
 }
 
 impl MemoryExplainService {
+    /// Create an explanation service for retrieval-stage introspection.
     pub fn new(store: Arc<dyn NodeStore>) -> Self {
         Self {
             context_query: ContextQueryService::new(store),
         }
     }
 
+    /// Explain retrieval behavior for a recall request.
+    ///
+    /// Returns per-stage counts, retrieval path, and fallback diagnostics
+    /// without mutating stored nodes.
     pub async fn execute(&self, request: &MemoryExplainRequest) -> Result<MemoryExplainResult> {
         let recall = &request.recall;
         let limit = clamp_limit(recall.page.limit);

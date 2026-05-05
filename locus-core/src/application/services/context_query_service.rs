@@ -11,6 +11,7 @@ pub struct ContextQueryService {
 }
 
 impl ContextQueryService {
+    /// Create a context query service over the shared node store.
     pub fn new(store: Arc<dyn NodeStore>) -> Self {
         Self { store }
     }
@@ -86,6 +87,7 @@ impl ContextQueryService {
         .await
     }
 
+    /// Retrieve resonance-ranked context with optional scope and tier/date filters.
     pub async fn get_context_scoped_filtered_async(
         &self,
         session_id: Option<&str>,
@@ -246,6 +248,7 @@ impl ContextQueryService {
         .await
     }
 
+    /// Retrieve hybrid-ranked context with optional scope and tier/date filters.
     pub async fn get_context_hybrid_scoped_filtered_async(
         &self,
         session_id: Option<&str>,

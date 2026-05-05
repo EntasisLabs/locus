@@ -14,6 +14,7 @@ pub struct StoreContextService {
 }
 
 impl StoreContextService {
+    /// Create a store-context service with validation but no embedding enrichment.
     pub fn new(store: Arc<dyn NodeStore>, validator: Arc<dyn NodeValidator>) -> Self {
         Self {
             store,
@@ -23,6 +24,7 @@ impl StoreContextService {
         }
     }
 
+    /// Create a store-context service with optional embedding enrichment.
     pub fn with_embedding_provider(
         store: Arc<dyn NodeStore>,
         validator: Arc<dyn NodeValidator>,
@@ -36,6 +38,7 @@ impl StoreContextService {
         }
     }
 
+    /// Validate, parse, optionally enrich, and persist a raw STTP node.
     pub async fn store_async(&self, node: &str, session_id: &str) -> StoreResult {
         let validation = self.validator.validate(node);
         if !validation.is_valid {
