@@ -50,7 +50,7 @@ Run with SurrealDB mode (example):
 ```bash
 LOCUS_MCP_REMOTE=true \
 LOCUS_MCP_SURREAL_REMOTE_ENDPOINT=ws://127.0.0.1:8000/rpc \
-LOCUS_MCP_SURREAL_NAMESPACE=keryx \
+LOCUS_MCP_SURREAL_NAMESPACE=entasis \
 LOCUS_MCP_SURREAL_DATABASE=locus_mcp \
 LOCUS_MCP_SURREAL_USERNAME=root \
 LOCUS_MCP_SURREAL_PASSWORD=root \
@@ -320,7 +320,7 @@ Swap the `env` block if you want persistent mode:
       "env": {
         "LOCUS_MCP_REMOTE": "true",
         "LOCUS_MCP_SURREAL_REMOTE_ENDPOINT": "ws://127.0.0.1:8000/rpc",
-        "LOCUS_MCP_SURREAL_NAMESPACE": "keryx",
+        "LOCUS_MCP_SURREAL_NAMESPACE": "entasis",
         "LOCUS_MCP_SURREAL_DATABASE": "locus_mcp",
         "LOCUS_MCP_SURREAL_USERNAME": "root",
         "LOCUS_MCP_SURREAL_PASSWORD": "root"

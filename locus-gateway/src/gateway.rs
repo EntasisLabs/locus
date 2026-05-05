@@ -1766,7 +1766,7 @@ mod tests {
             cors_allowed_origins: "*".to_string(),
             surreal_embedded_endpoint: None,
             surreal_remote_endpoint: Some("ws://127.0.0.1:8000/rpc".to_string()),
-            surreal_namespace: "keryx".to_string(),
+            surreal_namespace: "entasis".to_string(),
             surreal_database: "locus_gateway".to_string(),
             surreal_user: "root".to_string(),
             surreal_password: "root".to_string(),
@@ -1846,7 +1846,7 @@ mod tests {
 
         assert!(runtime.use_remote);
         assert_eq!(runtime.endpoint, "ws://127.0.0.1:8000/rpc");
-        assert_eq!(runtime.namespace, "keryx");
+        assert_eq!(runtime.namespace, "entasis");
         assert_eq!(runtime.database, "locus_gateway");
     }
 

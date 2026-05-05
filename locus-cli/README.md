@@ -50,7 +50,7 @@ Build and upload archives to `locus-cli/vX.Y.Z`:
 - `--surreal-endpoint` (env: `LOCUS_SURREAL_ENDPOINT`)
 - `--surreal-remote-endpoint` (env: `LOCUS_SURREAL_REMOTE_ENDPOINT`)
 - `--surreal-embedded-endpoint` (env: `LOCUS_SURREAL_EMBEDDED_ENDPOINT`)
-- `--surreal-namespace` (env: `LOCUS_SURREAL_NAMESPACE`, default `keryx`)
+- `--surreal-namespace` (env: `LOCUS_SURREAL_NAMESPACE`, default `entasis`)
 - `--surreal-database` (env: `LOCUS_SURREAL_DATABASE`, default `locus_cli`)
 - `--surreal-username` (env: `LOCUS_SURREAL_USERNAME`)
 - `--surreal-password` (env: `LOCUS_SURREAL_PASSWORD`)

@@ -54,7 +54,7 @@ struct Cli {
     #[arg(long, env = "LOCUS_SURREAL_EMBEDDED_ENDPOINT")]
     surreal_embedded_endpoint: Option<String>,
 
-    #[arg(long, env = "LOCUS_SURREAL_NAMESPACE", default_value = "keryx")]
+    #[arg(long, env = "LOCUS_SURREAL_NAMESPACE", default_value = "entasis")]
     surreal_namespace: String,
 
     #[arg(long, env = "LOCUS_SURREAL_DATABASE", default_value = "locus_cli")]

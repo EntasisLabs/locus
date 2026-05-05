@@ -31,7 +31,7 @@ impl Default for SurrealDbSettings {
     fn default() -> Self {
         Self {
             endpoints: SurrealDbEndpointsSettings::default(),
-            namespace: "keryx".to_string(),
+            namespace: "entasis".to_string(),
             database: "locus".to_string(),
             user: Some("root".to_string()),
             password: Some("root".to_string()),

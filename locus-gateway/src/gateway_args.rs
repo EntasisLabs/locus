@@ -44,7 +44,7 @@ pub(crate) struct GatewayArgs {
     #[arg(long, env = "LOCUS_SURREAL_REMOTE_ENDPOINT")]
     pub(crate) surreal_remote_endpoint: Option<String>,
 
-    #[arg(long, env = "LOCUS_SURREAL_NAMESPACE", default_value = "keryx")]
+    #[arg(long, env = "LOCUS_SURREAL_NAMESPACE", default_value = "entasis")]
     pub(crate) surreal_namespace: String,
 
     #[arg(long, env = "LOCUS_SURREAL_DATABASE", default_value = "locus_gateway")]

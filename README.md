@@ -135,13 +135,13 @@ cargo check --examples -p locus-sdk
 MCP server:
 
 ```bash
-docker run --rm -i -v "$PWD/locus-data:/data" ghcr.io/keryxlabs/locus-mcp:0.1.0
+docker run --rm -i -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-mcp:0.1.0
 ```
 
 Gateway:
 
 ```bash
-docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/keryxlabs/locus-gateway:2.0.0
+docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-gateway:2.0.0
 ```
 
 Notes:
@@ -343,8 +343,8 @@ Locus uses Instrumenta-style namespaced component release lines.
 | `locus-mcp` | multi-platform archives | `./locus-mcp/build.sh` | `./locus-mcp/build.sh --publish` |
 | `locus-gateway` | multi-platform archives | `./locus-gateway/build.sh` | `./locus-gateway/build.sh --publish` |
 | `locus-cli` | multi-platform archives | `./locus-cli/build.sh` | `./locus-cli/build.sh --publish` uploads assets to `locus-cli/vX.Y.Z` |
-| `locus-mcp` | Docker image | `./locus-mcp/build-image.sh ghcr.io/keryxlabs/locus-mcp:X.Y.Z` | `docker push ghcr.io/keryxlabs/locus-mcp:X.Y.Z` |
-| `locus-gateway` | Docker image | `./locus-gateway/build-image.sh ghcr.io/keryxlabs/locus-gateway:X.Y.Z` | `docker push ghcr.io/keryxlabs/locus-gateway:X.Y.Z` |
+| `locus-mcp` | Docker image | `./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:X.Y.Z` | `docker push ghcr.io/entasislabs/locus-mcp:X.Y.Z` |
+| `locus-gateway` | Docker image | `./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:X.Y.Z` | `docker push ghcr.io/entasislabs/locus-gateway:X.Y.Z` |
 
 ### Master Orchestration Script
 
@@ -389,11 +389,11 @@ git tag locus-gateway/v2.0.0
 git tag locus-cli/v0.1.0
 git push origin locus-core/v0.2.0 locus-sdk/v0.1.0 locus-mcp/v0.1.0 locus-gateway/v2.0.0 locus-cli/v0.1.0
 
-./locus-mcp/build-image.sh ghcr.io/keryxlabs/locus-mcp:0.1.0
-docker push ghcr.io/keryxlabs/locus-mcp:0.1.0
+./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.1.0
+docker push ghcr.io/entasislabs/locus-mcp:0.1.0
 
-./locus-gateway/build-image.sh ghcr.io/keryxlabs/locus-gateway:2.0.0
-docker push ghcr.io/keryxlabs/locus-gateway:2.0.0
+./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:2.0.0
+docker push ghcr.io/entasislabs/locus-gateway:2.0.0
 ```
 
 ## Operational Guardrails

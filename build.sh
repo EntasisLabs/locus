@@ -27,7 +27,7 @@ MCP_NAME_SUFFIX=""
 GATEWAY_NAME_SUFFIX=""
 CLI_NAME_SUFFIX=""
 
-IMAGE_PREFIX="ghcr.io/keryxlabs"
+IMAGE_PREFIX="ghcr.io/entasislabs"
 LOCAL_IMAGE_TAGS=false
 PUBLISH=false
 DRY_RUN=false
@@ -66,7 +66,7 @@ Name controls:
   --cli-name-suffix suffix
 
 Image controls:
-  --image-prefix ghcr.io/keryxlabs   Prefix for non-local image tags
+  --image-prefix ghcr.io/entasislabs   Prefix for non-local image tags
   --local-image-tags                 Use local tags like locus-mcp:0.1.0
 
 Other:
