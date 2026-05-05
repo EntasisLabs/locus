@@ -16,12 +16,15 @@ pub struct MemoryRecallService {
 }
 
 impl MemoryRecallService {
+    /// Create a recall service backed by the core resonance query pipeline.
     pub fn new(store: Arc<dyn NodeStore>) -> Self {
         Self {
             context_query: ContextQueryService::new(store),
         }
     }
 
+    /// Retrieve context nodes using resonance or hybrid scoring,
+    /// with optional lexical fallback when configured.
     pub async fn execute(&self, request: &MemoryRecallRequest) -> Result<MemoryRecallResult> {
         let limit = clamp_limit(request.page.limit);
         let expanded_limit = (limit.saturating_mul(5)).clamp(1, 200);

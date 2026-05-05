@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Locus Core Data Atlas: a dramatic visual journey through schema, invariants, and synchronization behavior.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#04030d">
+<meta name="author" content="Entasis Labs">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Locus">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Locus Core Data Atlas">
+<meta property="og:description" content="Explore Locus data architecture through schema relationships, invariants, index strategy, and sync continuity.">
+<meta property="og:url" content="https://entasislabs.github.io/locus/core-data-atlas.html">
+<meta property="og:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Locus Core Data Atlas">
+<meta name="twitter:description" content="Explore Locus data architecture through schema relationships, invariants, index strategy, and sync continuity.">
+<meta name="twitter:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
+<link rel="canonical" href="https://entasislabs.github.io/locus/core-data-atlas.html">
+<title>Locus Core Data Atlas | Locus</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Locus Core Data Atlas",
+  "description": "Explore Locus data architecture through schema relationships, invariants, index strategy, and sync continuity.",
+  "url": "https://entasislabs.github.io/locus/core-data-atlas.html",
+  "author": {
+    "@type": "Organization",
+    "name": "Entasis Labs"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Entasis Labs"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Locus",
+    "url": "https://entasislabs.github.io/locus/"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05040e;
+  --panel:#0d0a21;
+  --panel2:#14102b;
+  --line:rgba(255,255,255,.12);
+  --txt:rgba(255,255,255,.9);
+  --dim:rgba(255,255,255,.63);
+  --faint:rgba(255,255,255,.4);
+  --teal:#4dbfa0;
+  --amber:#d4943a;
+  --rose:#d06286;
+  --blue:#5d91da;
+  --mono:'JetBrains Mono',monospace;
+  --ui:'Syne',sans-serif;
+  --serif:'DM Serif Display',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--ui);
+  color:var(--txt);
+  line-height:1.72;
+  background:
+    radial-gradient(1200px 650px at 10% -10%, rgba(208,98,134,.16), transparent 55%),
+    radial-gradient(900px 700px at 95% 115%, rgba(77,191,160,.1), transparent 58%),
+    var(--bg);
+  overflow-x:hidden;
+}
+a{color:inherit}
+#drama-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+.reading-veil{position:fixed;inset:0;pointer-events:none;z-index:0;background:linear-gradient(180deg, rgba(8,9,12,.2), rgba(8,9,12,.38) 45%, rgba(8,9,12,.55) 100%)}
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+main,nav,footer{position:relative;z-index:1}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 52px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(24px);background:rgba(4,3,13,.55);border-bottom:1px solid var(--line)}
+.nl{font-family:var(--serif);font-size:21px;letter-spacing:.01em;color:var(--txt);text-decoration:none}
+.na{display:flex;gap:10px;list-style:none;align-items:center}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--rose);opacity:.85;box-shadow:0 0 12px rgba(208,98,134,.6)}
+.na a{text-decoration:none;color:var(--dim);padding:7px 10px;border-radius:999px;border:1px solid transparent;transition:all .2s;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase}
+.na a.active{color:var(--txt);border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:2px}
+.na a:hover{color:var(--txt);border-color:var(--line);background:rgba(255,255,255,.04)}
+.hero{padding:130px 0 62px;text-align:center}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--rose);text-transform:uppercase}
+h1{font-family:var(--serif);font-size:clamp(42px,7vw,84px);line-height:1;letter-spacing:-.02em;margin:14px auto 14px;max-width:16ch}
+h1 em{font-style:italic;color:rgba(255,255,255,.62)}
+.lead{max-width:60ch;margin:0 auto;color:var(--dim);font-size:18px}
+.act-strip{margin:34px auto 0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.act{border:1px solid var(--line);background:rgba(13,10,33,.72);border-radius:8px;padding:10px 10px 12px;text-align:left}
+.act .n{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--rose)}
+.act .t{font-size:13px;color:var(--txt);margin-top:3px}
+.section{margin:22px 0}
+.card{background:rgba(13,10,33,.78);border:1px solid var(--line);border-radius:10px;padding:20px;backdrop-filter:blur(8px)}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:14px}
+.sec-head h2{font-family:var(--serif);font-size:36px;line-height:1.02}
+.sec-head p{color:var(--dim);font-size:13px;max-width:40ch}
+.scene-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.scene{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px}
+.scene .scene-tag{font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.12em;text-transform:uppercase}
+.scene h3{font-family:var(--serif);font-size:24px;margin:4px 0 7px}
+.scene p{font-size:14px;color:var(--dim)}
+.schema-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
+.svg-wrap{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto}
+.svg-wrap svg{min-width:760px;display:block}
+.legend{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px}
+.legend h3{font-family:var(--serif);font-size:28px;margin-bottom:6px}
+.legend ul{padding-left:18px;color:var(--dim)}
+.legend li{margin:4px 0}
+.node-box{transition:all .2s ease}
+.node-box.active{filter:drop-shadow(0 0 12px rgba(255,255,255,.24))}
+.node-text{pointer-events:none}
+.rule-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.rule{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px;position:relative;overflow:hidden}
+.rule:before{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:linear-gradient(90deg,var(--rose),var(--amber));opacity:.66}
+.rule h3{font-family:var(--serif);font-size:24px}
+.rule .if{margin-top:8px;font-size:12px;color:var(--faint)}
+.rule .then{margin-top:4px;font-size:14px;color:var(--dim)}
+.index-matrix{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.index-item{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px}
+.index-item .name{font-family:var(--mono);font-size:11px;color:var(--blue);letter-spacing:.08em}
+.index-item .use{font-size:14px;color:var(--dim);margin:4px 0 8px}
+.meter{height:5px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden}
+.meter div{height:100%;background:linear-gradient(90deg,var(--blue),var(--teal))}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{display:inline-block;padding:10px 12px;border:1px solid var(--line);border-radius:8px;text-decoration:none;color:var(--dim);font-size:13px}
+.btn:hover{color:var(--txt);border-color:rgba(255,255,255,.35)}
+.btn.primary{border-color:rgba(208,98,134,.45);color:rgba(255,255,255,.92);background:rgba(208,98,134,.16)}
+footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);font-size:13px;margin-top:24px}
+.fade{opacity:0;transform:translateY(12px);animation:fadeUp .8s ease forwards}
+.delay1{animation-delay:.1s}.delay2{animation-delay:.2s}.delay3{animation-delay:.3s}
+@keyframes fadeUp{to{opacity:1;transform:none}}
+@media (max-width:980px){
+  .act-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .scene-grid{grid-template-columns:1fr 1fr}
+  .schema-grid{grid-template-columns:1fr}
+  .rule-grid{grid-template-columns:1fr 1fr}
+  .index-matrix{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  nav{padding:12px 14px;gap:12px}
+  .nl{font-size:19px}
+  .na{gap:10px;max-width:72vw;overflow-x:auto;padding-bottom:4px;justify-content:flex-end}
+  .na a{font-size:12px;white-space:nowrap;letter-spacing:.08em}
+  .scene-grid,.rule-grid{grid-template-columns:1fr}
+  .lead{font-size:16px}
+}
+@media (max-width:980px){nav{padding:14px 24px}.na{gap:18px}}
+@media (max-width:520px){.na li:nth-child(3){display:none}}
+@media (max-width:420px){nav{padding:10px 10px}.na{max-width:70vw;gap:8px}.na a{font-size:9px;letter-spacing:.07em}}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<canvas id="drama-canvas"></canvas>
+<div class="reading-veil"></div>
+
+<nav>
+  <a href="index.html" class="nl">Locus</a>
+  <ul class="na">
+    <li><span class="status-dot" aria-hidden="true"></span></li>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="quickstart.html">Quickstart</a></li>
+    <li><a href="deployment-operations.html">Deploy/Ops</a></li>
+    <li><a href="docs.html" class="active" aria-current="page">Docs</a></li>
+    <li><a href="https://github.com/entasislabs/locus" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+  </ul>
+</nav>
+
+<main class="wrap">
+  <section class="hero fade">
+    <div class="kicker">Core Data Atlas</div>
+    <h1>The ledger never forgets.<br><em>It only gets stricter.</em></h1>
+    <p class="lead">This is the data story behind Locus: every memory has structure, every sync has order, and every rule exists to keep operations steady under pressure.</p>
+    <div class="act-strip fade delay1">
+      <article class="act"><div class="n">ACT I</div><div class="t">Ingest</div></article>
+      <article class="act"><div class="n">ACT II</div><div class="t">Validate</div></article>
+      <article class="act"><div class="n">ACT III</div><div class="t">Persist</div></article>
+      <article class="act"><div class="n">ACT IV</div><div class="t">Retrieve</div></article>
+      <article class="act"><div class="n">ACT V</div><div class="t">Synchronize</div></article>
+    </div>
+  </section>
+
+  <section class="section card fade delay1">
+    <div class="sec-head">
+      <h2>Five scenes of persistence drama</h2>
+      <p>Read top-to-bottom. Each scene shows how memory stays consistent, recoverable, and trustworthy.</p>
+    </div>
+    <div class="scene-grid">
+      <article class="scene"><div class="scene-tag">Scene 1</div><h3>Arrival</h3><p>Memory enters with scope, time, and cognitive context.</p></article>
+      <article class="scene"><div class="scene-tag">Scene 2</div><h3>Judgment</h3><p>Structure and quality checks run before anything is accepted.</p></article>
+      <article class="scene"><div class="scene-tag">Scene 3</div><h3>Identity</h3><p>Each memory gets a stable identity so replays stay safe.</p></article>
+      <article class="scene"><div class="scene-tag">Scene 4</div><h3>Consequences</h3><p>The system decides whether to keep, refresh, or ignore duplicates.</p></article>
+      <article class="scene"><div class="scene-tag">Scene 5</div><h3>Continuity</h3><p>Sync checkpoints preserve order and make restarts predictable.</p></article>
+    </div>
+  </section>
+
+  <section class="section card fade delay2">
+    <div class="sec-head">
+      <h2>Entity constellation</h2>
+      <p>Hover each block to see how responsibilities connect across the data model.</p>
+    </div>
+    <div class="schema-grid">
+      <div class="svg-wrap">
+        <svg viewBox="0 0 980 320" role="img" aria-label="Core schema relationship diagram">
+          <g class="node-box" id="node-temporal">
+            <rect x="40" y="44" width="330" height="230" rx="10" fill="rgba(77,191,160,.12)" stroke="rgba(77,191,160,.6)" stroke-width="1.2"></rect>
+            <text x="58" y="76" class="node-text" font-family="JetBrains Mono" font-size="12" fill="rgba(77,191,160,.9)">TEMPORAL_NODE</text>
+            <text x="58" y="102" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.8)">scope identity and stable key</text>
+            <text x="58" y="124" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.62)">tier, timestamp, raw, parent_node_id</text>
+            <text x="58" y="146" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.62)">rho, kappa, psi, AVEC projections</text>
+            <text x="58" y="168" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.62)">context_summary, embedding* fields</text>
+            <text x="58" y="200" class="node-text" font-family="JetBrains Mono" font-size="11" fill="rgba(255,255,255,.45)">UNIQUE: scope identity + stable key</text>
+          </g>
+
+          <g class="node-box" id="node-calibration">
+            <rect x="410" y="34" width="240" height="120" rx="10" fill="rgba(93,145,218,.12)" stroke="rgba(93,145,218,.6)" stroke-width="1.2"></rect>
+            <text x="428" y="64" class="node-text" font-family="JetBrains Mono" font-size="12" fill="rgba(93,145,218,.92)">CALIBRATION</text>
+            <text x="428" y="88" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.72)">session attractor history</text>
+            <text x="428" y="110" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.62)">stability, friction, logic, autonomy, psi</text>
+          </g>
+
+          <g class="node-box" id="node-checkpoint">
+            <rect x="410" y="174" width="240" height="120" rx="10" fill="rgba(212,148,58,.12)" stroke="rgba(212,148,58,.65)" stroke-width="1.2"></rect>
+            <text x="428" y="205" class="node-text" font-family="JetBrains Mono" font-size="12" fill="rgba(212,148,58,.95)">SYNC_CHECKPOINT</text>
+            <text x="428" y="228" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.72)">connector scope cursor</text>
+            <text x="428" y="250" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.62)">cursor time + cursor key</text>
+          </g>
+
+          <g class="node-box" id="node-rules">
+            <rect x="700" y="84" width="240" height="170" rx="10" fill="rgba(208,98,134,.11)" stroke="rgba(208,98,134,.62)" stroke-width="1.2"></rect>
+            <text x="718" y="116" class="node-text" font-family="JetBrains Mono" font-size="12" fill="rgba(208,98,134,.95)">INVARIANTS</text>
+            <text x="718" y="138" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.72)">idempotent upsert</text>
+            <text x="718" y="158" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.72)">deterministic cursor order</text>
+            <text x="718" y="178" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.72)">default-tenant legacy reads</text>
+            <text x="718" y="198" class="node-text" font-family="Syne" font-size="12" fill="rgba(255,255,255,.72)">scope rekey transaction safety</text>
+          </g>
+
+          <path d="M370 105 C390 105 392 95 410 95" stroke="rgba(93,145,218,.6)" stroke-width="2" fill="none"></path>
+          <path d="M370 215 C392 215 392 235 410 235" stroke="rgba(212,148,58,.6)" stroke-width="2" fill="none"></path>
+          <path d="M650 95 C680 95 680 130 700 130" stroke="rgba(208,98,134,.55)" stroke-width="2" fill="none"></path>
+          <path d="M650 235 C680 235 680 170 700 170" stroke="rgba(208,98,134,.55)" stroke-width="2" fill="none"></path>
+        </svg>
+      </div>
+      <aside class="legend">
+        <h3>Interpretation</h3>
+        <ul>
+          <li>Temporal nodes are the memory backbone.</li>
+          <li>Calibrations track state drift over time.</li>
+          <li>Sync checkpoints keep change pulls resumable and ordered.</li>
+          <li>Invariant rules define reliability under real production load.</li>
+        </ul>
+        <div class="cta">
+          <a class="btn primary" href="docs.html#specs-register">View consolidated spec register</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section card fade delay2">
+    <div class="sec-head">
+      <h2>Rules theater</h2>
+      <p>These guarantees keep memory trustworthy as systems scale and recover.</p>
+    </div>
+    <div class="rule-grid">
+      <article class="rule"><h3>Idempotency</h3><div class="if">Rule</div><div class="then">The same memory cannot create duplicate records in the same scope.</div></article>
+      <article class="rule"><h3>Ordering</h3><div class="if">Rule</div><div class="then">Change streams always return in a stable, deterministic sequence.</div></article>
+      <article class="rule"><h3>Compatibility</h3><div class="if">Rule</div><div class="then">Legacy data remains readable during migrations and backfills.</div></article>
+      <article class="rule"><h3>Validation</h3><div class="if">Rule</div><div class="then">Invalid structure is rejected before it can affect stored memory.</div></article>
+      <article class="rule"><h3>Coherence</h3><div class="if">Rule</div><div class="then">Scoring state stays coherent even when partial fields are missing.</div></article>
+      <article class="rule"><h3>Rekey</h3><div class="if">Rule</div><div class="then">Scope moves happen together so related records never split apart.</div></article>
+    </div>
+  </section>
+
+  <section class="section card fade delay3">
+    <div class="sec-head">
+      <h2>Index pressure board</h2>
+      <p>Key index paths that keep retrieval fast and synchronization stable.</p>
+    </div>
+    <div class="index-matrix">
+      <article class="index-item"><div class="name">Identity Index</div><div class="use">Prevents duplicate writes during replay and retry.</div><div class="meter"><div style="width:96%"></div></div></article>
+      <article class="index-item"><div class="name">Cursor Index</div><div class="use">Powers reliable incremental sync pulls.</div><div class="meter"><div style="width:91%"></div></div></article>
+      <article class="index-item"><div class="name">Scope Index</div><div class="use">Keeps tenant and session retrieval fast.</div><div class="meter"><div style="width:85%"></div></div></article>
+      <article class="index-item"><div class="name">Checkpoint Index</div><div class="use">Maintains connector progress with predictable recovery.</div><div class="meter"><div style="width:88%"></div></div></article>
+    </div>
+    <div class="cta">
+      <a class="btn" href="docs.html">Back to docs hub</a>
+      <a class="btn" href="sdk-systems-map.html">Open SDK systems map</a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">Locus Core Data Atlas · reliable memory by design · <a href="docs.html">Docs hub</a></footer>
+
+<script>
+const canvas = document.getElementById('drama-canvas');
+const ctx = canvas.getContext('2d');
+let w = 0;
+let h = 0;
+let points = [];
+let raf = null;
+const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+  const n = Math.max(30, Math.min(80, Math.floor((w * h) / 28000)));
+  points = Array.from({length:n}, () => ({
+    x: Math.random() * w,
+    y: Math.random() * h,
+    vx: (Math.random() - 0.5) * 0.26,
+    vy: (Math.random() - 0.5) * 0.26,
+    r: Math.random() * 1.6 + 0.4
+  }));
+}
+
+function step(){
+  ctx.clearRect(0,0,w,h);
+  for (let i = 0; i < points.length; i++){
+    const p = points[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < -20) p.x = w + 20;
+    if (p.x > w + 20) p.x = -20;
+    if (p.y < -20) p.y = h + 20;
+    if (p.y > h + 20) p.y = -20;
+
+    for (let j = i + 1; j < points.length; j++){
+      const q = points[j];
+      const dx = p.x - q.x;
+      const dy = p.y - q.y;
+      const d = Math.hypot(dx, dy);
+      if (d < 145){
+        const a = (1 - d / 145) * 0.18;
+        ctx.strokeStyle = `rgba(208,98,134,${a})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(q.x, q.y);
+        ctx.stroke();
+      }
+    }
+
+    ctx.fillStyle = 'rgba(255,255,255,0.72)';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  raf = requestAnimationFrame(step);
+}
+
+function start(){
+  resize();
+  if (!mq.matches && raf === null) step();
+}
+
+function stop(){
+  if (raf !== null){
+    cancelAnimationFrame(raf);
+    raf = null;
+  }
+  ctx.clearRect(0,0,w,h);
+}
+
+start();
+window.addEventListener('resize', resize);
+mq.addEventListener('change', e => e.matches ? stop() : start());
+
+for (const id of ['node-temporal','node-calibration','node-checkpoint','node-rules']){
+  const node = document.getElementById(id);
+  node.addEventListener('mouseenter', () => node.classList.add('active'));
+  node.addEventListener('mouseleave', () => node.classList.remove('active'));
+}
+</script>
+</body>
+</html>

@@ -15,10 +15,15 @@ pub struct MemoryFindService {
 }
 
 impl MemoryFindService {
+    /// Create a deterministic memory finder over a shared node store.
     pub fn new(store: Arc<dyn NodeStore>) -> Self {
         Self { store }
     }
 
+    /// Run predicate-based retrieval with stable sorting and pagination semantics.
+    ///
+    /// This operation does not apply resonance scoring; it filters, sorts,
+    /// and truncates nodes based only on explicit request criteria.
     pub async fn execute(&self, request: &MemoryFindRequest) -> Result<MemoryFindResult> {
         let limit = clamp_limit(request.page.limit);
         let query_limit = (limit.saturating_mul(5)).clamp(1, 5000);

@@ -16,10 +16,15 @@ pub struct MemoryAggregateService {
 }
 
 impl MemoryAggregateService {
+    /// Create an aggregate service over a shared node store.
     pub fn new(store: Arc<dyn NodeStore>) -> Self {
         Self { store }
     }
 
+    /// Compute grouped aggregate statistics over filtered memory nodes.
+    ///
+    /// Returns group-level coverage and AVEC/metric summaries,
+    /// capped by request node/group limits.
     pub async fn execute(&self, request: &MemoryAggregateRequest) -> Result<MemoryAggregateResult> {
         let max_nodes = clamp_nodes(if request.max_nodes == 0 {
             5000

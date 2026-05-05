@@ -1,3 +1,8 @@
+//! Application-level orchestration services.
+//!
+//! These modules provide user-facing memory operations such as `find`, `recall`,
+//! aggregation, transforms, composition, and explanation.
+
 pub mod ai_router;
 pub mod manual_compression;
 pub mod memory_aggregate;

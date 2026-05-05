@@ -17,6 +17,7 @@ pub struct MonthlyRollupService {
 }
 
 impl MonthlyRollupService {
+    /// Create a monthly rollup service with storage and validation dependencies.
     pub fn new(store: Arc<dyn NodeStore>, validator: Arc<dyn NodeValidator>) -> Self {
         Self {
             store,
@@ -25,6 +26,10 @@ impl MonthlyRollupService {
         }
     }
 
+    /// Build a monthly rollup node from source nodes in the requested date range.
+    ///
+    /// Depending on request settings, this can run as preview-only or persist
+    /// the generated node into the configured store.
     pub async fn create_async(&self, request: MonthlyRollupRequest) -> MonthlyRollupResult {
         if request.end_utc < request.start_utc {
             return MonthlyRollupResult {

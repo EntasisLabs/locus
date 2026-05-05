@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Locus docs hub: quickstart, deployment, integration, architecture, operations, and protocol references.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#04030d">
+<meta name="author" content="Entasis Labs">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Locus">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Locus Docs Hub">
+<meta property="og:description" content="Explore quickstart, deployment, architecture, operations, and protocol references in one Locus docs experience.">
+<meta property="og:url" content="https://entasislabs.github.io/locus/docs.html">
+<meta property="og:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Locus Docs Hub">
+<meta name="twitter:description" content="Explore quickstart, deployment, architecture, operations, and protocol references in one Locus docs experience.">
+<meta name="twitter:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
+<link rel="canonical" href="https://entasislabs.github.io/locus/docs.html">
+<title>Locus Docs Hub | Locus</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Locus Docs Hub",
+  "description": "Explore quickstart, deployment, architecture, operations, and protocol references in one Locus docs experience.",
+  "url": "https://entasislabs.github.io/locus/docs.html",
+  "author": {
+    "@type": "Organization",
+    "name": "Entasis Labs"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Entasis Labs"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Locus",
+    "url": "https://entasislabs.github.io/locus/"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#04030d;--panel:#0d0a20;--panel2:#12102a;--line:rgba(255,255,255,.12);--txt:rgba(255,255,255,.86);--dim:rgba(255,255,255,.62);--teal:#4dbfa0;--amber:#d4943a;--mono:'JetBrains Mono',monospace;--ui:'Syne',sans-serif;--serif:'DM Serif Display',serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:radial-gradient(1200px 600px at 20% -10%, rgba(77,191,160,.1), transparent),radial-gradient(900px 600px at 90% 120%, rgba(212,148,58,.09), transparent),var(--bg);color:var(--txt);line-height:1.7}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.reading-veil{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 50% 16%, rgba(8,9,12,0.14), transparent 30%),linear-gradient(180deg, rgba(8,9,12,0.22), rgba(8,9,12,0.36) 45%, rgba(8,9,12,0.48) 100%)}
+main,nav,footer{position:relative;z-index:1}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 52px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(24px);background:rgba(4,3,13,.55);border-bottom:1px solid var(--line)}
+.nl{font-family:var(--serif);font-size:21px;letter-spacing:.01em;color:var(--txt);text-decoration:none}
+.na{display:flex;gap:10px;list-style:none;align-items:center}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.8;box-shadow:0 0 12px rgba(77,191,160,.55)}
+.na a{text-decoration:none;color:var(--dim);padding:7px 10px;border-radius:999px;border:1px solid transparent;transition:all .2s;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase}
+.na a.active{color:var(--txt);border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:2px}
+.na a:hover{color:var(--txt);border-color:var(--line);background:rgba(255,255,255,.04)}
+.hero{padding:120px 0 38px}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--teal);text-transform:uppercase}
+h1{font-family:var(--serif);font-size:clamp(38px,6.5vw,68px);line-height:1.04;margin:12px 0 14px}
+.lead{max-width:64ch;color:var(--dim);font-size:18px}
+.section{margin-top:18px;margin-bottom:20px}
+.section h2{font-family:var(--serif);font-size:30px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.feature-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+.mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.register{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;backdrop-filter:blur(6px);transition:transform .2s,border-color .2s,background .2s}
+.card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.26);background:rgba(18,16,42,.85)}
+.card .tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.card h3{font-family:var(--serif);font-size:24px;margin:7px 0 8px}
+.card p{font-size:14px;color:var(--dim);line-height:1.68}
+.card a{display:inline-block;margin-top:12px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;text-decoration:none;font-size:12px;color:var(--dim)}
+.card a:hover{color:var(--txt);border-color:rgba(255,255,255,.3)}
+.pill{display:inline-block;margin-top:8px;margin-right:8px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--dim)}
+.summary-list{padding-left:18px;color:var(--dim)}
+.summary-list li{margin:5px 0}
+footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);font-size:13px;margin-top:34px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.hero,.section{animation:fadeUp .8s ease both}
+.section:nth-of-type(2){animation-delay:.08s}
+.section:nth-of-type(3){animation-delay:.16s}
+.section:nth-of-type(4){animation-delay:.24s}
+@media (max-width:980px){nav{padding:14px 24px}.na{gap:18px}.grid,.mini-grid,.register{grid-template-columns:repeat(2,minmax(0,1fr))}.feature-grid{grid-template-columns:1fr}.lead{font-size:16px}}
+@media (max-width:760px){nav{padding:12px 14px;gap:12px}.nl{font-size:19px}.na{gap:10px;max-width:72vw;overflow-x:auto;padding-bottom:4px;justify-content:flex-end}.na a{font-size:12px;white-space:nowrap;letter-spacing:.08em}}
+@media (max-width:720px){.grid,.mini-grid,.register{grid-template-columns:1fr}}
+@media (max-width:520px){.na li:nth-child(3){display:none}}
+@media (max-width:420px){nav{padding:10px 10px}.na{max-width:70vw;gap:8px}.na a{font-size:9px;letter-spacing:.07em}}
+</style>
+</head>
+<body>
+<div class="reading-veil"></div>
+<nav>
+  <a href="index.html" class="nl">Locus</a>
+  <ul class="na">
+    <li><span class="status-dot" aria-hidden="true"></span></li>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="quickstart.html">Quickstart</a></li>
+    <li><a href="deployment-operations.html">Deploy/Ops</a></li>
+    <li><a href="docs.html" class="active" aria-current="page">Docs</a></li>
+    <li><a href="https://github.com/entasislabs/locus" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+  </ul>
+</nav>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="kicker">Consolidated Specifications</div>
+    <h1>One page. Full signal.</h1>
+    <p class="lead">Explore architecture, operations, and policy in one clean experience designed for fast understanding and confident decisions.</p>
+  </section>
+
+  <section class="section">
+    <h2>Spec Experiences</h2>
+    <div class="feature-grid">
+      <article class="card">
+        <div class="tag">Architecture Experience</div>
+        <h3>Core Data Atlas</h3>
+        <p>A visual walkthrough of data relationships, reliability rules, synchronization behavior, and how it all stays stable at scale.</p>
+        <span class="pill">schema</span><span class="pill">idempotency</span><span class="pill">sync semantics</span>
+        <a href="core-data-atlas.html">Open data atlas</a>
+      </article>
+      <article class="card">
+        <div class="tag">Architecture Experience</div>
+        <h3>SDK Systems Map</h3>
+        <p>An interactive map of the SDK: service flow, provider routing, fallback behavior, and operational guardrails.</p>
+        <span class="pill">service topology</span><span class="pill">routing policy</span><span class="pill">guardrails</span>
+        <a href="sdk-systems-map.html">Open systems map</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <article class="card">
+      <div class="tag">Technical Documentation</div>
+      <h3>Guides + API Reference</h3>
+      <p>Open the generated technical docs site with mdBook guides and rustdoc API reference in one place.</p>
+      <span class="pill">mdBook</span><span class="pill">rustdoc</span><span class="pill">source-of-truth docs</span>
+      <a href="technical/index.html">Open technical docs site</a>
+    </article>
+  </section>
+
+  <section class="section">
+    <div class="mini-grid">
+      <article class="card">
+        <div class="tag">Compatibility</div>
+        <h3>Versioning Policy</h3>
+        <p>Versioning stays predictable, with clear migration guidance whenever behavior changes.</p>
+        <ul class="summary-list">
+          <li>SemVer across core and SDK.</li>
+          <li>Deprecated contracts remain for at least one release cycle unless safety requires immediate removal.</li>
+          <li>Behavior changes are validated before release through repeatable checks.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <div class="tag">Security</div>
+        <h3>Data Handling and Safety</h3>
+        <p>Security is default-first: sensitive data, scoped access, and clean operational hygiene.</p>
+        <ul class="summary-list">
+          <li>No secrets in source control; rotate on incident or role change.</li>
+          <li>Minimize and redact sensitive payloads before storage when possible.</li>
+          <li>Use TLS transports and least-privilege DB access.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <div class="tag">Deployment</div>
+        <h3>Runtime and Release Readiness</h3>
+        <p>Deploy with clear environment profiles and strict release gates before production rollout.</p>
+        <ul class="summary-list">
+          <li>Local, CI, staging, and production runtime matrix is explicit.</li>
+          <li>Workspace compile/tests and integration parity are release gates.</li>
+          <li>Scope and provider settings stay explicit per environment.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section id="specs-register" class="section" style="margin-bottom:36px">
+    <div class="register">
+      <article class="card">
+        <div class="tag">Protocol</div>
+        <h3>STTP and Structure</h3>
+        <p>Layer order, typed fields, and confidence signals create a reliable memory contract across systems.</p>
+      </article>
+      <article class="card">
+        <div class="tag">Integration</div>
+        <h3>Host Contracts</h3>
+        <p>Host-facing contracts stay stable while internals evolve safely and incrementally.</p>
+      </article>
+      <article class="card">
+        <div class="tag">Operations</div>
+        <h3>Runbook Baseline</h3>
+        <p>Track ingestion health, retrieval latency, transform outcomes, and sync continuity to keep operations steady.</p>
+      </article>
+      <article class="card">
+        <div class="tag">Troubleshooting</div>
+        <h3>Failure Discipline</h3>
+        <p>Contain quickly, isolate scope, verify behavior, and ship fixes with confidence.</p>
+      </article>
+      <article class="card">
+        <div class="tag">Examples</div>
+        <h3>Implementation Patterns</h3>
+        <p>Reference workflows make advanced usage repeatable across teams and environments.</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">Locus Docs Hub · Apache-2.0 · <a href="index.html">Back to landing</a></footer>
+</body>
+</html>

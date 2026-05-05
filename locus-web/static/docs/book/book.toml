@@ -1,0 +1,23 @@
+[book]
+title = "Locus Technical Documentation"
+authors = ["Entasis Labs"]
+language = "en"
+src = "src"
+
+[build]
+build-dir = "../technical/book"
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+no-section-label = false
+git-repository-url = "https://github.com/entasislabs/locus"
+edit-url-template = "https://github.com/entasislabs/locus/edit/main/docs/book/{path}"
+site-url = "/locus/technical/book/"
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+additional-css = ["mermaid-overrides.css"]
+
+[preprocessor]
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"

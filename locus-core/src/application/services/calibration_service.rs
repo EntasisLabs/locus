@@ -10,10 +10,12 @@ pub struct CalibrationService {
 }
 
 impl CalibrationService {
+    /// Create a calibration service backed by the configured node store.
     pub fn new(store: Arc<dyn NodeStore>) -> Self {
         Self { store }
     }
 
+    /// Persist a calibration point and return drift analysis vs prior state.
     pub async fn calibrate_async(
         &self,
         session_id: &str,
