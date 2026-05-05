@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Locus SDK Systems Map: an interactive architecture narrative for services, routing, and transform flows.">
+<meta name="theme-color" content="#04030d">
+<title>Locus SDK Systems Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05040e;
+  --panel:#0d0a21;
+  --panel2:#151031;
+  --line:rgba(255,255,255,.12);
+  --txt:rgba(255,255,255,.9);
+  --dim:rgba(255,255,255,.64);
+  --faint:rgba(255,255,255,.42);
+  --teal:#4dbfa0;
+  --amber:#d4943a;
+  --blue:#5d91da;
+  --violet:#8f73cb;
+  --mono:'JetBrains Mono',monospace;
+  --ui:'Syne',sans-serif;
+  --serif:'DM Serif Display',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--ui);
+  color:var(--txt);
+  line-height:1.72;
+  background:
+    radial-gradient(1300px 650px at 8% -8%, rgba(93,145,218,.18), transparent 56%),
+    radial-gradient(920px 700px at 95% 115%, rgba(212,148,58,.1), transparent 60%),
+    var(--bg);
+  overflow-x:hidden;
+}
+a{color:inherit}
+#systems-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6}
+.reading-veil{position:fixed;inset:0;pointer-events:none;z-index:0;background:linear-gradient(180deg, rgba(8,9,12,.2), rgba(8,9,12,.36) 45%, rgba(8,9,12,.52) 100%)}
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+main,nav,footer{position:relative;z-index:1}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 52px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(24px);background:rgba(4,3,13,.55);border-bottom:1px solid var(--line)}
+.nl{font-family:var(--serif);font-size:21px;letter-spacing:.01em;color:var(--txt);text-decoration:none}
+.na{display:flex;gap:10px;list-style:none;align-items:center}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);opacity:.86;box-shadow:0 0 12px rgba(93,145,218,.6)}
+.na a{text-decoration:none;color:var(--dim);padding:7px 10px;border-radius:999px;border:1px solid transparent;transition:all .2s;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase}
+.na a.active{color:var(--txt);border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:2px}
+.na a:hover{color:var(--txt);border-color:var(--line);background:rgba(255,255,255,.04)}
+.hero{padding:130px 0 64px;text-align:center}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--blue);text-transform:uppercase}
+h1{font-family:var(--serif);font-size:clamp(44px,7vw,86px);line-height:1;letter-spacing:-.02em;margin:14px auto 14px;max-width:16ch}
+h1 em{font-style:italic;color:rgba(255,255,255,.6)}
+.lead{max-width:60ch;margin:0 auto;color:var(--dim);font-size:18px}
+.cast{margin-top:34px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.cast .c{border:1px solid var(--line);background:rgba(13,10,33,.72);border-radius:8px;padding:10px 10px 12px;text-align:left}
+.cast .tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--blue)}
+.cast .name{font-size:13px;color:var(--txt);margin-top:3px}
+.section{margin:22px 0}
+.card{background:rgba(13,10,33,.78);border:1px solid var(--line);border-radius:10px;padding:20px;backdrop-filter:blur(8px)}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:14px}
+.sec-head h2{font-family:var(--serif);font-size:36px;line-height:1.02}
+.sec-head p{color:var(--dim);font-size:13px;max-width:42ch}
+.layer-map{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stack{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px}
+.layer{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px;background:rgba(8,8,26,.7);cursor:pointer;transition:all .2s}
+.layer:last-child{margin-bottom:0}
+.layer .ltag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--amber)}
+.layer h3{font-family:var(--serif);font-size:24px;margin:3px 0}
+.layer p{font-size:14px;color:var(--dim)}
+.layer.active{border-color:rgba(93,145,218,.6);background:rgba(15,15,40,.92);transform:translateX(2px)}
+.detail{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px}
+.detail h3{font-family:var(--serif);font-size:30px;margin-bottom:6px}
+.detail p{font-size:14px;color:var(--dim)}
+.detail ul{margin-top:8px;padding-left:18px;color:var(--dim)}
+.detail li{margin:4px 0}
+.path-toggle{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.path-toggle button{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);background:rgba(255,255,255,.03);border:1px solid var(--line);padding:8px 10px;border-radius:999px;cursor:pointer}
+.path-toggle button.active{color:var(--txt);border-color:rgba(93,145,218,.55);background:rgba(93,145,218,.15)}
+.path-box{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px}
+.path-box h3{font-family:var(--serif);font-size:28px;margin-bottom:6px}
+.path-box ol{padding-left:18px;color:var(--dim)}
+.path-box li{margin:5px 0}
+.sim-grid{display:grid;grid-template-columns:1fr .9fr;gap:12px}
+.sim{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px}
+.sim h3{font-family:var(--serif);font-size:28px;margin-bottom:8px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.form label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--faint)}
+.form select{width:100%;background:#0d0d24;color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:8px;font-family:var(--ui)}
+.out{margin-top:10px;padding:10px;border:1px dashed rgba(255,255,255,.2);border-radius:8px;font-size:14px;color:var(--dim)}
+.out strong{color:var(--txt)}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn{display:inline-block;padding:10px 12px;border:1px solid var(--line);border-radius:8px;text-decoration:none;color:var(--dim);font-size:13px}
+.btn:hover{color:var(--txt);border-color:rgba(255,255,255,.35)}
+.btn.primary{border-color:rgba(93,145,218,.5);color:rgba(255,255,255,.92);background:rgba(93,145,218,.16)}
+footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);font-size:13px;margin-top:24px}
+.fade{opacity:0;transform:translateY(12px);animation:fadeUp .8s ease forwards}
+.delay1{animation-delay:.1s}.delay2{animation-delay:.2s}.delay3{animation-delay:.3s}
+@keyframes fadeUp{to{opacity:1;transform:none}}
+@media (max-width:980px){
+  .cast{grid-template-columns:1fr 1fr}
+  .layer-map,.sim-grid{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  nav{padding:12px 14px;gap:12px}
+  .nl{font-size:19px}
+  .na{gap:10px;max-width:72vw;overflow-x:auto;padding-bottom:4px;justify-content:flex-end}
+  .na a{font-size:12px;padding:6px 8px;white-space:nowrap;letter-spacing:.08em}
+  .lead{font-size:16px}
+  .cast{grid-template-columns:1fr}
+  .form{grid-template-columns:1fr}
+}
+@media (max-width:980px){nav{padding:14px 24px}.na{gap:18px}}
+@media (max-width:520px){.na li:nth-child(3){display:none}}
+@media (max-width:420px){nav{padding:10px 10px}.na{max-width:70vw;gap:8px}.na a{font-size:9px;letter-spacing:.07em}}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<canvas id="systems-canvas"></canvas>
+<div class="reading-veil"></div>
+
+<nav>
+  <a href="index.html" class="nl">Locus</a>
+  <ul class="na">
+    <li><span class="status-dot" aria-hidden="true"></span></li>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="quickstart.html">Quickstart</a></li>
+    <li><a href="deployment-operations.html">Deploy/Ops</a></li>
+    <li><a href="docs.html" class="active" aria-current="page">Docs</a></li>
+    <li><a href="https://github.com/keryxlabs/locus" target="_blank" rel="noopener noreferrer">GitHub ↗</a></li>
+  </ul>
+</nav>
+
+<main class="wrap">
+  <section class="hero fade">
+    <div class="kicker">SDK Systems Map</div>
+    <h1>Every call has a motive.<br><em>Every layer has an alibi.</em></h1>
+    <p class="lead">This is the systems map behind Locus integration: clear layers, predictable routing, safe fallbacks, and controls that keep behavior stable in production.</p>
+    <div class="cast fade delay1">
+      <article class="c"><div class="tag">Lead</div><div class="name">Application Services</div></article>
+      <article class="c"><div class="tag">Co-star</div><div class="name">Domain Contracts</div></article>
+      <article class="c"><div class="tag">Wildcard</div><div class="name">Provider Registry</div></article>
+      <article class="c"><div class="tag">Witness</div><div class="name">DTO Boundary</div></article>
+    </div>
+  </section>
+
+  <section class="section card fade delay1">
+    <div class="sec-head">
+      <h2>Layer drama board</h2>
+      <p>Click any layer to see what it owns and why it matters.</p>
+    </div>
+    <div class="layer-map">
+      <div class="stack" id="layerStack">
+        <article class="layer active" data-layer="prelude"><div class="ltag">Layer 1</div><h3>Prelude</h3><p>Ergonomic import surface for hosts.</p></article>
+        <article class="layer" data-layer="application"><div class="ltag">Layer 2</div><h3>Application</h3><p>Orchestrates find, recall, explain, aggregate, transform.</p></article>
+        <article class="layer" data-layer="domain"><div class="ltag">Layer 3</div><h3>Domain</h3><p>Neutral contracts and request/result types.</p></article>
+        <article class="layer" data-layer="infrastructure"><div class="ltag">Layer 4</div><h3>Infrastructure</h3><p>Provider adapters, registries, embedding backends.</p></article>
+        <article class="layer" data-layer="interface"><div class="ltag">Layer 5</div><h3>Interface DTO</h3><p>Transport-safe shape conversion boundary.</p></article>
+      </div>
+      <aside class="detail" id="layerDetail">
+        <h3>Prelude</h3>
+        <p>A clean entry point that helps teams integrate quickly and confidently.</p>
+        <ul>
+          <li>Central entrypoint for memory APIs and adapter types.</li>
+          <li>Improves adoption speed while preserving architecture boundaries.</li>
+          <li>Risk if unstable: broad downstream refactor blast radius.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section card fade delay2">
+    <div class="sec-head">
+      <h2>Path explorer</h2>
+      <p>Switch paths to follow how requests move through the platform.</p>
+    </div>
+    <div class="path-toggle" id="pathToggle">
+      <button class="active" data-path="find">Find</button>
+      <button data-path="recall">Recall + Fallback</button>
+      <button data-path="transform">Transform</button>
+    </div>
+    <div class="path-box" id="pathBox">
+        <h3>Find path</h3>
+      <ol>
+          <li>Bound request size for safe execution.</li>
+          <li>Collect candidate memory entries for the selected scope.</li>
+          <li>Apply filters for relevance and quality.</li>
+          <li>Sort and page results consistently.</li>
+          <li>Return a stable cursor for the next page.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section card fade delay2">
+    <div class="sec-head">
+      <h2>Provider resolution simulator</h2>
+      <p>Explore how provider selection behaves under different policies.</p>
+    </div>
+    <div class="sim-grid">
+      <div class="sim">
+        <h3>Resolve</h3>
+        <div class="form">
+          <div>
+            <label for="task">Task</label>
+            <select id="task">
+              <option value="semantic">SemanticEmbedding</option>
+              <option value="avec_embed">AvecEmbedding</option>
+              <option value="avec_score">AvecScoring</option>
+            </select>
+          </div>
+          <div>
+            <label for="policy">Policy</label>
+            <select id="policy">
+              <option value="auto">Auto</option>
+              <option value="preferred">Preferred</option>
+              <option value="required">Required</option>
+            </select>
+          </div>
+          <div>
+            <label for="provider">Requested Provider</label>
+            <select id="provider">
+              <option value="">(none)</option>
+              <option value="genai">genai</option>
+              <option value="sttp">sttp-native</option>
+              <option value="local">local-embedding</option>
+            </select>
+          </div>
+          <div>
+            <label for="capset">Registry Capability Set</label>
+            <select id="capset">
+              <option value="full">full-registry</option>
+              <option value="semantic_only">semantic-only</option>
+              <option value="score_only">score-only</option>
+            </select>
+          </div>
+        </div>
+        <div class="out" id="simOut"><strong>Result:</strong> pending</div>
+      </div>
+      <aside class="sim">
+        <h3>Interpretation</h3>
+        <p style="color:var(--dim)">Policy behavior at a glance:</p>
+        <ul style="padding-left:18px;color:var(--dim)">
+          <li>Required policy expects an explicit provider choice.</li>
+          <li>Chosen providers must support the requested task.</li>
+          <li>Auto and preferred policies select the first compatible option.</li>
+          <li>If none match, resolution fails predictably.</li>
+        </ul>
+        <div class="cta">
+          <a class="btn primary" href="docs.html#specs-register">View consolidated spec register</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section card fade delay3">
+    <div class="sec-head">
+      <h2>Production commitments</h2>
+      <p>Simple promises that keep operations calm as load and provider mix evolve.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+      <article style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px"><h3 style="font-family:var(--serif);font-size:24px">Guardrails</h3><p style="font-size:14px;color:var(--dim)">Bounded limits protect performance under load.</p></article>
+      <article style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px"><h3 style="font-family:var(--serif);font-size:24px">Fallbacks</h3><p style="font-size:14px;color:var(--dim)">Fallback behavior is explicit and easy to trace.</p></article>
+      <article style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px"><h3 style="font-family:var(--serif);font-size:24px">Feature Flags</h3><p style="font-size:14px;color:var(--dim)">Optional capabilities stay isolated and controlled.</p></article>
+    </div>
+    <div class="cta">
+      <a class="btn" href="docs.html">Back to docs hub</a>
+      <a class="btn" href="core-data-atlas.html">Open core data atlas</a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">Locus SDK Systems Map · clear by design · <a href="docs.html">Docs hub</a></footer>
+
+<script>
+const layerContent = {
+  prelude: {
+    title: 'Prelude',
+    text: 'A clean entry point for teams integrating Locus quickly.',
+    bullets: [
+      'One import surface for core memory capabilities.',
+      'Consistent onboarding across services and apps.',
+      'Keeps adoption simple as the platform evolves.'
+    ]
+  },
+  application: {
+    title: 'Application',
+    text: 'The execution layer where user requests become reliable outcomes.',
+    bullets: [
+      'Coordinates retrieval, ranking, and transformation flows.',
+      'Applies fallback behavior and execution sequencing.',
+      'Holds operational controls for predictable behavior.'
+    ]
+  },
+  domain: {
+    title: 'Domain',
+    text: 'Shared language for memory operations, independent of transport.',
+    bullets: [
+      'Defines request and response shape clearly.',
+      'Keeps rules consistent across interfaces.',
+      'Reduces ambiguity during integration.'
+    ]
+  },
+  infrastructure: {
+    title: 'Infrastructure',
+    text: 'Runtime adapters that connect policy to real providers.',
+    bullets: [
+      'Supports multiple provider capabilities safely.',
+      'Optional dependencies stay behind feature flags.',
+      'Failures remain visible and actionable.'
+    ]
+  },
+  interface: {
+    title: 'Interface DTO',
+    text: 'A clean boundary between transport payloads and internal models.',
+    bullets: [
+      'Keeps transport concerns outside core logic.',
+      'Supports additive evolution with low risk.',
+      'Makes integration contracts easier to maintain.'
+    ]
+  }
+};
+
+const pathContent = {
+  find: {
+    title: 'Find path',
+    steps: [
+      'Bound request size before execution.',
+      'Fetch candidates within the selected scope.',
+      'Apply quality and relevance filters.',
+      'Sort and paginate in a stable order.',
+      'Return cursor information for clean continuation.'
+    ]
+  },
+  recall: {
+    title: 'Recall + fallback path',
+    steps: [
+      'Choose best retrieval path for the available signal.',
+      'Filter the primary result set.',
+      'Evaluate fallback strategy policy.',
+      'Run lexical fallback when policy and context require it.',
+      'Return results with clear path metadata.'
+    ]
+  },
+  transform: {
+    title: 'Transform path',
+    steps: [
+      'Gather and filter candidates in scope.',
+      'Select only entries that require transformation.',
+      'Preview with dry-run before applying changes.',
+      'Apply transformation through the configured provider path.',
+      'Report outcomes across updated, skipped, and failed groups.'
+    ]
+  }
+};
+
+const layerStack = document.getElementById('layerStack');
+const layerDetail = document.getElementById('layerDetail');
+layerStack.addEventListener('click', e => {
+  const layer = e.target.closest('.layer');
+  if (!layer) return;
+  for (const el of layerStack.querySelectorAll('.layer')) el.classList.remove('active');
+  layer.classList.add('active');
+  const key = layer.dataset.layer;
+  const data = layerContent[key];
+  layerDetail.innerHTML = `<h3>${data.title}</h3><p>${data.text}</p><ul>${data.bullets.map(v => `<li>${v}</li>`).join('')}</ul>`;
+});
+
+const toggle = document.getElementById('pathToggle');
+const pathBox = document.getElementById('pathBox');
+toggle.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-path]');
+  if (!btn) return;
+  for (const b of toggle.querySelectorAll('button')) b.classList.remove('active');
+  btn.classList.add('active');
+  const key = btn.dataset.path;
+  const data = pathContent[key];
+  pathBox.innerHTML = `<h3>${data.title}</h3><ol>${data.steps.map(v => `<li>${v}</li>`).join('')}</ol>`;
+});
+
+const task = document.getElementById('task');
+const policy = document.getElementById('policy');
+const provider = document.getElementById('provider');
+const capset = document.getElementById('capset');
+const simOut = document.getElementById('simOut');
+
+const capabilities = {
+  full: {
+    genai: ['semantic','avec_embed','avec_score'],
+    sttp: ['semantic','avec_embed'],
+    local: ['semantic']
+  },
+  semantic_only: {
+    genai: ['semantic'],
+    sttp: ['semantic'],
+    local: ['semantic']
+  },
+  score_only: {
+    genai: ['avec_score']
+  }
+};
+
+function resolveProvider(){
+  const t = task.value;
+  const p = policy.value;
+  const req = provider.value;
+  const set = capabilities[capset.value];
+
+  if (p === 'required' && !req){
+    simOut.innerHTML = '<strong>Result:</strong> error - required policy needs explicit provider.';
+    return;
+  }
+
+  const supports = id => Array.isArray(set[id]) && set[id].includes(t);
+
+  if (req){
+    if (!set[req]){
+      simOut.innerHTML = `<strong>Result:</strong> error - provider ${req} is not registered.`;
+      return;
+    }
+    if (!supports(req)){
+      simOut.innerHTML = `<strong>Result:</strong> error - provider ${req} does not support selected task.`;
+      return;
+    }
+    simOut.innerHTML = `<strong>Result:</strong> resolved explicit provider <strong>${req}</strong> for task <strong>${t}</strong>.`;
+    return;
+  }
+
+  const first = Object.keys(set).find(supports);
+  if (!first){
+    simOut.innerHTML = '<strong>Result:</strong> error - no registered provider supports selected task.';
+    return;
+  }
+  simOut.innerHTML = `<strong>Result:</strong> resolved by policy (${p}) to <strong>${first}</strong> for task <strong>${t}</strong>.`;
+}
+
+for (const el of [task, policy, provider, capset]) el.addEventListener('change', resolveProvider);
+resolveProvider();
+
+const canvas = document.getElementById('systems-canvas');
+const ctx = canvas.getContext('2d');
+let w = 0;
+let h = 0;
+let points = [];
+let raf = null;
+const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+  const n = Math.max(28, Math.min(72, Math.floor((w * h) / 30000)));
+  points = Array.from({length:n}, () => ({
+    x: Math.random() * w,
+    y: Math.random() * h,
+    vx: (Math.random() - 0.5) * 0.24,
+    vy: (Math.random() - 0.5) * 0.24,
+    r: Math.random() * 1.5 + 0.45
+  }));
+}
+
+function step(){
+  ctx.clearRect(0,0,w,h);
+  for (let i = 0; i < points.length; i++){
+    const p = points[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < -18) p.x = w + 18;
+    if (p.x > w + 18) p.x = -18;
+    if (p.y < -18) p.y = h + 18;
+    if (p.y > h + 18) p.y = -18;
+
+    for (let j = i + 1; j < points.length; j++){
+      const q = points[j];
+      const d = Math.hypot(p.x - q.x, p.y - q.y);
+      if (d < 130){
+        const a = (1 - d / 130) * 0.16;
+        ctx.strokeStyle = `rgba(93,145,218,${a})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(q.x, q.y);
+        ctx.stroke();
+      }
+    }
+
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  raf = requestAnimationFrame(step);
+}
+
+function start(){
+  resize();
+  if (!mq.matches && raf === null) step();
+}
+
+function stop(){
+  if (raf !== null){ cancelAnimationFrame(raf); raf = null; }
+  ctx.clearRect(0,0,w,h);
+}
+
+start();
+window.addEventListener('resize', resize);
+mq.addEventListener('change', e => e.matches ? stop() : start());
+</script>
+</body>
+</html>
