@@ -9,7 +9,7 @@ Security fixes are applied to the latest released version on `main`.
 Please do not open public issues for security vulnerabilities.
 
 - Use GitHub private vulnerability reporting for this repository.
-- Or contact: security@keryxlabs.com
+- Or contact: security@entasislabs.com
 
 Include:
 

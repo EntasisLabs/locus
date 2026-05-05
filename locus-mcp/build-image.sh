@@ -5,7 +5,7 @@
 #   ./build-image.sh [IMAGE_TAG] [FEATURES]
 #   ./build-image.sh [--features <csv>] [--name-suffix <suffix>] [IMAGE_TAG]
 #
-# Default IMAGE_TAG: ghcr.io/keryxlabs/locus-mcp:0.1.0
+# Default IMAGE_TAG: ghcr.io/entasislabs/locus-mcp:0.1.0
 # Optional features: set LOCUS_MCP_BUILD_FEATURES (for example: local-embedding)
 # Optional name suffix: set LOCUS_MCP_BUILD_NAME_SUFFIX (for example: embeddings)
 #
@@ -88,7 +88,7 @@ if [[ -n "$NAME_SUFFIX" ]]; then
   IMAGE_NAME="${BASE_IMAGE_NAME}-${NAME_SUFFIX}"
 fi
 
-IMAGE_TAG="ghcr.io/keryxlabs/${IMAGE_NAME}:${DEFAULT_VERSION}"
+IMAGE_TAG="ghcr.io/entasislabs/${IMAGE_NAME}:${DEFAULT_VERSION}"
 if [[ ${#POSITIONAL[@]} -ge 1 ]]; then
   IMAGE_TAG="${POSITIONAL[0]}"
 fi
