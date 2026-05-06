@@ -1,4 +1,4 @@
-use locus_core::parsing::SttpNodeParser;
+use locus_core_rs::parsing::SttpNodeParser;
 
 fn assert_close(actual: f32, expected: f32, tolerance: f32) {
     assert!(

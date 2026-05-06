@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Preflight and optional publish helper for locus-core.
+# Preflight and optional publish helper for locus-core-rs.
 #
 # Usage:
 #   ./publish-crates.sh            # run checks + dry-run publish
@@ -40,5 +40,5 @@ else
   echo ""
   echo "Dry-run complete."
   echo "To publish for real, run:"
-  echo "  ./locus-core/publish-crates.sh --publish"
+  echo "  ./locus-core-rs/publish-crates.sh --publish"
 fi

@@ -195,12 +195,12 @@
 <h2 id="layering"><a class="header" href="#layering">Layering</a></h2>
 <ol>
 <li>Protocol layer: STTP grammar and four-layer node contract.</li>
-<li>Implementation core: locus-core.</li>
+<li>Implementation core: locus-core-rs.</li>
 <li>SDK/application layer: locus-sdk.</li>
 <li>Host transport layer: MCP, HTTP, gRPC hosts that consume Locus crates.</li>
 </ol>
 <h2 id="crate-responsibilities"><a class="header" href="#crate-responsibilities">Crate Responsibilities</a></h2>
-<h3 id="locus-core"><a class="header" href="#locus-core">locus-core</a></h3>
+<h3 id="locus-core-rs"><a class="header" href="#locus-core-rs">locus-core-rs</a></h3>
 <ol>
 <li>Domain models and contracts.</li>
 <li>STTP parsing and validation.</li>
@@ -231,9 +231,9 @@
 </ol>
 <h2 id="dependency-direction"><a class="header" href="#dependency-direction">Dependency Direction</a></h2>
 <ol>
-<li>locus-sdk depends on locus-core.</li>
-<li>locus-core has no dependency on locus-sdk.</li>
-<li>Hosts should depend on locus-sdk for workflow orchestration and on locus-core only when low-level access is required.</li>
+<li>locus-sdk depends on locus-core-rs.</li>
+<li>locus-core-rs has no dependency on locus-sdk.</li>
+<li>Hosts should depend on locus-sdk for workflow orchestration and on locus-core-rs only when low-level access is required.</li>
 </ol>
 <p>This dependency model keeps host contracts stable while internal implementations evolve.</p>
 

@@ -4,11 +4,11 @@
 - Document ID: LOCUS-CORE-DATA-ARCH-001
 - Status: Draft for Internal Review
 - Intended Audience: Platform Engineers, Data Engineers, Reliability Engineers, Security Reviewers
-- Source of Truth: `locus-core` implementation (`domain/models.rs`, `storage/surrealdb/*`, `domain/contracts.rs`)
+- Source of Truth: `locus-core-rs` implementation (`domain/models.rs`, `storage/surrealdb/*`, `domain/contracts.rs`)
 - Last Updated: 2026-05-04
 
 ## 1. Purpose and Scope
-This document specifies the persistence model used by `locus-core` for STTP memory nodes, calibration records, and synchronization checkpoints.
+This document specifies the persistence model used by `locus-core-rs` for STTP memory nodes, calibration records, and synchronization checkpoints.
 
 It covers:
 - Physical schema implemented in SurrealDB.
@@ -22,7 +22,7 @@ It does not cover:
 - UI-facing DTO contracts (documented in SDK interface docs).
 
 ## 2. Architectural Context
-`locus-core` defines a storage abstraction (`NodeStore`) with two concrete implementations:
+`locus-core-rs` defines a storage abstraction (`NodeStore`) with two concrete implementations:
 - `InMemoryNodeStore` for tests and ephemeral execution.
 - `SurrealDbNodeStore` for persistent runtime.
 
@@ -291,8 +291,8 @@ Controlled changes (require migration and compatibility review):
 
 ## 15. Traceability to Implementation
 Primary implementation locations:
-- `locus-core/src/storage/surrealdb/raw_queries.rs`
-- `locus-core/src/storage/surrealdb/node_store.rs`
-- `locus-core/src/domain/models.rs`
-- `locus-core/src/domain/contracts.rs`
-- `locus-core/src/application/validation/tree_sitter_validator.rs`
+- `locus-core-rs/src/storage/surrealdb/raw_queries.rs`
+- `locus-core-rs/src/storage/surrealdb/node_store.rs`
+- `locus-core-rs/src/domain/models.rs`
+- `locus-core-rs/src/domain/contracts.rs`
+- `locus-core-rs/src/application/validation/tree_sitter_validator.rs`

@@ -17,10 +17,10 @@ use tower_http::cors::{Any, CorsLayer};
 use tracing::{error, info};
 use tracing_subscriber::EnvFilter;
 
-use locus_core::domain::models::{
+use locus_core_rs::domain::models::{
     self as core_models, ConfidenceBandSummary, MonthlyRollupRequest, NumericRange, PsiRange,
 };
-use locus_core::domain::contracts::EmbeddingProvider;
+use locus_core_rs::domain::contracts::EmbeddingProvider;
 use locus_sdk::application::memory_find::MemoryFindService;
 use locus_sdk::application::memory_recall::MemoryRecallService;
 use locus_sdk::application::memory_transform::MemoryTransformService;
@@ -1740,7 +1740,7 @@ mod tests {
     use crate::gateway_args::{EmbeddingsProviderKind, GatewayBackend};
     use crate::providers::parse_avec_state_from_text;
     use crate::tenant::session_belongs_to_tenant;
-    use locus_core::storage::{
+    use locus_core_rs::storage::{
         SurrealDbEndpointsSettings, SurrealDbRuntimeOptions, SurrealDbSettings,
     };
 

@@ -3152,7 +3152,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "clap",
- "locus-core",
+ "locus-core-rs",
  "locus-sdk",
  "serde_json",
  "surrealdb",
@@ -3160,7 +3160,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "locus-core"
+name = "locus-core-rs"
 version = "0.2.0"
 dependencies = [
  "anyhow",
@@ -3184,7 +3184,7 @@ dependencies = [
  "axum 0.8.9",
  "chrono",
  "clap",
- "locus-core",
+ "locus-core-rs",
  "locus-sdk",
  "prost 0.13.5",
  "prost-types 0.13.5",
@@ -3209,7 +3209,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
- "locus-core",
+ "locus-core-rs",
  "locus-sdk",
  "rmcp",
  "schemars 1.2.1",
@@ -3234,7 +3234,7 @@ dependencies = [
  "fake",
  "genai",
  "hf-hub",
- "locus-core",
+ "locus-core-rs",
  "rand 0.8.6",
  "rand_chacha 0.3.1",
  "reqwest 0.12.28",

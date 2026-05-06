@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use locus_core::domain::models::{AvecState, PsiRange, SttpNode};
+use locus_core_rs::domain::models::{AvecState, PsiRange, SttpNode};
 
 use crate::application::memory_composition::{
     CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,

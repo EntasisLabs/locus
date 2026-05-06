@@ -2,7 +2,7 @@
 
 SDK-backed command-line interface for Locus memory operations.
 
-`locus-cli` runs directly on `locus-core` and `locus-sdk` services (no HTTP gateway required).
+`locus-cli` runs directly on `locus-core-rs` and `locus-sdk` services (no HTTP gateway required).
 
 It is intended as a simple operator-facing surface for the most common workflows:
 

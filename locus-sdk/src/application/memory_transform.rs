@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use chrono::Utc;
-use locus_core::domain::contracts::NodeStore;
-use locus_core::domain::models::{NodeQuery, NodeUpsertStatus};
+use locus_core_rs::domain::contracts::NodeStore;
+use locus_core_rs::domain::models::{NodeQuery, NodeUpsertStatus};
 
 use crate::application::ai_router::route_embedding;
 use crate::application::memory_filters::{build_session_filter, node_matches_common_filters};
@@ -195,8 +195,8 @@ mod tests {
     use anyhow::Result;
     use async_trait::async_trait;
     use chrono::Utc;
-    use locus_core::{InMemoryNodeStore, NodeStore};
-    use locus_core::domain::models::{AvecState, SttpNode};
+    use locus_core_rs::{InMemoryNodeStore, NodeStore};
+    use locus_core_rs::domain::models::{AvecState, SttpNode};
 
     use super::MemoryTransformService;
     use crate::domain::ai::{
@@ -287,7 +287,7 @@ mod tests {
         assert_eq!(result.failed, 0);
 
         let nodes = store
-            .query_nodes_async(locus_core::domain::models::NodeQuery {
+            .query_nodes_async(locus_core_rs::domain::models::NodeQuery {
                 limit: 10,
                 session_id: Some("backfill".to_string()),
                 ..Default::default()

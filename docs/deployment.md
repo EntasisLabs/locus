@@ -27,7 +27,7 @@ From repository root:
 
 ```bash
 cargo check --workspace --examples
-cargo test -p locus-core --lib
+cargo test -p locus-core-rs --lib
 cargo test -p locus-sdk
 ```
 
@@ -36,13 +36,13 @@ cargo test -p locus-sdk
 Core package helper:
 
 ```bash
-./locus-core/build-package.sh
+./locus-core-rs/build-package.sh
 ```
 
 Publish preflight helper:
 
 ```bash
-./locus-core/publish-crates.sh
+./locus-core-rs/publish-crates.sh
 ```
 
 ## Configuration Guidance

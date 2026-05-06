@@ -2,9 +2,9 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use anyhow::Result;
-use locus_core::ContextQueryService;
-use locus_core::domain::contracts::NodeStore;
-use locus_core::domain::models::{AvecState, SttpNode};
+use locus_core_rs::ContextQueryService;
+use locus_core_rs::domain::contracts::NodeStore;
+use locus_core_rs::domain::models::{AvecState, SttpNode};
 
 use crate::application::memory_filters::{build_session_filter, node_matches_common_filters};
 use crate::domain::memory::{
@@ -217,8 +217,8 @@ mod tests {
     use std::sync::Arc;
 
     use chrono::Utc;
-    use locus_core::domain::models::{AvecState, SttpNode};
-    use locus_core::{InMemoryNodeStore, NodeStore};
+    use locus_core_rs::domain::models::{AvecState, SttpNode};
+    use locus_core_rs::{InMemoryNodeStore, NodeStore};
 
     use super::MemoryExplainService;
     use crate::domain::memory::{

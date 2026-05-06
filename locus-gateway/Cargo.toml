@@ -26,7 +26,7 @@ tonic-reflection = "0.12"
 tower-http = { version = "0.6", features = ["cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
-locus-core = { path = "../locus-core" }
+locus-core-rs = { path = "../locus-core-rs" }
 locus-sdk = { path = "../locus-sdk" }
 
 [build-dependencies]

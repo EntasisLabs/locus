@@ -1,6 +1,6 @@
 use axum::http::HeaderMap;
 
-use locus_core::domain::models as core_models;
+use locus_core_rs::domain::models as core_models;
 
 use crate::constants::{
     DEFAULT_TENANT, TENANT_HEADER, TENANT_HEADERS, TENANT_SCOPE_PREFIX, TENANT_SCOPE_SEPARATOR,

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a local locus-core crate artifact.
+# Build a local locus-core-rs crate artifact.
 #
 # Usage:
 #   ./build-package.sh

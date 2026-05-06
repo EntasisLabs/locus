@@ -63,7 +63,7 @@ Locus is being shaped for that direction: strong memory first, with MCP today an
 
 Workspace crates:
 
-1. [locus-core/README.md](locus-core/README.md): parser/validator, domain contracts, storage abstractions, retrieval services, sync-ready mechanics.
+1. [locus-core-rs/README.md](locus-core-rs/README.md): parser/validator, domain contracts, storage abstractions, retrieval services, sync-ready mechanics.
 2. [locus-sdk/README.md](locus-sdk/README.md): primitive-first SDK and composition workflows.
 3. [locus-mcp/README.md](locus-mcp/README.md): stdio MCP server exposing memory tools.
 4. [locus-gateway/README.md](locus-gateway/README.md): deployable Rust gateway with HTTP + gRPC.
@@ -114,7 +114,7 @@ Requirements:
 
 If you are deciding where to begin:
 
-1. I need a Rust API now: start with [locus-core/README.md](locus-core/README.md) and [locus-sdk/README.md](locus-sdk/README.md).
+1. I need a Rust API now: start with [locus-core-rs/README.md](locus-core-rs/README.md) and [locus-sdk/README.md](locus-sdk/README.md).
 2. I need memory tools in an MCP client: start with [locus-mcp/README.md](locus-mcp/README.md).
 3. I need a network host for apps/services: start with [locus-gateway/README.md](locus-gateway/README.md).
 4. I want terminal-first workflows without writing service code: start with [locus-cli/README.md](locus-cli/README.md).
@@ -368,7 +368,7 @@ Locus uses Instrumenta-style namespaced component release lines.
 
 ### Tag Prefixes
 
-1. `locus-core/v...`
+1. `locus-core-rs/v...`
 2. `locus-sdk/v...`
 3. `locus-mcp/v...`
 4. `locus-gateway/v...`
@@ -377,7 +377,7 @@ Locus uses Instrumenta-style namespaced component release lines.
 
 | Component | Artifact Type | Build Command | Publish Action |
 | --- | --- | --- | --- |
-| `locus-core` | crates.io package | `./locus-core/publish-crates.sh` | add `--publish` for actual crates.io publish |
+| `locus-core-rs` | crates.io package | `./locus-core-rs/publish-crates.sh` | add `--publish` for actual crates.io publish |
 | `locus-sdk` | crates.io package | `cargo publish --manifest-path locus-sdk/Cargo.toml --dry-run` | rerun without `--dry-run` |
 | `locus-mcp` | multi-platform archives | `./locus-mcp/build.sh` | `./locus-mcp/build.sh --publish` |
 | `locus-gateway` | multi-platform archives | `./locus-gateway/build.sh` | `./locus-gateway/build.sh --publish` |
@@ -415,18 +415,18 @@ cargo test --workspace
 # Optional one-command orchestrated release/images flow
 ./build.sh --default-version 0.1.0
 
-./locus-core/publish-crates.sh
+./locus-core-rs/publish-crates.sh
 cargo publish --manifest-path locus-sdk/Cargo.toml --dry-run
 
 ./locus-mcp/build.sh --publish
 ./locus-gateway/build.sh --publish
 
-git tag locus-core/v0.2.0
+git tag locus-core-rs/v0.2.0
 git tag locus-sdk/v0.1.0
 git tag locus-mcp/v0.1.0
 git tag locus-gateway/v2.0.0
 git tag locus-cli/v0.1.0
-git push origin locus-core/v0.2.0 locus-sdk/v0.1.0 locus-mcp/v0.1.0 locus-gateway/v2.0.0 locus-cli/v0.1.0
+git push origin locus-core-rs/v0.2.0 locus-sdk/v0.1.0 locus-mcp/v0.1.0 locus-gateway/v2.0.0 locus-cli/v0.1.0
 
 ./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.1.0
 docker push ghcr.io/entasislabs/locus-mcp:0.1.0
@@ -457,7 +457,7 @@ Release readiness checks:
 
 ```text
 locus/
-	locus-core/      # domain contracts, parser/validator, storage, retrieval, sync-ready mechanics
+	locus-core-rs/      # domain contracts, parser/validator, storage, retrieval, sync-ready mechanics
 	locus-sdk/       # primitives, composition workflows, provider adapters/registry
 	locus-mcp/       # stdio MCP host
 	locus-gateway/   # HTTP + gRPC host
@@ -492,7 +492,7 @@ This allows teams to adopt a minimal surface first and grow into broader deploym
 
 Crate-level release notes:
 
-1. [locus-core/CHANGELOG.md](locus-core/CHANGELOG.md)
+1. [locus-core-rs/CHANGELOG.md](locus-core-rs/CHANGELOG.md)
 2. [locus-gateway/CHANGELOG.md](locus-gateway/CHANGELOG.md)
 
 ## Contributing

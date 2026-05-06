@@ -2,8 +2,8 @@ use std::cmp::Ordering;
 use std::sync::Arc;
 
 use anyhow::Result;
-use locus_core::domain::contracts::NodeStore;
-use locus_core::domain::models::{NodeQuery, SttpNode};
+use locus_core_rs::domain::contracts::NodeStore;
+use locus_core_rs::domain::models::{NodeQuery, SttpNode};
 
 use crate::application::memory_filters::{build_session_filter, node_matches_common_filters};
 use crate::domain::memory::{

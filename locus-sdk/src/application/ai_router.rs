@@ -1,5 +1,5 @@
 use anyhow::Result;
-use locus_core::domain::models::AvecState;
+use locus_core_rs::domain::models::AvecState;
 
 use crate::domain::ai::{AiProviderRegistry, EmbedRequest, ScoreAvecRequest};
 
@@ -41,7 +41,7 @@ mod tests {
 
     use anyhow::{Result, anyhow};
     use async_trait::async_trait;
-    use locus_core::domain::models::AvecState;
+    use locus_core_rs::domain::models::AvecState;
     use tokio::sync::Mutex;
 
     use super::{route_avec_score, route_embedding};

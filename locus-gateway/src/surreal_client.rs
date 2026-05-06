@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use serde_json::Value;
-use locus_core::storage::surrealdb::QueryParams;
-use locus_core::storage::{SurrealDbClient, SurrealDbRuntimeOptions};
+use locus_core_rs::storage::surrealdb::QueryParams;
+use locus_core_rs::storage::{SurrealDbClient, SurrealDbRuntimeOptions};
 use surrealdb::engine::any::{Any, connect};
 use surrealdb::opt::auth::Root;
 use tracing::{debug, error};

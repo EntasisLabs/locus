@@ -1,6 +1,6 @@
-# locus-core Changelog
+# locus-core-rs Changelog
 
-All notable changes specific to locus-core are documented in this file.
+All notable changes specific to locus-core-rs are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
 ## [0.2.0] - 2026-05-03

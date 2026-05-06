@@ -13,8 +13,8 @@ use rmcp::{ServerHandler, ServiceExt, tool, tool_handler, tool_router};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
-use locus_core::domain::contracts::EmbeddingProvider;
-use locus_core::{
+use locus_core_rs::domain::contracts::EmbeddingProvider;
+use locus_core_rs::{
     CalibrationService, EmbeddingMigrationFilter, EmbeddingMigrationMode,
     EmbeddingMigrationPreviewRequest, EmbeddingMigrationRunRequest, EmbeddingMigrationService,
     InMemoryNodeStore, MonthlyRollupRequest, MonthlyRollupService, MoodCatalogService, NodeStore,
@@ -224,7 +224,7 @@ impl SttpMcpServer {
                     beta,
                     ..Default::default()
                 },
-                current_avec: Some(locus_core::AvecState {
+                current_avec: Some(locus_core_rs::AvecState {
                     stability: request.stability,
                     friction: request.friction,
                     logic: request.logic,
@@ -813,7 +813,7 @@ impl SurrealDbClient for RuntimeSurrealDbClient {
     async fn raw_query(
         &self,
         query: &str,
-        parameters: locus_core::QueryParams,
+        parameters: locus_core_rs::QueryParams,
     ) -> Result<Vec<Value>> {
         let operation = query
             .split_whitespace()
@@ -1163,7 +1163,7 @@ fn normalize_context_keywords(keywords: Option<&[String]>) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
-fn context_keyword_score(node: &locus_core::SttpNode, keywords: &[String]) -> usize {
+fn context_keyword_score(node: &locus_core_rs::SttpNode, keywords: &[String]) -> usize {
     let summary = node
         .context_summary
         .as_deref()
@@ -1181,10 +1181,10 @@ fn context_keyword_score(node: &locus_core::SttpNode, keywords: &[String]) -> us
 }
 
 fn filter_nodes_by_context_keywords(
-    nodes: &[locus_core::SttpNode],
+    nodes: &[locus_core_rs::SttpNode],
     keywords: &[String],
     limit: usize,
-) -> Vec<locus_core::SttpNode> {
+) -> Vec<locus_core_rs::SttpNode> {
     let mut scored = nodes
         .iter()
         .filter_map(|node| {
@@ -1222,7 +1222,7 @@ fn tool_error(code: &str, message: &str) -> String {
     }))
 }
 
-fn avec_to_json(avec: locus_core::AvecState) -> Value {
+fn avec_to_json(avec: locus_core_rs::AvecState) -> Value {
     json!({
         "stability": avec.stability,
         "friction": avec.friction,
@@ -1232,7 +1232,7 @@ fn avec_to_json(avec: locus_core::AvecState) -> Value {
     })
 }
 
-fn sttp_node_to_json(node: &locus_core::SttpNode) -> Value {
+fn sttp_node_to_json(node: &locus_core_rs::SttpNode) -> Value {
     json!({
         "raw": node.raw,
         "session_id": node.session_id,

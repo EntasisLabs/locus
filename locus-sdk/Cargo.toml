@@ -35,7 +35,7 @@ rand_chacha = "0.3"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-locus-core = { path = "../locus-core" }
+locus-core-rs = { path = "../locus-core-rs" }
 thiserror = "2"
 tokenizers = { version = "0.21", optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "sync"], optional = true }

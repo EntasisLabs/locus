@@ -18,7 +18,7 @@ Run from repository root:
 ```bash
 cargo check --workspace --examples
 cargo test --workspace
-cargo test -p locus-core --lib
+cargo test -p locus-core-rs --lib
 cargo test -p locus-sdk
 ```
 
@@ -32,9 +32,9 @@ Use when:
 Run from repository root:
 
 ```bash
-cargo test -p locus-core parser_tests
-cargo test -p locus-core validator_tests
-cargo test -p locus-core end_to_end_parsing_tests
+cargo test -p locus-core-rs parser_tests
+cargo test -p locus-core-rs validator_tests
+cargo test -p locus-core-rs end_to_end_parsing_tests
 ```
 
 Use when:
@@ -47,7 +47,7 @@ Use when:
 Run from repository root:
 
 ```bash
-cargo test -p locus-core context_query_service_tests
+cargo test -p locus-core-rs context_query_service_tests
 cargo test -p locus-sdk --example memory_composition
 cargo test -p locus-sdk --example provider_registry_setup
 ```
@@ -62,10 +62,10 @@ Use when:
 Run from repository root:
 
 ```bash
-cargo test -p locus-core monthly_rollup_service_tests
-cargo test -p locus-core sync_coordinator_service_tests
-cargo test -p locus-core surrealdb_node_store_tests
-cargo test -p locus-core surrealdb_runtime_tests
+cargo test -p locus-core-rs monthly_rollup_service_tests
+cargo test -p locus-core-rs sync_coordinator_service_tests
+cargo test -p locus-core-rs surrealdb_node_store_tests
+cargo test -p locus-core-rs surrealdb_runtime_tests
 ```
 
 Use when:

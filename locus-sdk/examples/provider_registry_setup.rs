@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use locus_core::domain::contracts::EmbeddingProvider;
+use locus_core_rs::domain::contracts::EmbeddingProvider;
 use locus_sdk::domain::ai::{AiProviderRegistry, AiTask, ProviderPolicy};
 use locus_sdk::infrastructure::registry::InMemoryAiProviderRegistry;
 use locus_sdk::infrastructure::sttp_native::embedding_provider_adapter::SttpEmbeddingProviderAdapter;

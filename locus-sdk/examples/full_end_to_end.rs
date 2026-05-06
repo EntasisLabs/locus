@@ -3,8 +3,8 @@ use std::sync::Arc;
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
-use locus_core::domain::models::{AvecState, SttpNode};
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::domain::models::{AvecState, SttpNode};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     AiCapability, AiProvider, EmbedRequest, InMemoryAiProviderRegistry, MemoryAggregateRequest,
     MemoryAggregateService, MemoryExplainRequest, MemoryExplainService, MemoryFindRequest,

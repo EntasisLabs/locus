@@ -57,7 +57,7 @@ If unresolved item count is greater than zero:
 3. The content object uses confidence-scored keys to remain strict-parser compatible.
 4. This aligns with validator nesting limits in core validator logic.
 
-Reference: [locus-core/src/application/validation/tree_sitter_validator.rs](locus-core/src/application/validation/tree_sitter_validator.rs)
+Reference: [locus-core-rs/src/application/validation/tree_sitter_validator.rs](locus-core-rs/src/application/validation/tree_sitter_validator.rs)
 
 ## 6. Compression Strategy
 
@@ -76,8 +76,8 @@ Reference: [locus-sdk/src/application/manual_compression.rs](locus-sdk/src/appli
 use std::sync::Arc;
 
 use anyhow::Result;
-use locus_core::{InMemoryNodeStore, NodeStore};
-use locus_core::domain::models::AvecState;
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::domain::models::AvecState;
 use locus_sdk::prelude::{
     CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
     CompositeRole, CompositeRoleAvecOverrides, MemoryCompositionService,

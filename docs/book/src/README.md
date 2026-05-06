@@ -30,7 +30,7 @@ Generated Rust API docs are published alongside this book so implementation team
 
 - Local build output: `docs/technical/api/index.html`
 - Typical crate roots:
-  - `docs/technical/api/locus_core/index.html`
+  - `docs/technical/api/locus_core_rs/index.html`
   - `docs/technical/api/locus_sdk/index.html`
   - `docs/technical/api/locus_mcp/index.html`
   - `docs/technical/api/locus_gateway/index.html`

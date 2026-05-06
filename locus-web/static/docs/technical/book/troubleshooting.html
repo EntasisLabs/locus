@@ -195,7 +195,7 @@
 <p>Run from repository root:</p>
 <pre><code class="language-bash">cargo check --workspace --examples
 cargo test --workspace
-cargo test -p locus-core --lib
+cargo test -p locus-core-rs --lib
 cargo test -p locus-sdk
 </code></pre>
 <p>Use when:</p>
@@ -205,9 +205,9 @@ cargo test -p locus-sdk
 </ol>
 <h3 id="parser-and-validator-command-pack"><a class="header" href="#parser-and-validator-command-pack">Parser and Validator Command Pack</a></h3>
 <p>Run from repository root:</p>
-<pre><code class="language-bash">cargo test -p locus-core parser_tests
-cargo test -p locus-core validator_tests
-cargo test -p locus-core end_to_end_parsing_tests
+<pre><code class="language-bash">cargo test -p locus-core-rs parser_tests
+cargo test -p locus-core-rs validator_tests
+cargo test -p locus-core-rs end_to_end_parsing_tests
 </code></pre>
 <p>Use when:</p>
 <ol>
@@ -216,7 +216,7 @@ cargo test -p locus-core end_to_end_parsing_tests
 </ol>
 <h3 id="retrieval-command-pack"><a class="header" href="#retrieval-command-pack">Retrieval Command Pack</a></h3>
 <p>Run from repository root:</p>
-<pre><code class="language-bash">cargo test -p locus-core context_query_service_tests
+<pre><code class="language-bash">cargo test -p locus-core-rs context_query_service_tests
 cargo test -p locus-sdk --example memory_composition
 cargo test -p locus-sdk --example provider_registry_setup
 </code></pre>
@@ -227,10 +227,10 @@ cargo test -p locus-sdk --example provider_registry_setup
 </ol>
 <h3 id="transform-and-sync-command-pack"><a class="header" href="#transform-and-sync-command-pack">Transform and Sync Command Pack</a></h3>
 <p>Run from repository root:</p>
-<pre><code class="language-bash">cargo test -p locus-core monthly_rollup_service_tests
-cargo test -p locus-core sync_coordinator_service_tests
-cargo test -p locus-core surrealdb_node_store_tests
-cargo test -p locus-core surrealdb_runtime_tests
+<pre><code class="language-bash">cargo test -p locus-core-rs monthly_rollup_service_tests
+cargo test -p locus-core-rs sync_coordinator_service_tests
+cargo test -p locus-core-rs surrealdb_node_store_tests
+cargo test -p locus-core-rs surrealdb_runtime_tests
 </code></pre>
 <p>Use when:</p>
 <ol>

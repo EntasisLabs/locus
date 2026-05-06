@@ -209,7 +209,7 @@
 <li>Local build output: <code>docs/technical/api/index.html</code></li>
 <li>Typical crate roots:
 <ul>
-<li><code>docs/technical/api/locus_core/index.html</code></li>
+<li><code>docs/technical/api/locus_core_rs/index.html</code></li>
 <li><code>docs/technical/api/locus_sdk/index.html</code></li>
 <li><code>docs/technical/api/locus_mcp/index.html</code></li>
 <li><code>docs/technical/api/locus_gateway/index.html</code></li>
@@ -330,12 +330,12 @@ cargo check --examples -p locus-sdk
 <h2 id="layering"><a class="header" href="#layering">Layering</a></h2>
 <ol>
 <li>Protocol layer: STTP grammar and four-layer node contract.</li>
-<li>Implementation core: locus-core.</li>
+<li>Implementation core: locus-core-rs.</li>
 <li>SDK/application layer: locus-sdk.</li>
 <li>Host transport layer: MCP, HTTP, gRPC hosts that consume Locus crates.</li>
 </ol>
 <h2 id="crate-responsibilities"><a class="header" href="#crate-responsibilities">Crate Responsibilities</a></h2>
-<h3 id="locus-core"><a class="header" href="#locus-core">locus-core</a></h3>
+<h3 id="locus-core-rs"><a class="header" href="#locus-core-rs">locus-core-rs</a></h3>
 <ol>
 <li>Domain models and contracts.</li>
 <li>STTP parsing and validation.</li>
@@ -366,19 +366,19 @@ cargo check --examples -p locus-sdk
 </ol>
 <h2 id="dependency-direction"><a class="header" href="#dependency-direction">Dependency Direction</a></h2>
 <ol>
-<li>locus-sdk depends on locus-core.</li>
-<li>locus-core has no dependency on locus-sdk.</li>
-<li>Hosts should depend on locus-sdk for workflow orchestration and on locus-core only when low-level access is required.</li>
+<li>locus-sdk depends on locus-core-rs.</li>
+<li>locus-core-rs has no dependency on locus-sdk.</li>
+<li>Hosts should depend on locus-sdk for workflow orchestration and on locus-core-rs only when low-level access is required.</li>
 </ol>
 <p>This dependency model keeps host contracts stable while internal implementations evolve.</p>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="locus-core-database-schema-and-data-governance"><a class="header" href="#locus-core-database-schema-and-data-governance">Locus Core Database Schema and Data Governance</a></h1>
+<h1 id="locus-core-rs-database-schema-and-data-governance"><a class="header" href="#locus-core-rs-database-schema-and-data-governance">Locus Core Database Schema and Data Governance</a></h1>
 <h2 id="document-control"><a class="header" href="#document-control">Document Control</a></h2>
 <ul>
 <li>Document ID: LOCUS-CORE-DATA-ARCH-001</li>
 <li>Status: Current</li>
 <li>Intended Audience: Platform Engineers, Data Engineers, Reliability Engineers, Security Reviewers</li>
-<li>Source of Truth: <code>locus-core</code> implementation (<code>domain/models.rs</code>, <code>storage/surrealdb/*</code>, <code>domain/contracts.rs</code>)</li>
+<li>Source of Truth: <code>locus-core-rs</code> implementation (<code>domain/models.rs</code>, <code>storage/surrealdb/*</code>, <code>domain/contracts.rs</code>)</li>
 <li>Last Updated: 2026-05-04</li>
 </ul>
 <h2 id="audience-and-use-2"><a class="header" href="#audience-and-use-2">Audience and Use</a></h2>
@@ -390,7 +390,7 @@ cargo check --examples -p locus-sdk
 <li>Review storage-level guarantees before integration and rollout.</li>
 </ol>
 <h2 id="1-purpose-and-scope"><a class="header" href="#1-purpose-and-scope">1. Purpose and Scope</a></h2>
-<p>This document specifies the persistence model used by <code>locus-core</code> for STTP memory nodes, calibration records, and synchronization checkpoints.</p>
+<p>This document specifies the persistence model used by <code>locus-core-rs</code> for STTP memory nodes, calibration records, and synchronization checkpoints.</p>
 <p>It covers:</p>
 <ul>
 <li>Physical schema implemented in SurrealDB.</li>
@@ -405,7 +405,7 @@ cargo check --examples -p locus-sdk
 <li>UI-facing DTO contracts (documented in SDK interface docs).</li>
 </ul>
 <h2 id="2-architectural-context"><a class="header" href="#2-architectural-context">2. Architectural Context</a></h2>
-<p><code>locus-core</code> defines a storage abstraction (<code>NodeStore</code>) with two concrete implementations:</p>
+<p><code>locus-core-rs</code> defines a storage abstraction (<code>NodeStore</code>) with two concrete implementations:</p>
 <ul>
 <li><code>InMemoryNodeStore</code> for tests and ephemeral execution.</li>
 <li><code>SurrealDbNodeStore</code> for persistent runtime.</li>
@@ -708,11 +708,11 @@ cargo check --examples -p locus-sdk
 <h2 id="15-traceability-to-implementation"><a class="header" href="#15-traceability-to-implementation">15. Traceability to Implementation</a></h2>
 <p>Primary implementation locations:</p>
 <ul>
-<li><code>locus-core/src/storage/surrealdb/raw_queries.rs</code></li>
-<li><code>locus-core/src/storage/surrealdb/node_store.rs</code></li>
-<li><code>locus-core/src/domain/models.rs</code></li>
-<li><code>locus-core/src/domain/contracts.rs</code></li>
-<li><code>locus-core/src/application/validation/tree_sitter_validator.rs</code></li>
+<li><code>locus-core-rs/src/storage/surrealdb/raw_queries.rs</code></li>
+<li><code>locus-core-rs/src/storage/surrealdb/node_store.rs</code></li>
+<li><code>locus-core-rs/src/domain/models.rs</code></li>
+<li><code>locus-core-rs/src/domain/contracts.rs</code></li>
+<li><code>locus-core-rs/src/application/validation/tree_sitter_validator.rs</code></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="locus-sdk-architecture-specification"><a class="header" href="#locus-sdk-architecture-specification">Locus SDK Architecture Specification</a></h1>
@@ -740,7 +740,7 @@ cargo check --examples -p locus-sdk
     C --&gt; D[Domain Contracts and Models]
     C --&gt; E[Infrastructure Adapters]
     C --&gt; F[Interface DTO Mappers]
-    E --&gt; G[locus-core NodeStore]
+    E --&gt; G[locus-core-rs NodeStore]
     E --&gt; H[AI Provider Runtime]
 
     subgraph SDK
@@ -979,7 +979,7 @@ cargo check --examples -p locus-sdk
 <li><code>GenaiProviderAdapter</code> behind <code>genai-provider</code> feature.</li>
 <li><code>LocalEmbeddingProvider</code> behind <code>local-embedding</code> feature.</li>
 <li><code>OllamaEmbeddingProvider</code> always available.</li>
-<li><code>SttpEmbeddingProviderAdapter</code> wraps <code>locus-core</code> <code>EmbeddingProvider</code> into SDK <code>AiProvider</code> shape.</li>
+<li><code>SttpEmbeddingProviderAdapter</code> wraps <code>locus-core-rs</code> <code>EmbeddingProvider</code> into SDK <code>AiProvider</code> shape.</li>
 </ul>
 <p>Operational note:</p>
 <ul>
@@ -1085,7 +1085,7 @@ Status: Implemented (initial slice)</p>
 <li>The content object uses confidence-scored keys to remain strict-parser compatible.</li>
 <li>This aligns with validator nesting limits in core validator logic.</li>
 </ol>
-<p>Reference: <a href="locus-core/src/application/validation/tree_sitter_validator.rs">locus-core/src/application/validation/tree_sitter_validator.rs</a></p>
+<p>Reference: <a href="locus-core-rs/src/application/validation/tree_sitter_validator.rs">locus-core-rs/src/application/validation/tree_sitter_validator.rs</a></p>
 <h2 id="6-compression-strategy"><a class="header" href="#6-compression-strategy">6. Compression Strategy</a></h2>
 <p>Each input/context item is compressed with ManualCompressionService to derive:</p>
 <ol>
@@ -1098,8 +1098,8 @@ Status: Implemented (initial slice)</p>
 <pre class="playground"><code class="language-rust">use std::sync::Arc;
 
 use anyhow::Result;
-use locus_core::{InMemoryNodeStore, NodeStore};
-use locus_core::domain::models::AvecState;
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::domain::models::AvecState;
 use locus_sdk::prelude::{
     CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
     CompositeRole, CompositeRoleAvecOverrides, MemoryCompositionService,
@@ -1233,15 +1233,15 @@ fn convert_boundary(req_dto: CompositeNodeFromTextRequestDto) -&gt; CompositeNod
 <h2 id="build-commands"><a class="header" href="#build-commands">Build Commands</a></h2>
 <p>From repository root:</p>
 <pre><code class="language-bash">cargo check --workspace --examples
-cargo test -p locus-core --lib
+cargo test -p locus-core-rs --lib
 cargo test -p locus-sdk
 </code></pre>
 <h2 id="packaging"><a class="header" href="#packaging">Packaging</a></h2>
 <p>Core package helper:</p>
-<pre><code class="language-bash">./locus-core/build-package.sh
+<pre><code class="language-bash">./locus-core-rs/build-package.sh
 </code></pre>
 <p>Publish preflight helper:</p>
-<pre><code class="language-bash">./locus-core/publish-crates.sh
+<pre><code class="language-bash">./locus-core-rs/publish-crates.sh
 </code></pre>
 <h2 id="configuration-guidance"><a class="header" href="#configuration-guidance">Configuration Guidance</a></h2>
 <ol>
@@ -1788,7 +1788,7 @@ fn build_registry_and_routing() -&gt; Result&lt;(Arc&lt;InMemoryAiProviderRegist
 </ol>
 <pre class="playground"><code class="language-rust">use anyhow::Result;
 use std::sync::Arc;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     FallbackPolicy, MemoryCompositionService, MemoryRecallRequest, MemoryScoring,
 };
@@ -1844,7 +1844,7 @@ Return:
 </ol>
 <pre class="playground"><code class="language-rust">use anyhow::Result;
 use std::sync::Arc;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     FallbackPolicy, MemoryCompositionService, MemoryRecallRequest, MemoryScoring,
     StrictnessMode,
@@ -1898,7 +1898,7 @@ Return:
 </ol>
 <pre class="playground"><code class="language-rust">use anyhow::Result;
 use std::sync::Arc;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     InMemoryAiProviderRegistry, MemoryCompositionService, MemoryRecallRequest,
     MemoryTransformOperation, MemoryTransformRequest, MemoryTransformThenRecallRequest,
@@ -1957,7 +1957,7 @@ Return:
 </ol>
 <pre class="playground"><code class="language-rust">use anyhow::Result;
 use std::sync::Arc;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
     CompositeRole, MemoryCompositionService,
@@ -2450,7 +2450,7 @@ step 4 transform dry-run
 <p>Run from repository root:</p>
 <pre><code class="language-bash">cargo check --workspace --examples
 cargo test --workspace
-cargo test -p locus-core --lib
+cargo test -p locus-core-rs --lib
 cargo test -p locus-sdk
 </code></pre>
 <p>Use when:</p>
@@ -2460,9 +2460,9 @@ cargo test -p locus-sdk
 </ol>
 <h3 id="parser-and-validator-command-pack"><a class="header" href="#parser-and-validator-command-pack">Parser and Validator Command Pack</a></h3>
 <p>Run from repository root:</p>
-<pre><code class="language-bash">cargo test -p locus-core parser_tests
-cargo test -p locus-core validator_tests
-cargo test -p locus-core end_to_end_parsing_tests
+<pre><code class="language-bash">cargo test -p locus-core-rs parser_tests
+cargo test -p locus-core-rs validator_tests
+cargo test -p locus-core-rs end_to_end_parsing_tests
 </code></pre>
 <p>Use when:</p>
 <ol>
@@ -2471,7 +2471,7 @@ cargo test -p locus-core end_to_end_parsing_tests
 </ol>
 <h3 id="retrieval-command-pack"><a class="header" href="#retrieval-command-pack">Retrieval Command Pack</a></h3>
 <p>Run from repository root:</p>
-<pre><code class="language-bash">cargo test -p locus-core context_query_service_tests
+<pre><code class="language-bash">cargo test -p locus-core-rs context_query_service_tests
 cargo test -p locus-sdk --example memory_composition
 cargo test -p locus-sdk --example provider_registry_setup
 </code></pre>
@@ -2482,10 +2482,10 @@ cargo test -p locus-sdk --example provider_registry_setup
 </ol>
 <h3 id="transform-and-sync-command-pack"><a class="header" href="#transform-and-sync-command-pack">Transform and Sync Command Pack</a></h3>
 <p>Run from repository root:</p>
-<pre><code class="language-bash">cargo test -p locus-core monthly_rollup_service_tests
-cargo test -p locus-core sync_coordinator_service_tests
-cargo test -p locus-core surrealdb_node_store_tests
-cargo test -p locus-core surrealdb_runtime_tests
+<pre><code class="language-bash">cargo test -p locus-core-rs monthly_rollup_service_tests
+cargo test -p locus-core-rs sync_coordinator_service_tests
+cargo test -p locus-core-rs surrealdb_node_store_tests
+cargo test -p locus-core-rs surrealdb_runtime_tests
 </code></pre>
 <p>Use when:</p>
 <ol>
@@ -2585,7 +2585,7 @@ cargo test -p locus-core surrealdb_runtime_tests
 <p>It also defines dependency governance requirements used to keep releases stable over time.</p>
 <h2 id="package-versioning"><a class="header" href="#package-versioning">Package Versioning</a></h2>
 <ol>
-<li>locus-core and locus-sdk use SemVer.</li>
+<li>locus-core-rs and locus-sdk use SemVer.</li>
 <li>Pre-1.0 versions may evolve rapidly but should still document behavior changes clearly.</li>
 <li>Breaking changes require explicit migration notes in release documentation.</li>
 </ol>

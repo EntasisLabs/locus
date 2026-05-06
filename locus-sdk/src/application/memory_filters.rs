@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use locus_core::domain::models::SttpNode;
+use locus_core_rs::domain::models::SttpNode;
 
 use crate::domain::memory::{MemoryFilter, MemoryScope};
 

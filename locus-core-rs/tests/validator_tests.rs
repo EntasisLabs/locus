@@ -1,5 +1,5 @@
-use locus_core::application::validation::TreeSitterValidator;
-use locus_core::domain::contracts::NodeValidator;
+use locus_core_rs::application::validation::TreeSitterValidator;
+use locus_core_rs::domain::contracts::NodeValidator;
 
 #[test]
 fn should_validate_complete_node() {
