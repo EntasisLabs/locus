@@ -1,11 +1,11 @@
 [package]
-name = "locus-core"
+name = "locus-core-rs"
 version = "0.2.0"
 edition = "2024"
 description = "Core STTP parsing, validation, storage contracts, and application services for Rust"
 license = "Apache-2.0"
 readme = "README.md"
-documentation = "https://docs.rs/locus-core"
+documentation = "https://docs.rs/locus-core-rs"
 keywords = ["sttp", "context", "memory", "mcp", "surrealdb"]
 categories = ["parser-implementations", "asynchronous"]
 

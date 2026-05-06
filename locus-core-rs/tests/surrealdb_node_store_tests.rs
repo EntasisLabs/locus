@@ -7,11 +7,11 @@ use chrono::{DateTime, Utc};
 use serde_json::{Value, json};
 use tokio::sync::Mutex;
 
-use locus_core::domain::contracts::{NodeStore, NodeStoreInitializer};
-use locus_core::domain::models::{
+use locus_core_rs::domain::contracts::{NodeStore, NodeStoreInitializer};
+use locus_core_rs::domain::models::{
     AvecState, ConnectorMetadata, NodeQuery, NodeUpsertStatus, SttpNode, SyncCheckpoint, SyncCursor,
 };
-use locus_core::storage::surrealdb::{QueryParams, SurrealDbClient, SurrealDbNodeStore};
+use locus_core_rs::storage::surrealdb::{QueryParams, SurrealDbClient, SurrealDbNodeStore};
 
 #[derive(Default)]
 struct MockSurrealDbClient {

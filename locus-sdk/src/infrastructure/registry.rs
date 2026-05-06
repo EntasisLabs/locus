@@ -82,7 +82,7 @@ impl AiProviderRegistry for InMemoryAiProviderRegistry {
 mod tests {
     use anyhow::Result;
     use async_trait::async_trait;
-    use locus_core::domain::models::AvecState;
+    use locus_core_rs::domain::models::AvecState;
 
     use super::InMemoryAiProviderRegistry;
     use crate::domain::ai::{

@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use chrono::{Duration, Utc};
-use locus_core::application::services::ContextQueryService;
-use locus_core::domain::contracts::{NodeStore, NodeStoreInitializer};
-use locus_core::domain::models::{AvecState, SttpNode};
-use locus_core::storage::InMemoryNodeStore;
+use locus_core_rs::application::services::ContextQueryService;
+use locus_core_rs::domain::contracts::{NodeStore, NodeStoreInitializer};
+use locus_core_rs::domain::models::{AvecState, SttpNode};
+use locus_core_rs::storage::InMemoryNodeStore;
 
 fn make_node(session_id: &str, psi: f32, embedding: Option<Vec<f32>>) -> SttpNode {
     let avec = AvecState {

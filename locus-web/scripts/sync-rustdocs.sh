@@ -27,7 +27,7 @@ create_index_page() {
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>Locus Rust API Docs</title>
-	<meta http-equiv="refresh" content="0; url=./locus_core/index.html" />
+	<meta http-equiv="refresh" content="0; url=./locus_core_rs/index.html" />
 	<style>
 		body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; line-height: 1.5; }
 		h1 { margin-bottom: 0.5rem; }
@@ -38,7 +38,7 @@ create_index_page() {
 	<h1>Locus Rust API Docs</h1>
 	<p>If you are not redirected automatically, choose a crate:</p>
 	<ul>
-		<li><a href="./locus_core/index.html">locus_core</a></li>
+		<li><a href="./locus_core_rs/index.html">locus_core_rs</a></li>
 		<li><a href="./locus_sdk/index.html">locus_sdk</a></li>
 		<li><a href="./locus_mcp/index.html">locus_mcp</a></li>
 		<li><a href="./locus_gateway/index.html">locus_gateway</a></li>

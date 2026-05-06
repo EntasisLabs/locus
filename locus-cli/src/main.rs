@@ -6,8 +6,8 @@ use anyhow::{Context, Result, anyhow, bail};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use clap::{Parser, Subcommand, ValueEnum};
-use locus_core::domain::models::{AvecState, MonthlyRollupRequest, SttpNode};
-use locus_core::{
+use locus_core_rs::domain::models::{AvecState, MonthlyRollupRequest, SttpNode};
+use locus_core_rs::{
     CalibrationService, InMemoryNodeStore, MonthlyRollupService, MoodCatalogService, NodeStore,
     NodeStoreInitializer, NodeValidator, QueryParams,
     StoreContextService, SurrealDbClient, SurrealDbEndpointsSettings, SurrealDbNodeStore,

@@ -1,6 +1,6 @@
 # locus-gateway
 
-Rust STTP gateway exposing a unified HTTP + gRPC surface over `locus-core`.
+Rust STTP gateway exposing a unified HTTP + gRPC surface over `locus-core-rs`.
 
 It is intended to be deployable as a single binary in front of STTP storage backends.
 

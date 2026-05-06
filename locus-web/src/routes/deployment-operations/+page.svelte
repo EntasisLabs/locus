@@ -66,7 +66,7 @@
 				<li>Security checklist reviewed for secrets/logging hygiene.</li>
 			</ol>
 			<pre class="cmd">cargo check --workspace --examples
-cargo test -p locus-core --lib
+cargo test -p locus-core-rs --lib
 cargo test -p locus-sdk</pre>
 		</article>
 		<article class="card">

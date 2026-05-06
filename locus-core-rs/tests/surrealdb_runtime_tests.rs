@@ -1,4 +1,4 @@
-use locus_core::storage::surrealdb::{
+use locus_core_rs::storage::surrealdb::{
     SurrealDbEndpointsSettings, SurrealDbRuntimeOptions, SurrealDbSettings,
 };
 
@@ -13,7 +13,7 @@ fn runtime_uses_remote_endpoint_when_flag_is_present() {
     };
 
     let args = vec!["--remote".to_string()];
-    let runtime = SurrealDbRuntimeOptions::from_args(&args, &settings, Some(".locus-core-test"))
+    let runtime = SurrealDbRuntimeOptions::from_args(&args, &settings, Some(".locus-core-rs-test"))
         .expect("runtime options should resolve");
 
     assert!(runtime.use_remote);
@@ -31,10 +31,10 @@ fn runtime_normalizes_embedded_relative_path() {
     };
 
     let runtime =
-        SurrealDbRuntimeOptions::from_args(&[], &settings, Some(".locus-core-test-embedded"))
+        SurrealDbRuntimeOptions::from_args(&[], &settings, Some(".locus-core-rs-test-embedded"))
             .expect("runtime options should resolve");
 
     assert!(!runtime.use_remote);
     assert!(runtime.endpoint.starts_with("surrealkv://"));
-    assert!(runtime.endpoint.contains(".locus-core-test-embedded"));
+    assert!(runtime.endpoint.contains(".locus-core-rs-test-embedded"));
 }

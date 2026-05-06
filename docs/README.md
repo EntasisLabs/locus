@@ -24,7 +24,7 @@ This documentation set is focused on production usage of the Locus Rust memory i
 
 ## Repository Components
 
-1. ../locus-core
+1. ../locus-core-rs
 2. ../locus-sdk
 
 ## Generated Technical Docs

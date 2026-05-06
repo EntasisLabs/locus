@@ -11,7 +11,7 @@
 //! ```no_run
 //! use std::sync::Arc;
 //!
-//! use locus_core::{
+//! use locus_core_rs::{
 //!     CalibrationService, ContextQueryService, InMemoryNodeStore, NodeStoreInitializer,
 //!     StoreContextService, TreeSitterValidator,
 //! };

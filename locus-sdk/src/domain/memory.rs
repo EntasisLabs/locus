@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use locus_core::domain::models::{AvecState, PsiRange, SttpNode};
+use locus_core_rs::domain::models::{AvecState, PsiRange, SttpNode};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]

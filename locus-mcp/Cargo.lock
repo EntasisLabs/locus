@@ -5286,7 +5286,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
-name = "locus-core"
+name = "locus-core-rs"
 version = "0.2.0"
 dependencies = [
  "anyhow",
@@ -5317,7 +5317,7 @@ dependencies = [
  "schemars 1.2.1",
  "serde",
  "serde_json",
- "locus-core",
+ "locus-core-rs",
  "locus-sdk",
  "surrealdb",
  "tokenizers",
@@ -5336,7 +5336,7 @@ dependencies = [
  "genai",
  "serde",
  "serde_json",
- "locus-core",
+ "locus-core-rs",
  "thiserror 2.0.18",
 ]
 

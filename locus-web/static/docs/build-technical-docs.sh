@@ -74,14 +74,14 @@ li{margin:6px 0 0 18px}
       </a>
       <a class="card" href="api/index.html">
         <h2>API Reference (rustdoc)</h2>
-        <p>Workspace crate APIs generated from Rust source docs for locus-core, sdk, gateway, mcp, and cli.</p>
+        <p>Workspace crate APIs generated from Rust source docs for locus-core-rs, sdk, gateway, mcp, and cli.</p>
       </a>
     </section>
 
     <section class="list">
       <h3>Quick API Entrypoints</h3>
       <ul>
-        <li><a href="api/locus_core/index.html">locus_core</a></li>
+        <li><a href="api/locus_core_rs/index.html">locus_core_rs</a></li>
         <li><a href="api/locus_sdk/index.html">locus_sdk</a></li>
         <li><a href="api/locus_gateway/index.html">locus_gateway</a></li>
         <li><a href="api/locus_mcp/index.html">locus_mcp</a></li>

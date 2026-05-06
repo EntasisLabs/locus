@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use locus_core::application::validation::TreeSitterValidator;
-use locus_core::domain::contracts::NodeValidator;
-use locus_core::domain::models::AvecState;
-use locus_core::parsing::SttpNodeParser;
+use locus_core_rs::application::validation::TreeSitterValidator;
+use locus_core_rs::domain::contracts::NodeValidator;
+use locus_core_rs::domain::models::AvecState;
+use locus_core_rs::parsing::SttpNodeParser;
 
 #[test]
 fn should_parse_and_validate_complete_workflow() {

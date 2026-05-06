@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
-use locus_core::domain::contracts::NodeStore;
-use locus_core::domain::models::{
+use locus_core_rs::domain::contracts::NodeStore;
+use locus_core_rs::domain::models::{
     AvecState, ConnectorMetadata, NodeUpsertStatus, SttpNode, SyncCheckpoint, SyncCursor,
 };
-use locus_core::storage::InMemoryNodeStore;
+use locus_core_rs::storage::InMemoryNodeStore;
 
 fn build_test_node(session_id: &str) -> SttpNode {
     SttpNode {
@@ -61,7 +61,7 @@ async fn duplicate_upsert_does_not_create_extra_rows() {
     assert_eq!(second.status, NodeUpsertStatus::Duplicate);
 
     let nodes = store
-        .query_nodes_async(locus_core::domain::models::NodeQuery {
+        .query_nodes_async(locus_core_rs::domain::models::NodeQuery {
             limit: 10,
             session_id: Some("sync-session".to_string()),
             from_utc: None,

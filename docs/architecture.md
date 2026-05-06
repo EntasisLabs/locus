@@ -7,13 +7,13 @@ Locus is the Rust implementation layer for STTP memory systems. STTP remains the
 ## Layering
 
 1. Protocol layer: STTP grammar and four-layer node contract.
-2. Implementation core: locus-core.
+2. Implementation core: locus-core-rs.
 3. SDK/application layer: locus-sdk.
 4. Host transport layer: MCP, HTTP, gRPC hosts that consume Locus crates.
 
 ## Crate Responsibilities
 
-### locus-core
+### locus-core-rs
 
 1. Domain models and contracts.
 2. STTP parsing and validation.
@@ -44,6 +44,6 @@ Locus is the Rust implementation layer for STTP memory systems. STTP remains the
 
 ## Dependency Direction
 
-1. locus-sdk depends on locus-core.
-2. locus-core has no dependency on locus-sdk.
-3. Hosts should depend on locus-sdk for workflow orchestration and on locus-core only when low-level access is required.
+1. locus-sdk depends on locus-core-rs.
+2. locus-core-rs has no dependency on locus-sdk.
+3. Hosts should depend on locus-sdk for workflow orchestration and on locus-core-rs only when low-level access is required.

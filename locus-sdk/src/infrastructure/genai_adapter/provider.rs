@@ -2,7 +2,7 @@ use anyhow::{Context, Result, anyhow};
 use async_trait::async_trait;
 use genai::Client;
 use genai::chat::ChatRequest;
-use locus_core::domain::models::AvecState;
+use locus_core_rs::domain::models::AvecState;
 
 use crate::domain::ai::{AiCapability, AiProvider, EmbedRequest, ScoreAvecRequest};
 

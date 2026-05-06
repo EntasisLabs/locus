@@ -123,7 +123,7 @@ Add dependency from workspace:
 ```toml
 [dependencies]
 locus-sdk = { path = "../locus-sdk" }
-locus-core = { path = "../locus-core" }
+locus-core-rs = { path = "../locus-core-rs" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
 
@@ -133,7 +133,7 @@ Example: recall from an in-memory store
 use std::sync::Arc;
 
 use anyhow::Result;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{MemoryRecallRequest, MemoryRecallService};
 
 #[tokio::main]
@@ -451,7 +451,7 @@ let verify = composition
 ### Recipe: Build Recursive Content from Text
 
 ```rust
-use locus_core::domain::models::AvecState;
+use locus_core_rs::domain::models::AvecState;
 use locus_sdk::prelude::{
 	CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
 	CompositeRole, CompositeRoleAvecOverrides, MemoryCompositionService,

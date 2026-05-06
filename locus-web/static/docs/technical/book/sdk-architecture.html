@@ -206,7 +206,7 @@
     C --&gt; D[Domain Contracts and Models]
     C --&gt; E[Infrastructure Adapters]
     C --&gt; F[Interface DTO Mappers]
-    E --&gt; G[locus-core NodeStore]
+    E --&gt; G[locus-core-rs NodeStore]
     E --&gt; H[AI Provider Runtime]
 
     subgraph SDK
@@ -445,7 +445,7 @@
 <li><code>GenaiProviderAdapter</code> behind <code>genai-provider</code> feature.</li>
 <li><code>LocalEmbeddingProvider</code> behind <code>local-embedding</code> feature.</li>
 <li><code>OllamaEmbeddingProvider</code> always available.</li>
-<li><code>SttpEmbeddingProviderAdapter</code> wraps <code>locus-core</code> <code>EmbeddingProvider</code> into SDK <code>AiProvider</code> shape.</li>
+<li><code>SttpEmbeddingProviderAdapter</code> wraps <code>locus-core-rs</code> <code>EmbeddingProvider</code> into SDK <code>AiProvider</code> shape.</li>
 </ul>
 <p>Operational note:</p>
 <ul>

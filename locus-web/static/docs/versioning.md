@@ -6,7 +6,7 @@ This policy defines versioning expectations for Locus crates and host integratio
 
 ## Package Versioning
 
-1. locus-core and locus-sdk use SemVer.
+1. locus-core-rs and locus-sdk use SemVer.
 2. Pre-1.0 versions may evolve rapidly but should still document behavior changes clearly.
 3. Breaking changes require explicit migration notes in release documentation.
 

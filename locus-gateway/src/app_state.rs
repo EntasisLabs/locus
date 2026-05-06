@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use locus_core::application::services::{
+use locus_core_rs::application::services::{
     CalibrationService, ContextQueryService, MonthlyRollupService, MoodCatalogService,
     RekeyScopeService, StoreContextService,
 };
-use locus_core::domain::contracts::{EmbeddingProvider, NodeStore};
+use locus_core_rs::domain::contracts::{EmbeddingProvider, NodeStore};
 
 use crate::providers::AvecScorer;
 

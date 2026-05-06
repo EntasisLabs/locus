@@ -25,7 +25,7 @@ flowchart TD
     C --> D[Domain Contracts and Models]
     C --> E[Infrastructure Adapters]
     C --> F[Interface DTO Mappers]
-    E --> G[locus-core NodeStore]
+    E --> G[locus-core-rs NodeStore]
     E --> H[AI Provider Runtime]
 
     subgraph SDK
@@ -259,7 +259,7 @@ Composite content building constraints:
 - `GenaiProviderAdapter` behind `genai-provider` feature.
 - `LocalEmbeddingProvider` behind `local-embedding` feature.
 - `OllamaEmbeddingProvider` always available.
-- `SttpEmbeddingProviderAdapter` wraps `locus-core` `EmbeddingProvider` into SDK `AiProvider` shape.
+- `SttpEmbeddingProviderAdapter` wraps `locus-core-rs` `EmbeddingProvider` into SDK `AiProvider` shape.
 
 Operational note:
 - Local embedding uses CPU-bound worker and blocking-task isolation for runtime safety.

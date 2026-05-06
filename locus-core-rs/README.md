@@ -1,4 +1,4 @@
-# locus-core
+# locus-core-rs
 
 Core Rust library for STTP domain modeling, validation, parsing, storage, and sync-ready coordination primitives.
 
@@ -6,7 +6,7 @@ This crate is designed for Rust apps, MCP servers, gateways, and services that n
 
 ## What It Is Good At
 
-`locus-core` is meant to do the reusable, low-level work well:
+`locus-core-rs` is meant to do the reusable, low-level work well:
 
 - parse and validate STTP nodes
 - persist and retrieve nodes consistently
@@ -52,7 +52,7 @@ In other words: the crate is sync-ready, not sync-mandatory.
 
 ```toml
 [dependencies]
-locus-core = "0.1.4"
+locus-core-rs = "0.1.4"
 ```
 
 ## Quick Start
@@ -60,7 +60,7 @@ locus-core = "0.1.4"
 ```rust,no_run
 use std::sync::Arc;
 
-use locus_core::{
+use locus_core_rs::{
     CalibrationService, ContextQueryService, InMemoryNodeStore, MoodCatalogService,
     NodeStoreInitializer,
 };
@@ -126,8 +126,8 @@ Those decisions belong in the host application.
 ## Build And Test
 
 ```bash
-cargo check --manifest-path locus-core/Cargo.toml
-cargo test --manifest-path locus-core/Cargo.toml
+cargo check --manifest-path locus-core-rs/Cargo.toml
+cargo test --manifest-path locus-core-rs/Cargo.toml
 ```
 
 ## Build Package Artifact
@@ -135,16 +135,16 @@ cargo test --manifest-path locus-core/Cargo.toml
 Create a local `.crate` artifact for verification:
 
 ```bash
-cargo package --manifest-path locus-core/Cargo.toml --allow-dirty
+cargo package --manifest-path locus-core-rs/Cargo.toml --allow-dirty
 ```
 
 Inspect package contents:
 
 ```bash
-cargo package --manifest-path locus-core/Cargo.toml --allow-dirty --list
+cargo package --manifest-path locus-core-rs/Cargo.toml --allow-dirty --list
 ```
 
-The artifact is written under `locus-core/target/package`.
+The artifact is written under `locus-core-rs/target/package`.
 
 ## First Publish To crates.io (Step-By-Step)
 
@@ -153,7 +153,7 @@ If this is your first crates.io release, use this sequence.
 ### 1. Verify Name Availability
 
 ```bash
-cargo search locus-core --limit 5
+cargo search locus-core-rs --limit 5
 ```
 
 If the exact crate name is already taken, update `[package].name` in `Cargo.toml`.
@@ -181,32 +181,32 @@ export CARGO_REGISTRY_TOKEN=<YOUR_CRATES_IO_TOKEN>
 From repository root:
 
 ```bash
-cargo check --manifest-path locus-core/Cargo.toml
-cargo test --manifest-path locus-core/Cargo.toml
+cargo check --manifest-path locus-core-rs/Cargo.toml
+cargo test --manifest-path locus-core-rs/Cargo.toml
 ```
 
 Check exact package contents:
 
 ```bash
-cargo package --manifest-path locus-core/Cargo.toml --list
+cargo package --manifest-path locus-core-rs/Cargo.toml --list
 ```
 
 ### 4. Dry-Run Publish (Required)
 
 ```bash
-cargo publish --manifest-path locus-core/Cargo.toml --dry-run
+cargo publish --manifest-path locus-core-rs/Cargo.toml --dry-run
 ```
 
 ### 5. Publish
 
 ```bash
-cargo publish --manifest-path locus-core/Cargo.toml
+cargo publish --manifest-path locus-core-rs/Cargo.toml
 ```
 
 ### 6. Post-Publish Verification
 
 ```bash
-cargo info locus-core
+cargo info locus-core-rs
 ```
 
 Then verify docs build on docs.rs (can take a few minutes).
@@ -216,11 +216,11 @@ Then verify docs build on docs.rs (can take a few minutes).
 Use the helper script:
 
 ```bash
-./locus-core/publish-crates.sh
+./locus-core-rs/publish-crates.sh
 ```
 
 To run publish after preflight:
 
 ```bash
-./locus-core/publish-crates.sh --publish
+./locus-core-rs/publish-crates.sh --publish
 ```

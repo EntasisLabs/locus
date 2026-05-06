@@ -181,13 +181,13 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="locus-core-database-schema-and-data-governance"><a class="header" href="#locus-core-database-schema-and-data-governance">Locus Core Database Schema and Data Governance</a></h1>
+                        <h1 id="locus-core-rs-database-schema-and-data-governance"><a class="header" href="#locus-core-rs-database-schema-and-data-governance">Locus Core Database Schema and Data Governance</a></h1>
 <h2 id="document-control"><a class="header" href="#document-control">Document Control</a></h2>
 <ul>
 <li>Document ID: LOCUS-CORE-DATA-ARCH-001</li>
 <li>Status: Current</li>
 <li>Intended Audience: Platform Engineers, Data Engineers, Reliability Engineers, Security Reviewers</li>
-<li>Source of Truth: <code>locus-core</code> implementation (<code>domain/models.rs</code>, <code>storage/surrealdb/*</code>, <code>domain/contracts.rs</code>)</li>
+<li>Source of Truth: <code>locus-core-rs</code> implementation (<code>domain/models.rs</code>, <code>storage/surrealdb/*</code>, <code>domain/contracts.rs</code>)</li>
 <li>Last Updated: 2026-05-04</li>
 </ul>
 <h2 id="audience-and-use"><a class="header" href="#audience-and-use">Audience and Use</a></h2>
@@ -199,7 +199,7 @@
 <li>Review storage-level guarantees before integration and rollout.</li>
 </ol>
 <h2 id="1-purpose-and-scope"><a class="header" href="#1-purpose-and-scope">1. Purpose and Scope</a></h2>
-<p>This document specifies the persistence model used by <code>locus-core</code> for STTP memory nodes, calibration records, and synchronization checkpoints.</p>
+<p>This document specifies the persistence model used by <code>locus-core-rs</code> for STTP memory nodes, calibration records, and synchronization checkpoints.</p>
 <p>It covers:</p>
 <ul>
 <li>Physical schema implemented in SurrealDB.</li>
@@ -214,7 +214,7 @@
 <li>UI-facing DTO contracts (documented in SDK interface docs).</li>
 </ul>
 <h2 id="2-architectural-context"><a class="header" href="#2-architectural-context">2. Architectural Context</a></h2>
-<p><code>locus-core</code> defines a storage abstraction (<code>NodeStore</code>) with two concrete implementations:</p>
+<p><code>locus-core-rs</code> defines a storage abstraction (<code>NodeStore</code>) with two concrete implementations:</p>
 <ul>
 <li><code>InMemoryNodeStore</code> for tests and ephemeral execution.</li>
 <li><code>SurrealDbNodeStore</code> for persistent runtime.</li>
@@ -517,11 +517,11 @@
 <h2 id="15-traceability-to-implementation"><a class="header" href="#15-traceability-to-implementation">15. Traceability to Implementation</a></h2>
 <p>Primary implementation locations:</p>
 <ul>
-<li><code>locus-core/src/storage/surrealdb/raw_queries.rs</code></li>
-<li><code>locus-core/src/storage/surrealdb/node_store.rs</code></li>
-<li><code>locus-core/src/domain/models.rs</code></li>
-<li><code>locus-core/src/domain/contracts.rs</code></li>
-<li><code>locus-core/src/application/validation/tree_sitter_validator.rs</code></li>
+<li><code>locus-core-rs/src/storage/surrealdb/raw_queries.rs</code></li>
+<li><code>locus-core-rs/src/storage/surrealdb/node_store.rs</code></li>
+<li><code>locus-core-rs/src/domain/models.rs</code></li>
+<li><code>locus-core-rs/src/domain/contracts.rs</code></li>
+<li><code>locus-core-rs/src/application/validation/tree_sitter_validator.rs</code></li>
 </ul>
 
                     </main>

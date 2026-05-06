@@ -224,7 +224,7 @@
 					</div>
 					<div style="margin-top:14px;text-align:center">
 						<span class="stack-footer"
-							>all backed by → locus-core · parser · validator · retrieval</span
+							>all backed by → locus-core-rs · parser · validator · retrieval</span
 						>
 					</div>
 				</div>

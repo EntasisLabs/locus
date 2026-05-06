@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use locus_core::domain::models::AvecState;
+use locus_core_rs::domain::models::AvecState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AiCapability {

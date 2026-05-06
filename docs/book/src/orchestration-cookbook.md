@@ -89,7 +89,7 @@ Intent:
 ```rust
 use anyhow::Result;
 use std::sync::Arc;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     FallbackPolicy, MemoryCompositionService, MemoryRecallRequest, MemoryScoring,
 };
@@ -152,7 +152,7 @@ Intent:
 ```rust
 use anyhow::Result;
 use std::sync::Arc;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     FallbackPolicy, MemoryCompositionService, MemoryRecallRequest, MemoryScoring,
     StrictnessMode,
@@ -213,7 +213,7 @@ Intent:
 ```rust
 use anyhow::Result;
 use std::sync::Arc;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     InMemoryAiProviderRegistry, MemoryCompositionService, MemoryRecallRequest,
     MemoryTransformOperation, MemoryTransformRequest, MemoryTransformThenRecallRequest,
@@ -279,7 +279,7 @@ Intent:
 ```rust
 use anyhow::Result;
 use std::sync::Arc;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
     CompositeRole, MemoryCompositionService,

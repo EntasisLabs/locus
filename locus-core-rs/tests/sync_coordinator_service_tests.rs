@@ -6,12 +6,12 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use tokio::sync::Mutex;
 
-use locus_core::application::services::SyncCoordinatorService;
-use locus_core::domain::contracts::{NodeStore, SyncChangeSource, SyncCoordinatorPolicy};
-use locus_core::domain::models::{
+use locus_core_rs::application::services::SyncCoordinatorService;
+use locus_core_rs::domain::contracts::{NodeStore, SyncChangeSource, SyncCoordinatorPolicy};
+use locus_core_rs::domain::models::{
     AvecState, ChangeQueryResult, SttpNode, SyncCursor, SyncPullRequest,
 };
-use locus_core::storage::InMemoryNodeStore;
+use locus_core_rs::storage::InMemoryNodeStore;
 
 struct StubChangeSource {
     pages: Mutex<VecDeque<ChangeQueryResult>>,
@@ -174,7 +174,7 @@ async fn coordinator_pages_changes_and_advances_checkpoint_without_owning_policy
     );
 
     let stored = store
-        .query_nodes_async(locus_core::domain::models::NodeQuery {
+        .query_nodes_async(locus_core_rs::domain::models::NodeQuery {
             limit: 10,
             session_id: Some("sync-session".to_string()),
             from_utc: None,

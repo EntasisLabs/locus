@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
-use locus_core::domain::contracts::EmbeddingProvider;
+use locus_core_rs::domain::contracts::EmbeddingProvider;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]

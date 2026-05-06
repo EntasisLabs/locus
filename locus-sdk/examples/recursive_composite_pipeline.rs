@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use serde_json::{Map, Value};
-use locus_core::application::validation::TreeSitterValidator;
-use locus_core::domain::contracts::NodeValidator;
-use locus_core::domain::models::AvecState;
-use locus_core::parsing::SttpNodeParser;
-use locus_core::{InMemoryNodeStore, NodeStore};
+use locus_core_rs::application::validation::TreeSitterValidator;
+use locus_core_rs::domain::contracts::NodeValidator;
+use locus_core_rs::domain::models::AvecState;
+use locus_core_rs::parsing::SttpNodeParser;
+use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
     CompositeRole, CompositeRoleAvecOverrides, MemoryCompositionService,

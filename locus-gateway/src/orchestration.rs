@@ -2,15 +2,15 @@ use std::sync::Arc;
 
 use anyhow::{Result, anyhow};
 use axum::http::HeaderValue;
-use locus_core::application::services::{
+use locus_core_rs::application::services::{
     CalibrationService, ContextQueryService, MonthlyRollupService,
     MoodCatalogService, RekeyScopeService, StoreContextService,
 };
-use locus_core::application::validation::TreeSitterValidator;
-use locus_core::domain::contracts::{
+use locus_core_rs::application::validation::TreeSitterValidator;
+use locus_core_rs::domain::contracts::{
     EmbeddingProvider, NodeStore, NodeStoreInitializer, NodeValidator,
 };
-use locus_core::storage::{
+use locus_core_rs::storage::{
     InMemoryNodeStore, SurrealDbEndpointsSettings, SurrealDbNodeStore, SurrealDbRuntimeOptions,
     SurrealDbSettings,
 };

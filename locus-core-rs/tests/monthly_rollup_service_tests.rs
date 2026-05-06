@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
-use locus_core::application::services::{MonthlyRollupService, StoreContextService};
-use locus_core::application::validation::TreeSitterValidator;
-use locus_core::domain::models::MonthlyRollupRequest;
-use locus_core::storage::InMemoryNodeStore;
+use locus_core_rs::application::services::{MonthlyRollupService, StoreContextService};
+use locus_core_rs::application::validation::TreeSitterValidator;
+use locus_core_rs::domain::models::MonthlyRollupRequest;
+use locus_core_rs::storage::InMemoryNodeStore;
 
 #[tokio::test(flavor = "current_thread")]
 async fn should_create_monthly_rollup_using_first_timeline_node_as_parent() {

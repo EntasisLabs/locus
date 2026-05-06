@@ -277,9 +277,9 @@ run_release_for_target() {
   case "$target" in
     core)
       if $PUBLISH; then
-        run_in_dir "$SCRIPT_DIR/locus-core" bash ./publish-crates.sh --publish
+        run_in_dir "$SCRIPT_DIR/locus-core-rs" bash ./publish-crates.sh --publish
       else
-        run_in_dir "$SCRIPT_DIR/locus-core" bash ./publish-crates.sh
+        run_in_dir "$SCRIPT_DIR/locus-core-rs" bash ./publish-crates.sh
       fi
       ;;
     mcp)

@@ -5,8 +5,8 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-use locus_core::domain::contracts::EmbeddingProvider;
-use locus_core::domain::models as core_models;
+use locus_core_rs::domain::contracts::EmbeddingProvider;
+use locus_core_rs::domain::models as core_models;
 
 #[derive(Debug, Deserialize)]
 struct ParsedAvecScore {

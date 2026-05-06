@@ -1,5 +1,5 @@
-use locus_core::domain::contracts::NodeValidator;
-use locus_core::{ParseProfile, SttpNodeParser, TreeSitterValidator};
+use locus_core_rs::domain::contracts::NodeValidator;
+use locus_core_rs::{ParseProfile, SttpNodeParser, TreeSitterValidator};
 
 const CANONICAL_NODE: &str = r#"
 ⊕⟨ { trigger: manual, response_format: temporal_node, origin_session: "diff-test", compression_depth: 1, parent_node: null, prime: { attractor_config: { stability: 0.85, friction: 0.25, logic: 0.80, autonomy: 0.70 }, context_summary: "canonical", relevant_tier: raw, retrieval_budget: 3 } } ⟩

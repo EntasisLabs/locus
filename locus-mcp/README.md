@@ -1,6 +1,6 @@
 # locus-mcp
 
-Rust MCP server for STTP memory operations, built on `rmcp` and `locus-core`.
+Rust MCP server for STTP memory operations, built on `rmcp` and `locus-core-rs`.
 
 This server runs over stdio and exposes six tools:
 

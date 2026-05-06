@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
-use locus_core::domain::contracts::EmbeddingProvider;
-use locus_core::domain::models::AvecState;
+use locus_core_rs::domain::contracts::EmbeddingProvider;
+use locus_core_rs::domain::models::AvecState;
 
 use crate::domain::ai::{AiCapability, AiProvider, EmbedRequest, ScoreAvecRequest};
 
