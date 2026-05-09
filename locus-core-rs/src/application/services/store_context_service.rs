@@ -43,8 +43,12 @@ static SESSION_FAILURES: Lazy<Mutex<HashMap<String, SessionFailureState>>> =
 
 impl StoreContextService {
     /// Create a store-context service with validation but no embedding enrichment.
-    pub fn new(store: Arc<dyn NodeStore>, validator: Arc<dyn NodeValidator>) -> Self {
-        Self::new_with_policy(store, validator, StoreRetryPolicy::default())
+    pub fn new(
+        store: Arc<dyn NodeStore>,
+        validator: Arc<dyn NodeValidator>,
+        parser: SttpNodeParser,
+    ) -> Self {
+        Self::new_with_policy(store, validator, StoreRetryPolicy::default(), parser)
     }
 
     /// Create a store-context service with validation and an explicit retry policy.
@@ -52,12 +56,13 @@ impl StoreContextService {
         store: Arc<dyn NodeStore>,
         validator: Arc<dyn NodeValidator>,
         retry_policy: StoreRetryPolicy,
+        parser: SttpNodeParser,
     ) -> Self {
         Self {
             store,
             validator,
             embedding_provider: None,
-            parser: SttpNodeParser::new(),
+            parser: parser,
             retry_policy,
         }
     }
@@ -67,12 +72,14 @@ impl StoreContextService {
         store: Arc<dyn NodeStore>,
         validator: Arc<dyn NodeValidator>,
         embedding_provider: Arc<dyn EmbeddingProvider>,
+        parser: SttpNodeParser,
     ) -> Self {
         Self::with_embedding_provider_and_policy(
             store,
             validator,
             embedding_provider,
             StoreRetryPolicy::default(),
+            parser,
         )
     }
 
@@ -82,12 +89,13 @@ impl StoreContextService {
         validator: Arc<dyn NodeValidator>,
         embedding_provider: Arc<dyn EmbeddingProvider>,
         retry_policy: StoreRetryPolicy,
+        parser: SttpNodeParser,
     ) -> Self {
         Self {
             store,
             validator,
             embedding_provider: Some(embedding_provider),
-            parser: SttpNodeParser::new(),
+            parser: parser,
             retry_policy,
         }
     }
@@ -160,7 +168,7 @@ impl StoreContextService {
             };
         }
 
-        let parse_result = self.parser.try_parse_strict_typed_ir(node, session_id);
+        let parse_result = self.parser.try_parse(node, session_id);
         if !parse_result.success {
             let cooldown_until = self.record_failure(session_id);
             let state = self.failure_state_snapshot(session_id);
@@ -271,10 +279,9 @@ impl StoreContextService {
                     node_id: String::new(),
                     psi: 0.0,
                     valid: false,
-                    validation_error: Some(self.with_optional_cooldown(
-                        format!("StoreFailure: {err}"),
-                        cooldown_until,
-                    )),
+                    validation_error: Some(
+                        self.with_optional_cooldown(format!("StoreFailure: {err}"), cooldown_until),
+                    ),
                 }
             }
         }
@@ -333,10 +340,7 @@ impl StoreContextService {
         cooldown_until: Option<DateTime<Utc>>,
     ) -> String {
         match cooldown_until {
-            Some(until) => format!(
-                "{base} (cooldown_active_until={})",
-                until.to_rfc3339()
-            ),
+            Some(until) => format!("{base} (cooldown_active_until={})", until.to_rfc3339()),
             None => base,
         }
     }
@@ -345,10 +349,7 @@ impl StoreContextService {
 fn emit_ingest_trace(session_id: &str, stage: &str, reason: &str, detail: &str) {
     eprintln!(
         "[sttp_ingest_trace] session_id={} stage={} reason={} detail={}",
-        session_id,
-        stage,
-        reason,
-        detail
+        session_id, stage, reason, detail
     );
 }
 
@@ -381,7 +382,13 @@ fn format_parse_diagnostics(diagnostics: &[ParseDiagnostic]) -> String {
 fn sanitize_message(message: &str) -> String {
     message
         .chars()
-        .filter(|ch| ch.is_ascii_alphanumeric() || matches!(ch, ' ' | '_' | '-' | '.' | ':' | '/' | '(' | ')' | '\'' | '"'))
+        .filter(|ch| {
+            ch.is_ascii_alphanumeric()
+                || matches!(
+                    ch,
+                    ' ' | '_' | '-' | '.' | ':' | '/' | '(' | ')' | '\'' | '"'
+                )
+        })
         .collect::<String>()
 }
 
@@ -433,7 +440,7 @@ mod tests {
         clear_session_failures();
         let store = Arc::new(InMemoryNodeStore::new());
         let validator = Arc::new(TreeSitterValidator::new());
-        let service = StoreContextService::new(store, validator);
+        let service = StoreContextService::new(store, validator, SttpNodeParser::new());
 
         let result = service
             .store_async(INVALID_STRICT_NODE, "strict-required-fields")
@@ -457,6 +464,7 @@ mod tests {
                 max_failures_before_cooldown: 3,
                 cooldown: Duration::seconds(60),
             },
+            SttpNodeParser::new()
         );
         let session_id = "cooldown-session";
 

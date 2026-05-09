@@ -3152,7 +3152,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "clap",
- "locus-core-rs 0.2.1",
+ "locus-core-rs 0.3.0",
  "locus-sdk 0.1.1",
  "serde_json",
  "surrealdb",
@@ -3162,6 +3162,8 @@ dependencies = [
 [[package]]
 name = "locus-core-rs"
 version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "19df028ed3588c75dfd8a33e0820b35288cd22a584c38bb8298424c012ef2a7a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3177,9 +3179,7 @@ dependencies = [
 
 [[package]]
 name = "locus-core-rs"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19df028ed3588c75dfd8a33e0820b35288cd22a584c38bb8298424c012ef2a7a"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3202,7 +3202,7 @@ dependencies = [
  "axum 0.8.9",
  "chrono",
  "clap",
- "locus-core-rs 0.2.1",
+ "locus-core-rs 0.3.0",
  "locus-sdk 0.1.1",
  "prost 0.13.5",
  "prost-types 0.13.5",
@@ -3227,7 +3227,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
- "locus-core-rs 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "locus-core-rs 0.2.1",
  "locus-sdk 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rmcp",
  "schemars 1.2.1",
@@ -3252,7 +3252,7 @@ dependencies = [
  "fake",
  "genai",
  "hf-hub",
- "locus-core-rs 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "locus-core-rs 0.2.1",
  "rand 0.8.6",
  "rand_chacha 0.3.1",
  "reqwest 0.12.28",
@@ -3278,7 +3278,7 @@ dependencies = [
  "fake",
  "genai",
  "hf-hub",
- "locus-core-rs 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "locus-core-rs 0.2.1",
  "rand 0.8.6",
  "rand_chacha 0.3.1",
  "reqwest 0.12.28",

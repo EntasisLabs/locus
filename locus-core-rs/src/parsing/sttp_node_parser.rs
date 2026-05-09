@@ -233,15 +233,23 @@ impl SpecEnumValue for TierValue {
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct SttpNodeParser;
+pub struct SttpNodeParser {
+    profile: ParseProfile,
+}
 
 impl SttpNodeParser {
     pub fn new() -> Self {
-        Self
+        Self {
+            profile: ParseProfile::Tolerant,
+        }
+    }
+
+    pub fn with_profile(profile: ParseProfile) -> Self {
+        Self { profile }
     }
 
     pub fn try_parse(&self, raw: &str, session_id: &str) -> ParseResult {
-        self.try_parse_with_profile(raw, session_id, ParseProfile::Tolerant)
+        self.try_parse_with_profile(raw, session_id, self.profile)
     }
 
     pub fn try_parse_strict(&self, raw: &str, session_id: &str) -> ParseResult {
@@ -816,11 +824,7 @@ fn require_named_object_keys(
         if !contains_key_in_object(object, *key) {
             diagnostics.push(ParseDiagnostic {
                 code: "STTP_STRICT_MISSING_REQUIRED_KEY".to_string(),
-                message: format!(
-                    "missing required key '{}' in {}",
-                    key.as_str(),
-                    path.path()
-                ),
+                message: format!("missing required key '{}' in {}", key.as_str(), path.path()),
                 severity: ParseDiagnosticSeverity::Error,
                 strict_impact: true,
                 span: span.map(to_parse_span),
@@ -992,10 +996,7 @@ fn normalize_key(raw_key: &str) -> &str {
 
 fn normalize_scalar_value(raw_value: &str) -> String {
     let trimmed = raw_value.trim();
-    if let Some(unquoted) = trimmed
-        .strip_prefix('"')
-        .and_then(|v| v.strip_suffix('"'))
-    {
+    if let Some(unquoted) = trimmed.strip_prefix('"').and_then(|v| v.strip_suffix('"')) {
         return unquoted.trim().to_string();
     }
 
@@ -1300,11 +1301,7 @@ fn parse_context_summary(raw: &str) -> Option<String> {
     let prime = extract_named_object(raw, NodeFieldKey::Prime.as_str())?;
     let value = parse_scalar_token_in_object(prime, NodeFieldKey::ContextSummary)?;
 
-    if value.is_empty() {
-        None
-    } else {
-        Some(value)
-    }
+    if value.is_empty() { None } else { Some(value) }
 }
 
 fn parse_i32_key(source: &str, key: NodeFieldKey) -> Option<i32> {

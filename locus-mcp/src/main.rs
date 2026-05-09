@@ -8,11 +8,6 @@ use std::sync::Arc;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use rmcp::handler::server::{router::tool::ToolRouter, wrapper::Parameters};
-use rmcp::{ServerHandler, ServiceExt, tool, tool_handler, tool_router};
-use schemars::JsonSchema;
-use serde::Deserialize;
-use serde_json::{Value, json};
 use locus_core_rs::domain::contracts::EmbeddingProvider;
 use locus_core_rs::{
     CalibrationService, EmbeddingMigrationFilter, EmbeddingMigrationMode,
@@ -21,13 +16,20 @@ use locus_core_rs::{
     NodeStoreInitializer, NodeValidator, StoreContextService, SurrealDbClient, SurrealDbNodeStore,
     SurrealDbRuntimeOptions, SurrealDbSettings, TreeSitterValidator,
 };
-use locus_sdk::application::memory_recall::MemoryRecallService;
 use locus_sdk::application::memory_find::MemoryFindService;
+use locus_sdk::application::memory_recall::MemoryRecallService;
 use locus_sdk::application::memory_schema::MemorySchemaService;
-use locus_sdk::domain::memory::{MemoryFindRequest, MemoryPage, MemoryRecallRequest, MemoryScope, MemoryScoring};
+use locus_sdk::domain::memory::{
+    MemoryFindRequest, MemoryPage, MemoryRecallRequest, MemoryScope, MemoryScoring,
+};
 #[cfg(feature = "local-embedding")]
 use locus_sdk::infrastructure::embeddings::LocalEmbeddingProvider;
 use locus_sdk::infrastructure::embeddings::OllamaEmbeddingProvider;
+use rmcp::handler::server::{router::tool::ToolRouter, wrapper::Parameters};
+use rmcp::{ServerHandler, ServiceExt, tool, tool_handler, tool_router};
+use schemars::JsonSchema;
+use serde::Deserialize;
+use serde_json::{Value, json};
 use surrealdb::engine::any::{Any, connect};
 use surrealdb::opt::auth::Root;
 use tracing::{error, info};
@@ -59,7 +61,6 @@ struct SttpMcpServer {
     embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
     moods: Arc<MoodCatalogService>,
     monthly_rollup: Arc<MonthlyRollupService>,
-    schema: Arc<MemorySchemaService>,
     #[allow(dead_code)]
     tool_router: ToolRouter<Self>,
 }
@@ -72,8 +73,7 @@ impl SttpMcpServer {
         embedding_migration: Arc<EmbeddingMigrationService>,
         embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
         moods: Arc<MoodCatalogService>,
-        monthly_rollup: Arc<MonthlyRollupService>,
-        schema: Arc<MemorySchemaService>,
+        monthly_rollup: Arc<MonthlyRollupService>
     ) -> Self {
         Self {
             node_store,
@@ -83,7 +83,6 @@ impl SttpMcpServer {
             embedding_provider,
             moods,
             monthly_rollup,
-            schema,
             tool_router: Self::tool_router(),
         }
     }
@@ -109,32 +108,23 @@ impl SttpMcpServer {
 impl SttpMcpServer {
     #[tool(
         name = "get_schema",
-        description = "Return the memory capability schema and ingest policy. Call this first before store_context so payloads match strict typed IR requirements."
+        description = "Get a canonical example of what an STTP node should look like before storage."
     )]
     async fn get_schema(&self) -> String {
-        let schema = self.schema.execute();
+        let schema = async {
+            " Canonical Example:
+                ⊕⟨ ⏣0{ trigger: manual, response_format: temporal_node, origin_session: \"session-abc\", compression_depth: 1, parent_node: null, prime: { attractor_config: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85 }, context_summary: \"parser hardening session\", relevant_tier: raw, retrieval_budget: 8 } } ⟩
+                ⦿⟨ ⏣0{ timestamp: \"2026-04-25T00:00:00Z\", tier: raw, session_id: \"session-abc\", schema_version: \"sttp-1.0\", user_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 }, model_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 } } ⟩
+                ◈⟨ ⏣0{ focus(.99): \"grammar update\", decision(.96): { parser_mode(.95): \"strict_and_tolerant\" } } ⟩
+                ⍉⟨ ⏣0{ rho: 0.95, kappa: 0.94, psi: 2.93, compression_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 } } ⟩".to_string()
+        };
 
-        to_json_string(json!({
-            "schema_version": schema.schema_version,
-            "sort_fields": schema.sort_fields,
-            "filter_fields": schema.filter_fields,
-            "group_by_fields": schema.group_by_fields,
-            "fallback_policies": schema.fallback_policies,
-            "strictness_modes": schema.strictness_modes,
-            "transform_operations": schema.transform_operations,
-            "ingest_policy": {
-                "parse_profile": strict_typed_ir_profile_name(),
-                "strict_spine_required": true,
-                "typed_ir_required": true,
-                "schema_first_tool": schema_tool_name(),
-                "schema_first_guidance": "Call get_schema before store_context and align payload to strict typed IR layered format."
-            }
-        }))
+        schema.await
     }
 
     #[tool(
         name = "calibrate_session",
-        description = "Call this at session start and after heavy reasoning work to measure current AVEC drift. Use it to compare your current cognitive state against prior calibration for the same session before storing or retrieving memory."
+        description = "Call this at session start and after heavy reasoning work to measure current AVEC drift. Use it to compare your current cognitive state against prior calibration for the same session before storing or retrieving memory. On first calibration, name the session id something similar to the topic of the conversation if no session id was provided by user."
     )]
     async fn calibrate_session(
         &self,
@@ -169,7 +159,7 @@ impl SttpMcpServer {
 
     #[tool(
         name = "store_context",
-        description = "Call this when context should be preserved to memory. Store a complete valid STTP node so future retrieval can rehydrate prior reasoning state, decisions, and confidence signals."
+        description = "Call this when context should be preserved to memory. Store a complete valid STTP node so future retrieval can rehydrate prior reasoning state, decisions, and confidence signals. If no session id provided by user, use something that the user can semantically relate to the conversation for better retrieval."
     )]
     async fn store_context(&self, Parameters(request): Parameters<StoreContextRequest>) -> String {
         let result = self
@@ -179,8 +169,7 @@ impl SttpMcpServer {
 
         if !result.valid {
             let message = result.validation_error.unwrap_or_else(|| {
-                "store_context rejected the payload under strict typed IR ingest policy"
-                    .to_string()
+                "store_context rejected the payload under strict typed IR ingest policy".to_string()
             });
             let code = infer_store_error_code(&message);
 
@@ -211,7 +200,7 @@ impl SttpMcpServer {
 
     #[tool(
         name = "get_context",
-        description = "Primary memory retrieval tool (resonance search, not inventory listing). Returns top resonant memory nodes for the provided AVEC state. Optional context_keywords enables server-side semantic retrieval (with internal embedding generation); keyword fallback is only used when semantic retrieval returns no nodes (or embeddings are unavailable). If session_id is omitted, retrieval is global across sessions. Use list_nodes for inventory and debugging."
+        description = "Primary memory retrieval tool. MUST USE ANYTIME USER ASKS SOMETHING ABOUT REMEMBERING OR MEMORY RELATED INQUIERIES. Returns top resonant memory nodes for the provided AVEC state. Optional context_keywords enables server-side semantic retrieval (with internal embedding generation); keyword fallback is only used when semantic retrieval returns no nodes (or embeddings are unavailable). If session_id is omitted, retrieval is global across sessions. Use list_nodes for inventory when no results comeback after user prompts for memory retrieval."
     )]
     async fn get_context(&self, Parameters(request): Parameters<GetContextRequest>) -> String {
         let from_utc = match parse_utc_optional(request.from_utc.as_deref(), "from_utc") {
@@ -313,7 +302,7 @@ impl SttpMcpServer {
 
     #[tool(
         name = "list_nodes",
-        description = "Memory inventory tool. Lists stored nodes newest-first (global when session_id is omitted). Optional context_keywords performs fuzzy filtering against context_summary for fast discovery. Unlike get_context, list_nodes does not perform AVEC resonance ranking."
+        description = "Memory inventory tool. Lists stored nodes newest-first (global when session_id is omitted). Optional context_keywords performs fuzzy and semantic filtering against context_summary for fast discovery. Unlike get_context, list_nodes does not perform AVEC resonance ranking."
     )]
     async fn list_nodes(&self, Parameters(request): Parameters<ListNodesRequest>) -> String {
         let limit = match validate_limit(request.limit, "limit") {
@@ -353,7 +342,11 @@ impl SttpMcpServer {
         };
 
         let nodes = if context_keywords.is_empty() {
-            find_result.nodes.into_iter().take(limit).collect::<Vec<_>>()
+            find_result
+                .nodes
+                .into_iter()
+                .take(limit)
+                .collect::<Vec<_>>()
         } else {
             filter_nodes_by_context_keywords(&find_result.nodes, &context_keywords, limit)
         };
@@ -519,7 +512,7 @@ impl SttpMcpServer {
 
     #[tool(
         name = "get_moods",
-        description = "Retrieve AVEC mood presets and optional blend preview to intentionally shift reasoning mode (focused, creative, analytical, exploratory, collaborative, defensive, passive) before memory operations."
+        description = "Retrieve AVEC mood presets and optional blend preview to intentionally shift reasoning mode (focused, creative, analytical, exploratory, collaborative, defensive, passive) before memory operations. Help maintain coherence and tone. USE WHEN ASKED TO STORE OR RETRIEVE MEMORY WITHOUT INITIAL AVEC CONFIG."
     )]
     async fn get_moods(&self, Parameters(request): Parameters<GetMoodsRequest>) -> String {
         let result = self.moods.get(
@@ -971,7 +964,6 @@ async fn main() -> Result<()> {
     ));
     let moods = Arc::new(MoodCatalogService::new());
     let monthly_rollup = Arc::new(MonthlyRollupService::new(store.clone(), validator));
-    let schema = Arc::new(MemorySchemaService::new());
 
     let server = SttpMcpServer::new(
         store,
@@ -980,8 +972,7 @@ async fn main() -> Result<()> {
         embedding_migration,
         embedding_provider,
         moods,
-        monthly_rollup,
-        schema,
+        monthly_rollup
     );
 
     let running = server
@@ -1351,4 +1342,3 @@ fn sttp_node_to_json(node: &locus_core_rs::SttpNode) -> Value {
         "psi": node.psi,
     })
 }
-
