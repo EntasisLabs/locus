@@ -62,7 +62,7 @@ pub use application::services::{
     EmbeddingMigrationPreviewRequest, EmbeddingMigrationPreviewResult,
     EmbeddingMigrationRunRequest, EmbeddingMigrationRunResult, EmbeddingMigrationSample,
     EmbeddingMigrationService, MonthlyRollupService, MoodCatalogService, RekeyScopeService,
-    StoreContextService, SyncCoordinatorService,
+    StoreContextService, StoreRetryPolicy, SyncCoordinatorService,
 };
 pub use application::validation::TreeSitterValidator;
 pub use domain::contracts::{

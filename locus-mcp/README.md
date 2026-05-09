@@ -2,8 +2,9 @@
 
 Rust MCP server for STTP memory operations, built on `rmcp` and `locus-core-rs`.
 
-This server runs over stdio and exposes six tools:
+This server runs over stdio and exposes seven tools:
 
+- `get_schema`
 - `calibrate_session`
 - `store_context`
 - `get_context`
@@ -176,6 +177,21 @@ Input:
   "node": "<full STTP node payload>"
 }
 ```
+
+Notes:
+
+- MCP ingest policy is strict typed IR (`profile_policy = strict_typed_ir`).
+- For model-friendly retries, call `get_schema` first, then shape payload to the required layered/typed form before calling `store_context` again.
+
+### `get_schema`
+
+Input:
+
+```json
+{}
+```
+
+Returns the SDK memory capability schema plus MCP ingest policy guidance, including strict typed IR profile and schema-first workflow hints.
 
 ### `get_context`
 

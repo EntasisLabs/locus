@@ -472,6 +472,7 @@ impl ParseResult {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ParseProfile {
     Strict,
+    StrictTypedIr,
     Tolerant,
 }
 

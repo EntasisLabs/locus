@@ -31,7 +31,25 @@ impl MonthlyRollupService {
     /// Depending on request settings, this can run as preview-only or persist
     /// the generated node into the configured store.
     pub async fn create_async(&self, request: MonthlyRollupRequest) -> MonthlyRollupResult {
+        emit_rollup_trace(
+            &request.session_id,
+            "create_async_start",
+            &format!(
+                "start_utc={} end_utc={} source_session_id={} limit={} persist={}",
+                request.start_utc.to_rfc3339(),
+                request.end_utc.to_rfc3339(),
+                request.source_session_id.as_deref().unwrap_or("all"),
+                request.limit,
+                request.persist
+            ),
+        );
+
         if request.end_utc < request.start_utc {
+            emit_rollup_trace(
+                &request.session_id,
+                "invalid_range",
+                "end_utc precedes start_utc",
+            );
             return MonthlyRollupResult {
                 error: Some(
                     "InvalidRange: end must be greater than or equal to start.".to_string(),
@@ -53,6 +71,11 @@ impl MonthlyRollupService {
         {
             Ok(nodes) => nodes,
             Err(err) => {
+                emit_rollup_trace(
+                    &request.session_id,
+                    "query_failure",
+                    &format!("error={} content_redacted=true", err),
+                );
                 return MonthlyRollupResult {
                     error: Some(format!("QueryFailure: {err}")),
                     ..MonthlyRollupResult::default()
@@ -60,7 +83,24 @@ impl MonthlyRollupService {
             }
         };
 
+        emit_rollup_trace(
+            &request.session_id,
+            "query_result",
+            &format!(
+                "source_nodes={} source_session_id={} window={}..{}",
+                nodes.len(),
+                request.source_session_id.as_deref().unwrap_or("all"),
+                request.start_utc.to_rfc3339(),
+                request.end_utc.to_rfc3339()
+            ),
+        );
+
         if nodes.is_empty() {
+            emit_rollup_trace(
+                &request.session_id,
+                "no_source_nodes",
+                "query returned zero nodes; verify upstream store acceptance and filters",
+            );
             return MonthlyRollupResult {
                 error: Some("NoSourceNodes: no nodes found in the requested range.".to_string()),
                 ..MonthlyRollupResult::default()
@@ -121,6 +161,15 @@ impl MonthlyRollupService {
 
         let validation = self.validator.validate(&raw_node);
         if !validation.is_valid {
+            emit_rollup_trace(
+                &request.session_id,
+                "validation_failure",
+                &format!(
+                    "reason={} error={} content_redacted=true",
+                    validation.reason,
+                    validation.error.as_deref().unwrap_or_default()
+                ),
+            );
             return MonthlyRollupResult {
                 raw_node,
                 source_nodes: ordered_nodes.len(),
@@ -136,6 +185,17 @@ impl MonthlyRollupService {
 
         let parse_result = self.parser.try_parse(&raw_node, &request.session_id);
         if !parse_result.success {
+            emit_rollup_trace(
+                &request.session_id,
+                "parse_failure",
+                &format!(
+                    "profile={:?} strict_valid={} diagnostics_count={} error={} content_redacted=true",
+                    parse_result.profile,
+                    parse_result.strict_valid,
+                    parse_result.diagnostics.len(),
+                    parse_result.error.as_deref().unwrap_or_default()
+                ),
+            );
             return MonthlyRollupResult {
                 raw_node,
                 source_nodes: ordered_nodes.len(),
@@ -151,6 +211,11 @@ impl MonthlyRollupService {
         let mut node_id = String::new();
         if request.persist {
             let Some(parsed_node) = parse_result.node else {
+                emit_rollup_trace(
+                    &request.session_id,
+                    "parse_failure",
+                    "missing parsed node after successful parse result",
+                );
                 return MonthlyRollupResult {
                     raw_node,
                     source_nodes: ordered_nodes.len(),
@@ -161,8 +226,20 @@ impl MonthlyRollupService {
             };
 
             match self.store.store_async(parsed_node).await {
-                Ok(id) => node_id = id,
+                Ok(id) => {
+                    emit_rollup_trace(
+                        &request.session_id,
+                        "store_success",
+                        &format!("node_id={} source_nodes={} content_redacted=true", id, ordered_nodes.len()),
+                    );
+                    node_id = id
+                }
                 Err(err) => {
+                    emit_rollup_trace(
+                        &request.session_id,
+                        "store_failure",
+                        &format!("error={} content_redacted=true", err),
+                    );
                     return MonthlyRollupResult {
                         raw_node,
                         source_nodes: ordered_nodes.len(),
@@ -182,6 +259,17 @@ impl MonthlyRollupService {
             }
         }
 
+        emit_rollup_trace(
+            &request.session_id,
+            "create_async_complete",
+            &format!(
+                "success=true source_nodes={} parent_reference={} persist={}",
+                ordered_nodes.len(),
+                parent_reference,
+                request.persist
+            ),
+        );
+
         MonthlyRollupResult {
             success: true,
             node_id,
@@ -199,6 +287,13 @@ impl MonthlyRollupService {
             ..MonthlyRollupResult::default()
         }
     }
+}
+
+fn emit_rollup_trace(session_id: &str, event: &str, detail: &str) {
+    eprintln!(
+        "[sttp_rollup_trace] session_id={} event={} detail={}",
+        session_id, event, detail
+    );
 }
 
 #[allow(clippy::too_many_arguments)]

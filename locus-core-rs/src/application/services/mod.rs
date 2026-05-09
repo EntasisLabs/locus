@@ -17,5 +17,5 @@ pub use embedding_migration_service::{
 pub use monthly_rollup_service::MonthlyRollupService;
 pub use mood_catalog_service::MoodCatalogService;
 pub use rekey_scope_service::RekeyScopeService;
-pub use store_context_service::StoreContextService;
+pub use store_context_service::{StoreContextService, StoreRetryPolicy};
 pub use sync_coordinator_service::SyncCoordinatorService;
