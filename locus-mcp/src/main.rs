@@ -23,6 +23,7 @@ use locus_core_rs::{
 };
 use locus_sdk::application::memory_recall::MemoryRecallService;
 use locus_sdk::application::memory_find::MemoryFindService;
+use locus_sdk::application::memory_schema::MemorySchemaService;
 use locus_sdk::domain::memory::{MemoryFindRequest, MemoryPage, MemoryRecallRequest, MemoryScope, MemoryScoring};
 #[cfg(feature = "local-embedding")]
 use locus_sdk::infrastructure::embeddings::LocalEmbeddingProvider;
@@ -58,6 +59,7 @@ struct SttpMcpServer {
     embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
     moods: Arc<MoodCatalogService>,
     monthly_rollup: Arc<MonthlyRollupService>,
+    schema: Arc<MemorySchemaService>,
     #[allow(dead_code)]
     tool_router: ToolRouter<Self>,
 }
@@ -71,6 +73,7 @@ impl SttpMcpServer {
         embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
         moods: Arc<MoodCatalogService>,
         monthly_rollup: Arc<MonthlyRollupService>,
+        schema: Arc<MemorySchemaService>,
     ) -> Self {
         Self {
             node_store,
@@ -80,6 +83,7 @@ impl SttpMcpServer {
             embedding_provider,
             moods,
             monthly_rollup,
+            schema,
             tool_router: Self::tool_router(),
         }
     }
@@ -103,6 +107,31 @@ impl SttpMcpServer {
 
 #[tool_router]
 impl SttpMcpServer {
+    #[tool(
+        name = "get_schema",
+        description = "Return the memory capability schema and ingest policy. Call this first before store_context so payloads match strict typed IR requirements."
+    )]
+    async fn get_schema(&self) -> String {
+        let schema = self.schema.execute();
+
+        to_json_string(json!({
+            "schema_version": schema.schema_version,
+            "sort_fields": schema.sort_fields,
+            "filter_fields": schema.filter_fields,
+            "group_by_fields": schema.group_by_fields,
+            "fallback_policies": schema.fallback_policies,
+            "strictness_modes": schema.strictness_modes,
+            "transform_operations": schema.transform_operations,
+            "ingest_policy": {
+                "parse_profile": strict_typed_ir_profile_name(),
+                "strict_spine_required": true,
+                "typed_ir_required": true,
+                "schema_first_tool": schema_tool_name(),
+                "schema_first_guidance": "Call get_schema before store_context and align payload to strict typed IR layered format."
+            }
+        }))
+    }
+
     #[tool(
         name = "calibrate_session",
         description = "Call this at session start and after heavy reasoning work to measure current AVEC drift. Use it to compare your current cognitive state against prior calibration for the same session before storing or retrieving memory."
@@ -148,11 +177,35 @@ impl SttpMcpServer {
             .store_async(&request.node, &request.session_id)
             .await;
 
+        if !result.valid {
+            let message = result.validation_error.unwrap_or_else(|| {
+                "store_context rejected the payload under strict typed IR ingest policy"
+                    .to_string()
+            });
+            let code = infer_store_error_code(&message);
+
+            return to_json_string(json!({
+                "node_id": result.node_id,
+                "psi": result.psi,
+                "valid": result.valid,
+                "validation_error": message,
+                "profile_policy": strict_typed_ir_profile_name(),
+                "error": {
+                    "code": code,
+                    "message": message,
+                    "model_guidance": schema_first_guidance_payload(
+                        "Inspect schema and strict ingest policy before retrying store_context."
+                    )
+                }
+            }));
+        }
+
         to_json_string(json!({
             "node_id": result.node_id,
             "psi": result.psi,
             "valid": result.valid,
             "validation_error": result.validation_error,
+            "profile_policy": strict_typed_ir_profile_name(),
         }))
     }
 
@@ -918,6 +971,7 @@ async fn main() -> Result<()> {
     ));
     let moods = Arc::new(MoodCatalogService::new());
     let monthly_rollup = Arc::new(MonthlyRollupService::new(store.clone(), validator));
+    let schema = Arc::new(MemorySchemaService::new());
 
     let server = SttpMcpServer::new(
         store,
@@ -927,6 +981,7 @@ async fn main() -> Result<()> {
         embedding_provider,
         moods,
         monthly_rollup,
+        schema,
     );
 
     let running = server
@@ -1218,8 +1273,48 @@ fn tool_error(code: &str, message: &str) -> String {
         "error": {
             "code": code,
             "message": message,
+            "model_guidance": schema_first_guidance_payload(
+                "If this error happened during payload construction, call get_schema first and align request shape."
+            ),
         }
     }))
+}
+
+fn infer_store_error_code(message: &str) -> &'static str {
+    let normalized = message.trim().to_ascii_lowercase();
+
+    if normalized.starts_with("parsefailure") {
+        "StrictTypedIrParseFailure"
+    } else if normalized.starts_with("ratelimited") {
+        "StoreRateLimited"
+    } else if normalized.starts_with("storefailure") {
+        "StoreFailure"
+    } else if normalized.contains("strict profile") {
+        "StrictTypedIrPolicyViolation"
+    } else {
+        "StoreContextFailure"
+    }
+}
+
+fn strict_typed_ir_profile_name() -> &'static str {
+    "strict_typed_ir"
+}
+
+fn schema_tool_name() -> &'static str {
+    "get_schema"
+}
+
+fn schema_first_guidance_payload(summary: &str) -> Value {
+    json!({
+        "summary": summary,
+        "recommended_first_tool": schema_tool_name(),
+        "recommended_next_steps": [
+            "call get_schema",
+            "verify payload layers provenance->envelope->content->metrics",
+            "ensure required typed-ir keys/enums/numerics are present before retry"
+        ],
+        "ingest_profile_policy": strict_typed_ir_profile_name(),
+    })
 }
 
 fn avec_to_json(avec: locus_core_rs::AvecState) -> Value {
