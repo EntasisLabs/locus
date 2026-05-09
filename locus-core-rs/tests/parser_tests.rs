@@ -134,3 +134,37 @@ fn should_parse_generic_parent_reference() {
         .expect("parent id should parse");
     assert_eq!(parent, "parent-fix-check-2026-03-05");
 }
+
+#[test]
+fn should_reject_prod_json_wrapper_payload_under_strict_typed_ir() {
+    let parser = SttpNodeParser::new();
+    let payload = r#"{"node_id":"sttp:runtime-phase-priority-checkpoint:2026-05-07","timestamp_utc":"2026-05-07T00:00:00Z","tier":"raw","context_summary":"Stasis runtime phase-priority checkpoint after major implementation burst. Team agreed to split final work into priority phases and proceed in order: P0 runtime safety/correctness, P1 spec fidelity (cron/timezone + continuation), P2 forensics/replay operability, P3 operational readiness.","avec":{"autonomy":0.84,"friction":0.36,"logic":0.82,"stability":0.77},"content":{"implemented_now":["Durable in-memory and Surreal runtimes","Outbox model + store + publisher flow","Outbox retry policy with backoff","Dead-letter replay API","Runtime factory/composition","Backend parity integration tests"],"gap_assessment":{"p0":"Need stronger atomic/CAS lease path in Surreal and stronger lease-expiry contention coverage.","p1":"Recurring model uses interval_seconds instead of cron_expr/timezone; continuation E2E missing.","p2":"job_attempt persistence and replay lineage diagnostics still missing.","p3":"Clock/IdGenerator ports and runtime metrics/retention are not implemented."},"priority_order":["P0","P1","P2","P3"],"next_action":"Start P0 immediately by making Surreal lease acquisition atomic and adding lease contention/recovery tests."},"confidence":{"overall":0.9,"notes":"Assessment based on direct code/doc comparison and green test state."}}"#;
+
+    let parsed = parser.try_parse_strict_typed_ir(payload, "prod-json-wrapper");
+
+    assert!(!parsed.success);
+    assert!(parsed.diagnostics.iter().any(|d| {
+        d.code == "STTP_PARSE_LAYER_ERROR" || d.code.starts_with("missing_layer_")
+    }));
+}
+
+#[test]
+fn should_reject_prod_shorthand_layer_payload_under_strict_typed_ir() {
+    let parser = SttpNodeParser::new();
+    let payload = r#"tier: raw
+ts: 2026-05-07T00:00:00Z
+⊕⟨summary⟩ Runtime checkpoint captured with priority phases P0->P3.
+⦿⟨state⟩ scope: stasis-runtime; baseline: green.
+◈⟨decision⟩ Start P0 now with atomic Surreal lease acquisition and recovery tests.
+⍉⟨analysis⟩ Top risk is lease race under concurrent workers."#;
+
+    let parsed = parser.try_parse_strict_typed_ir(payload, "prod-shorthand");
+
+    assert!(!parsed.success);
+    assert!(parsed.diagnostics.iter().any(|d| {
+        d.code == "STTP_STRICT_PROFILE_VIOLATION"
+            || d.code == "STTP_STRICT_MISSING_REQUIRED_KEY"
+            || d.code == "STTP_STRICT_MISSING_REQUIRED_OBJECT"
+            || d.code == "STTP_CONTENT_SCHEMA_MISSING_OBJECT"
+    }));
+}

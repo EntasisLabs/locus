@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use locus_core_rs::application::services::{MonthlyRollupService, StoreContextService};
 use locus_core_rs::application::validation::TreeSitterValidator;
 use locus_core_rs::domain::models::MonthlyRollupRequest;
+use locus_core_rs::parsing::SttpNodeParser;
 use locus_core_rs::storage::InMemoryNodeStore;
 
 #[tokio::test(flavor = "current_thread")]
@@ -12,7 +13,7 @@ async fn should_create_monthly_rollup_using_first_timeline_node_as_parent() {
     let validator = Arc::new(TreeSitterValidator);
     let store_context = StoreContextService::new(store.clone(), validator.clone());
 
-    let _ = store_context
+    let first_store = store_context
         .store_async(
             &build_node(
                 "first-session",
@@ -28,8 +29,9 @@ async fn should_create_monthly_rollup_using_first_timeline_node_as_parent() {
             "first-session",
         )
         .await;
+    assert!(first_store.valid, "{:?}", first_store.validation_error);
 
-    let _ = store_context
+    let second_store = store_context
         .store_async(
             &build_node(
                 "second-session",
@@ -45,6 +47,7 @@ async fn should_create_monthly_rollup_using_first_timeline_node_as_parent() {
             "second-session",
         )
         .await;
+    assert!(second_store.valid, "{:?}", second_store.validation_error);
 
     let service = MonthlyRollupService::new(store, validator);
     let result = service
@@ -66,6 +69,31 @@ async fn should_create_monthly_rollup_using_first_timeline_node_as_parent() {
     assert!((result.user_average.stability - 0.865).abs() <= 0.001);
     assert_eq!(result.rho_bands.high, 2);
     assert!(!result.node_id.trim().is_empty());
+}
+
+#[test]
+fn should_parse_monthly_fixture_with_strict_typed_ir_without_missing_prime_keys() {
+    let parser = SttpNodeParser::new();
+    let raw = build_node(
+        "strict-prime-session",
+        "2026-03-05T10:20:00Z",
+        0.91,
+        0.21,
+        0.86,
+        0.94,
+        0.88,
+        0.90,
+        2.92,
+    );
+
+    let parsed = parser.try_parse_strict_typed_ir(&raw, "strict-prime-session");
+
+    assert!(parsed.success, "{:?}", parsed.error);
+    assert!(!parsed.diagnostics.iter().any(|d| {
+        d.code == "STTP_STRICT_MISSING_REQUIRED_KEY"
+            && (d.message.contains("provenance.prime.relevant_tier")
+                || d.message.contains("provenance.prime.retrieval_budget"))
+    }));
 }
 
 fn parse_utc(input: &str) -> DateTime<Utc> {

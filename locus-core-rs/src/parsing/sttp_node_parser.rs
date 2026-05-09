@@ -1,6 +1,4 @@
 use chrono::{DateTime, Utc};
-use once_cell::sync::Lazy;
-use regex::Regex;
 
 use crate::domain::models::{
     AvecState, CanonicalAst, CanonicalAstLayer, ParseDiagnostic, ParseDiagnosticSeverity,
@@ -9,44 +7,230 @@ use crate::domain::models::{
 use crate::parsing::lexicon::{AVEC_COMPRESSION_KEY, AVEC_MODEL_KEY, AVEC_USER_KEY};
 use crate::parsing::state_machine::{ParserState, SttpLayerStateMachine};
 
-static TIMESTAMP_RX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r#"timestamp:\s*"(?P<v>[^"]+)""#).expect("timestamp regex must compile")
-});
+#[derive(Debug, Clone, Copy)]
+struct ContentKeySignature<'a> {
+    name: &'a str,
+    confidence: f32,
+}
 
-static TIER_RX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"(?i)tier:\s*(?P<v>raw|daily|weekly|monthly|quarterly|yearly)")
-        .expect("tier regex must compile")
-});
+#[derive(Debug, Clone, Copy)]
+enum LayerScope {
+    Provenance,
+    Envelope,
+    Metrics,
+}
 
-static COMPRESSION_DEPTH_RX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"compression_depth:\s*(?P<v>\d+)").expect("compression_depth regex must compile")
-});
+impl LayerScope {
+    fn name(self) -> &'static str {
+        match self {
+            LayerScope::Provenance => "provenance",
+            LayerScope::Envelope => "envelope",
+            LayerScope::Metrics => "metrics",
+        }
+    }
+}
 
-static PARENT_NODE_RX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r#"parent_node:\s*(?:ref:(?P<ref>[^,\s}\]]+)|"(?P<quoted>[^"]+)"|(?P<null>null))"#)
-        .expect("parent regex must compile")
-});
+#[derive(Debug, Clone, Copy)]
+enum ObjectScope {
+    ProvenancePrime,
+    ProvenanceAttractorConfig,
+    EnvelopeUserAvec,
+    EnvelopeModelAvec,
+    MetricsCompressionAvec,
+}
 
-static CONTEXT_SUMMARY_RX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r#"context_summary:\s*(?:"(?P<quoted>[^"]*)"|(?P<bare>[^,}\n]+))"#)
-        .expect("context_summary regex must compile")
-});
+impl ObjectScope {
+    fn path(self) -> &'static str {
+        match self {
+            ObjectScope::ProvenancePrime => "provenance.prime",
+            ObjectScope::ProvenanceAttractorConfig => "provenance.prime.attractor_config",
+            ObjectScope::EnvelopeUserAvec => "envelope.user_avec",
+            ObjectScope::EnvelopeModelAvec => "envelope.model_avec",
+            ObjectScope::MetricsCompressionAvec => "metrics.compression_avec",
+        }
+    }
+}
 
-static AVEC_ENTRY_RX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"(?i)\b(?P<k>stability|friction|logic|autonomy|psi)\b\s*:\s*(?P<v>[-+]?\d*\.?\d+)")
-        .expect("avec entry regex must compile")
-});
+#[derive(Debug, Clone, Copy)]
+enum NodeFieldKey {
+    Trigger,
+    ResponseFormat,
+    OriginSession,
+    CompressionDepth,
+    ParentNode,
+    Prime,
+    AttractorConfig,
+    ContextSummary,
+    RelevantTier,
+    RetrievalBudget,
+    Timestamp,
+    Tier,
+    SessionId,
+    UserAvec,
+    ModelAvec,
+    Stability,
+    Friction,
+    Logic,
+    Autonomy,
+    Psi,
+    Rho,
+    Kappa,
+    CompressionAvec,
+}
 
-static RHO_RX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"rho:\s*(?P<v>[-+]?\d*\.?\d+)").expect("rho regex must compile"));
-static KAPPA_RX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"kappa:\s*(?P<v>[-+]?\d*\.?\d+)").expect("kappa regex must compile"));
-static PSI_RX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"psi:\s*(?P<v>[-+]?\d*\.?\d+)").expect("psi regex must compile"));
-static CONTENT_KEY_RX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)\(\s*(?P<c>[-+]?\d*\.?\d+)\s*\)$")
-        .expect("content key regex must compile")
-});
+impl NodeFieldKey {
+    fn as_str(self) -> &'static str {
+        match self {
+            NodeFieldKey::Trigger => "trigger",
+            NodeFieldKey::ResponseFormat => "response_format",
+            NodeFieldKey::OriginSession => "origin_session",
+            NodeFieldKey::CompressionDepth => "compression_depth",
+            NodeFieldKey::ParentNode => "parent_node",
+            NodeFieldKey::Prime => "prime",
+            NodeFieldKey::AttractorConfig => "attractor_config",
+            NodeFieldKey::ContextSummary => "context_summary",
+            NodeFieldKey::RelevantTier => "relevant_tier",
+            NodeFieldKey::RetrievalBudget => "retrieval_budget",
+            NodeFieldKey::Timestamp => "timestamp",
+            NodeFieldKey::Tier => "tier",
+            NodeFieldKey::SessionId => "session_id",
+            NodeFieldKey::UserAvec => "user_avec",
+            NodeFieldKey::ModelAvec => "model_avec",
+            NodeFieldKey::Stability => "stability",
+            NodeFieldKey::Friction => "friction",
+            NodeFieldKey::Logic => "logic",
+            NodeFieldKey::Autonomy => "autonomy",
+            NodeFieldKey::Psi => "psi",
+            NodeFieldKey::Rho => "rho",
+            NodeFieldKey::Kappa => "kappa",
+            NodeFieldKey::CompressionAvec => "compression_avec",
+        }
+    }
+}
+
+const PROVENANCE_REQUIRED_KEYS: [NodeFieldKey; 6] = [
+    NodeFieldKey::Trigger,
+    NodeFieldKey::ResponseFormat,
+    NodeFieldKey::OriginSession,
+    NodeFieldKey::CompressionDepth,
+    NodeFieldKey::ParentNode,
+    NodeFieldKey::Prime,
+];
+const PRIME_REQUIRED_KEYS: [NodeFieldKey; 4] = [
+    NodeFieldKey::AttractorConfig,
+    NodeFieldKey::ContextSummary,
+    NodeFieldKey::RelevantTier,
+    NodeFieldKey::RetrievalBudget,
+];
+const ATTRACTOR_REQUIRED_KEYS: [NodeFieldKey; 4] = [
+    NodeFieldKey::Stability,
+    NodeFieldKey::Friction,
+    NodeFieldKey::Logic,
+    NodeFieldKey::Autonomy,
+];
+const ENVELOPE_REQUIRED_KEYS: [NodeFieldKey; 5] = [
+    NodeFieldKey::Timestamp,
+    NodeFieldKey::Tier,
+    NodeFieldKey::SessionId,
+    NodeFieldKey::UserAvec,
+    NodeFieldKey::ModelAvec,
+];
+const AVEC_REQUIRED_KEYS: [NodeFieldKey; 5] = [
+    NodeFieldKey::Stability,
+    NodeFieldKey::Friction,
+    NodeFieldKey::Logic,
+    NodeFieldKey::Autonomy,
+    NodeFieldKey::Psi,
+];
+const METRICS_REQUIRED_KEYS: [NodeFieldKey; 4] = [
+    NodeFieldKey::Rho,
+    NodeFieldKey::Kappa,
+    NodeFieldKey::Psi,
+    NodeFieldKey::CompressionAvec,
+];
+
+trait SpecEnumValue {
+    fn parse_token(input: &str) -> Option<Self>
+    where
+        Self: Sized;
+    fn variants() -> &'static [&'static str];
+}
+
+#[derive(Debug, Clone, Copy)]
+enum TriggerValue {
+    Scheduled,
+    Threshold,
+    Resonance,
+    Seed,
+    Manual,
+}
+
+impl SpecEnumValue for TriggerValue {
+    fn parse_token(input: &str) -> Option<Self> {
+        match input.to_ascii_lowercase().as_str() {
+            "scheduled" => Some(Self::Scheduled),
+            "threshold" => Some(Self::Threshold),
+            "resonance" => Some(Self::Resonance),
+            "seed" => Some(Self::Seed),
+            "manual" => Some(Self::Manual),
+            _ => None,
+        }
+    }
+
+    fn variants() -> &'static [&'static str] {
+        &["scheduled", "threshold", "resonance", "seed", "manual"]
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum ResponseFormatValue {
+    TemporalNode,
+    NaturalLanguage,
+    Hybrid,
+}
+
+impl SpecEnumValue for ResponseFormatValue {
+    fn parse_token(input: &str) -> Option<Self> {
+        match input.to_ascii_lowercase().as_str() {
+            "temporal_node" => Some(Self::TemporalNode),
+            "natural_language" => Some(Self::NaturalLanguage),
+            "hybrid" => Some(Self::Hybrid),
+            _ => None,
+        }
+    }
+
+    fn variants() -> &'static [&'static str] {
+        &["temporal_node", "natural_language", "hybrid"]
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum TierValue {
+    Raw,
+    Daily,
+    Weekly,
+    Monthly,
+    Quarterly,
+    Yearly,
+}
+
+impl SpecEnumValue for TierValue {
+    fn parse_token(input: &str) -> Option<Self> {
+        match input.to_ascii_lowercase().as_str() {
+            "raw" => Some(Self::Raw),
+            "daily" => Some(Self::Daily),
+            "weekly" => Some(Self::Weekly),
+            "monthly" => Some(Self::Monthly),
+            "quarterly" => Some(Self::Quarterly),
+            "yearly" => Some(Self::Yearly),
+            _ => None,
+        }
+    }
+
+    fn variants() -> &'static [&'static str] {
+        &["raw", "daily", "weekly", "monthly", "quarterly", "yearly"]
+    }
+}
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct SttpNodeParser;
@@ -62,6 +246,10 @@ impl SttpNodeParser {
 
     pub fn try_parse_strict(&self, raw: &str, session_id: &str) -> ParseResult {
         self.try_parse_with_profile(raw, session_id, ParseProfile::Strict)
+    }
+
+    pub fn try_parse_strict_typed_ir(&self, raw: &str, session_id: &str) -> ParseResult {
+        self.try_parse_with_profile(raw, session_id, ParseProfile::StrictTypedIr)
     }
 
     pub fn try_parse_tolerant(&self, raw: &str, session_id: &str) -> ParseResult {
@@ -136,7 +324,7 @@ impl SttpNodeParser {
             );
         }
 
-        if matches!(profile, ParseProfile::Strict) && !strict_valid {
+        if requires_strict_spine(profile) && !strict_valid {
             diagnostics.push(ParseDiagnostic {
                 code: "STTP_STRICT_PROFILE_VIOLATION".to_string(),
                 message: "strict profile requires full layer spine provenance->envelope->content->metrics".to_string(),
@@ -160,9 +348,30 @@ impl SttpNodeParser {
                 diagnostics.push(diag);
             }
 
-            if matches!(profile, ParseProfile::Strict) {
+            if requires_strict_spine(profile) {
                 return ParseResult::fail_with_metadata(
                     "strict profile violation: content schema requires field_name(.confidence): value",
+                    profile,
+                    diagnostics,
+                    canonical_ast,
+                );
+            }
+        }
+
+        if requires_typed_ir_properties(profile) {
+            let strict_property_diagnostics = validate_strict_required_properties(
+                provenance,
+                envelope,
+                metrics,
+                layered.provenance_span,
+                layered.envelope_span,
+                layered.metrics_span,
+            );
+            if !strict_property_diagnostics.is_empty() {
+                diagnostics.extend(strict_property_diagnostics);
+
+                return ParseResult::fail_with_metadata(
+                    "strict profile violation: required typed-ir properties missing or invalid",
                     profile,
                     diagnostics,
                     canonical_ast,
@@ -185,13 +394,11 @@ impl SttpNodeParser {
         let node = SttpNode {
             raw: raw.to_string(),
             session_id: session_id.to_string(),
-            tier: parse_tier(envelope)
-                .or_else(|| parse_tier(raw))
-                .unwrap_or_default(),
-            timestamp: parse_timestamp(envelope)
-                .unwrap_or_else(|| parse_timestamp(raw).unwrap_or_else(Utc::now)),
-            compression_depth: parse_int(&COMPRESSION_DEPTH_RX, provenance),
-            parent_node_id: parse_parent_node(provenance).or_else(|| parse_parent_node(raw)),
+            tier: parse_tier(envelope).unwrap_or_default(),
+            timestamp: parse_timestamp(envelope).unwrap_or_else(Utc::now),
+            compression_depth: parse_i32_key(provenance, NodeFieldKey::CompressionDepth)
+                .unwrap_or(0),
+            parent_node_id: parse_parent_node(provenance),
             sync_key: String::new(),
             updated_at: Utc::now(),
             source_metadata: None,
@@ -204,13 +411,21 @@ impl SttpNodeParser {
             user_avec,
             model_avec,
             compression_avec: Some(compression_avec),
-            rho: parse_float(&RHO_RX, metrics),
-            kappa: parse_float(&KAPPA_RX, metrics),
-            psi: parse_float(&PSI_RX, metrics),
+            rho: parse_f32_key(metrics, NodeFieldKey::Rho).unwrap_or(0.0),
+            kappa: parse_f32_key(metrics, NodeFieldKey::Kappa).unwrap_or(0.0),
+            psi: parse_f32_key(metrics, NodeFieldKey::Psi).unwrap_or(0.0),
         };
 
         ParseResult::ok_with_metadata(node, profile, strict_valid, diagnostics, canonical_ast)
     }
+}
+
+fn requires_strict_spine(profile: ParseProfile) -> bool {
+    matches!(profile, ParseProfile::Strict | ParseProfile::StrictTypedIr)
+}
+
+fn requires_typed_ir_properties(profile: ParseProfile) -> bool {
+    matches!(profile, ParseProfile::StrictTypedIr)
 }
 
 fn validate_content_schema(
@@ -251,7 +466,19 @@ fn validate_object_schema(
     object_offset: usize,
     diagnostics: &mut Vec<ParseDiagnostic>,
 ) {
-    for pair in split_top_level_pairs(object_content) {
+    let pairs = split_top_level_pairs(object_content);
+    if pairs.is_empty() {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_CONTENT_SCHEMA_EMPTY_OBJECT".to_string(),
+            message: "content layer must include one or more semantic fields".to_string(),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: project_content_span(raw_node, content_layer, layer_span, object_offset, 1),
+        });
+        return;
+    }
+
+    for pair in pairs {
         let Some(colon_idx) = find_top_level_colon(pair.text) else {
             diagnostics.push(ParseDiagnostic {
                 code: "STTP_CONTENT_SCHEMA_INVALID_PAIR".to_string(),
@@ -272,7 +499,7 @@ fn validate_object_schema(
         let raw_key = pair.text[..colon_idx].trim();
         let raw_value = pair.text[colon_idx + 1..].trim();
 
-        let Some(caps) = CONTENT_KEY_RX.captures(raw_key) else {
+        let Some(signature) = parse_content_key_signature(raw_key) else {
             diagnostics.push(ParseDiagnostic {
                 code: "STTP_CONTENT_SCHEMA_INVALID_KEY".to_string(),
                 message: format!(
@@ -291,15 +518,13 @@ fn validate_object_schema(
             continue;
         };
 
-        let confidence = caps
-            .name("c")
-            .and_then(|m| m.as_str().parse::<f32>().ok())
-            .unwrap_or(-1.0);
+        let confidence = signature.confidence;
         if !(0.0..=1.0).contains(&confidence) {
             diagnostics.push(ParseDiagnostic {
                 code: "STTP_CONTENT_SCHEMA_INVALID_CONFIDENCE".to_string(),
                 message: format!(
-                    "content confidence must be in [0,1]: found {confidence} for key '{raw_key}'"
+                    "content confidence must be in [0,1]: found {confidence} for key '{}'",
+                    signature.name
                 ),
                 severity: ParseDiagnosticSeverity::Error,
                 strict_impact: true,
@@ -352,6 +577,460 @@ fn validate_object_schema(
             }
         }
     }
+}
+
+fn validate_strict_required_properties(
+    provenance: &str,
+    envelope: &str,
+    metrics: &str,
+    provenance_span: Option<crate::parsing::lexer::Span>,
+    envelope_span: Option<crate::parsing::lexer::Span>,
+    metrics_span: Option<crate::parsing::lexer::Span>,
+) -> Vec<ParseDiagnostic> {
+    let mut diagnostics = Vec::new();
+    let prime_object = extract_named_object(provenance, NodeFieldKey::Prime.as_str());
+
+    require_keys(
+        provenance,
+        LayerScope::Provenance,
+        &PROVENANCE_REQUIRED_KEYS,
+        provenance_span,
+        &mut diagnostics,
+    );
+    require_keys(
+        envelope,
+        LayerScope::Envelope,
+        &ENVELOPE_REQUIRED_KEYS,
+        envelope_span,
+        &mut diagnostics,
+    );
+    require_keys(
+        metrics,
+        LayerScope::Metrics,
+        &METRICS_REQUIRED_KEYS,
+        metrics_span,
+        &mut diagnostics,
+    );
+
+    require_named_object_keys(
+        provenance,
+        NodeFieldKey::Prime,
+        ObjectScope::ProvenancePrime,
+        &PRIME_REQUIRED_KEYS,
+        provenance_span,
+        &mut diagnostics,
+    );
+    require_named_object_keys(
+        provenance,
+        NodeFieldKey::AttractorConfig,
+        ObjectScope::ProvenanceAttractorConfig,
+        &ATTRACTOR_REQUIRED_KEYS,
+        provenance_span,
+        &mut diagnostics,
+    );
+    require_named_object_keys(
+        envelope,
+        NodeFieldKey::UserAvec,
+        ObjectScope::EnvelopeUserAvec,
+        &AVEC_REQUIRED_KEYS,
+        envelope_span,
+        &mut diagnostics,
+    );
+    require_named_object_keys(
+        envelope,
+        NodeFieldKey::ModelAvec,
+        ObjectScope::EnvelopeModelAvec,
+        &AVEC_REQUIRED_KEYS,
+        envelope_span,
+        &mut diagnostics,
+    );
+    require_named_object_keys(
+        metrics,
+        NodeFieldKey::CompressionAvec,
+        ObjectScope::MetricsCompressionAvec,
+        &AVEC_REQUIRED_KEYS,
+        metrics_span,
+        &mut diagnostics,
+    );
+
+    require_typed_enum::<TriggerValue>(
+        provenance,
+        NodeFieldKey::Trigger,
+        "provenance.trigger",
+        provenance_span,
+        &mut diagnostics,
+    );
+    require_typed_enum::<ResponseFormatValue>(
+        provenance,
+        NodeFieldKey::ResponseFormat,
+        "provenance.response_format",
+        provenance_span,
+        &mut diagnostics,
+    );
+    require_typed_enum::<TierValue>(
+        envelope,
+        NodeFieldKey::Tier,
+        "envelope.tier",
+        envelope_span,
+        &mut diagnostics,
+    );
+    require_typed_enum_in_optional_object::<TierValue>(
+        prime_object,
+        NodeFieldKey::RelevantTier,
+        "provenance.prime.relevant_tier",
+        provenance_span,
+        &mut diagnostics,
+    );
+
+    require_numeric(
+        provenance,
+        NodeFieldKey::CompressionDepth,
+        "provenance.compression_depth",
+        NumericKind::Integer,
+        provenance_span,
+        &mut diagnostics,
+    );
+    require_numeric_in_optional_object(
+        prime_object,
+        NodeFieldKey::RetrievalBudget,
+        "provenance.prime.retrieval_budget",
+        NumericKind::Integer,
+        provenance_span,
+        &mut diagnostics,
+    );
+    require_numeric(
+        metrics,
+        NodeFieldKey::Rho,
+        "metrics.rho",
+        NumericKind::Float,
+        metrics_span,
+        &mut diagnostics,
+    );
+    require_numeric(
+        metrics,
+        NodeFieldKey::Kappa,
+        "metrics.kappa",
+        NumericKind::Float,
+        metrics_span,
+        &mut diagnostics,
+    );
+    require_numeric(
+        metrics,
+        NodeFieldKey::Psi,
+        "metrics.psi",
+        NumericKind::Float,
+        metrics_span,
+        &mut diagnostics,
+    );
+
+    diagnostics
+}
+
+fn require_typed_enum_in_optional_object<E: SpecEnumValue>(
+    source: Option<&str>,
+    key: NodeFieldKey,
+    path: &str,
+    span: Option<crate::parsing::lexer::Span>,
+    diagnostics: &mut Vec<ParseDiagnostic>,
+) {
+    let Some(source) = source else {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_MISSING_REQUIRED_OBJECT".to_string(),
+            message: "missing required object 'provenance.prime'".to_string(),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+        return;
+    };
+
+    let Some(value) = parse_scalar_token_in_object(source, key) else {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_MISSING_REQUIRED_KEY".to_string(),
+            message: format!("missing required enum key '{path}'"),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+        return;
+    };
+
+    if E::parse_token(&value).is_none() {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_INVALID_ENUM".to_string(),
+            message: format!(
+                "invalid enum value for {path}: '{value}' (expected one of: {})",
+                E::variants().join("|")
+            ),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+    }
+}
+
+fn require_keys(
+    source: &str,
+    layer: LayerScope,
+    keys: &[NodeFieldKey],
+    span: Option<crate::parsing::lexer::Span>,
+    diagnostics: &mut Vec<ParseDiagnostic>,
+) {
+    for key in keys {
+        if !contains_key_in_layer(source, *key) {
+            diagnostics.push(ParseDiagnostic {
+                code: "STTP_STRICT_MISSING_REQUIRED_KEY".to_string(),
+                message: format!(
+                    "missing required key '{}' in {} layer",
+                    key.as_str(),
+                    layer.name()
+                ),
+                severity: ParseDiagnosticSeverity::Error,
+                strict_impact: true,
+                span: span.map(to_parse_span),
+            });
+        }
+    }
+}
+
+fn require_named_object_keys(
+    source: &str,
+    object_key: NodeFieldKey,
+    path: ObjectScope,
+    keys: &[NodeFieldKey],
+    span: Option<crate::parsing::lexer::Span>,
+    diagnostics: &mut Vec<ParseDiagnostic>,
+) {
+    let Some(object) = extract_named_object(source, object_key.as_str()) else {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_MISSING_REQUIRED_OBJECT".to_string(),
+            message: format!("missing required object '{}'", path.path()),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+        return;
+    };
+
+    for key in keys {
+        if !contains_key_in_object(object, *key) {
+            diagnostics.push(ParseDiagnostic {
+                code: "STTP_STRICT_MISSING_REQUIRED_KEY".to_string(),
+                message: format!(
+                    "missing required key '{}' in {}",
+                    key.as_str(),
+                    path.path()
+                ),
+                severity: ParseDiagnosticSeverity::Error,
+                strict_impact: true,
+                span: span.map(to_parse_span),
+            });
+        }
+    }
+}
+
+fn require_typed_enum<E: SpecEnumValue>(
+    source: &str,
+    key: NodeFieldKey,
+    path: &str,
+    span: Option<crate::parsing::lexer::Span>,
+    diagnostics: &mut Vec<ParseDiagnostic>,
+) {
+    let Some(value) = parse_scalar_token_in_layer(source, key) else {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_MISSING_REQUIRED_KEY".to_string(),
+            message: format!("missing required enum key '{path}'"),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+        return;
+    };
+
+    if E::parse_token(&value).is_none() {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_INVALID_ENUM".to_string(),
+            message: format!(
+                "invalid enum value for {path}: '{value}' (expected one of: {})",
+                E::variants().join("|")
+            ),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum NumericKind {
+    Integer,
+    Float,
+}
+
+fn require_numeric(
+    source: &str,
+    key: NodeFieldKey,
+    path: &str,
+    kind: NumericKind,
+    span: Option<crate::parsing::lexer::Span>,
+    diagnostics: &mut Vec<ParseDiagnostic>,
+) {
+    let Some(value) = parse_scalar_token_in_layer(source, key) else {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_MISSING_REQUIRED_KEY".to_string(),
+            message: format!("missing required numeric key '{path}'"),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+        return;
+    };
+
+    let numeric_ok = if matches!(kind, NumericKind::Integer) {
+        value.parse::<i64>().is_ok()
+    } else {
+        value.parse::<f64>().is_ok()
+    };
+
+    if !numeric_ok {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_INVALID_NUMERIC".to_string(),
+            message: format!("invalid numeric value for {path}: '{value}'"),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+    }
+}
+
+fn require_numeric_in_optional_object(
+    source: Option<&str>,
+    key: NodeFieldKey,
+    path: &str,
+    kind: NumericKind,
+    span: Option<crate::parsing::lexer::Span>,
+    diagnostics: &mut Vec<ParseDiagnostic>,
+) {
+    let Some(source) = source else {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_MISSING_REQUIRED_OBJECT".to_string(),
+            message: "missing required object 'provenance.prime'".to_string(),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+        return;
+    };
+
+    let Some(value) = parse_scalar_token_in_object(source, key) else {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_MISSING_REQUIRED_KEY".to_string(),
+            message: format!("missing required numeric key '{path}'"),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+        return;
+    };
+
+    let numeric_ok = if matches!(kind, NumericKind::Integer) {
+        value.parse::<i64>().is_ok()
+    } else {
+        value.parse::<f64>().is_ok()
+    };
+
+    if !numeric_ok {
+        diagnostics.push(ParseDiagnostic {
+            code: "STTP_STRICT_INVALID_NUMERIC".to_string(),
+            message: format!("invalid numeric value for {path}: '{value}'"),
+            severity: ParseDiagnosticSeverity::Error,
+            strict_impact: true,
+            span: span.map(to_parse_span),
+        });
+    }
+}
+
+fn contains_key_in_layer(source: &str, key: NodeFieldKey) -> bool {
+    parse_scalar_token_in_layer(source, key).is_some()
+}
+
+fn contains_key_in_object(source: &str, key: NodeFieldKey) -> bool {
+    parse_scalar_token_in_object(source, key).is_some()
+}
+
+fn parse_scalar_token_in_layer(source: &str, key: NodeFieldKey) -> Option<String> {
+    let object = extract_first_object(source)?;
+    parse_scalar_token_in_object(object, key)
+}
+
+fn parse_scalar_token_in_object(source: &str, key: NodeFieldKey) -> Option<String> {
+    parse_key_value_in_object(source, key.as_str()).map(normalize_scalar_value)
+}
+
+fn parse_key_value_in_object<'a>(object: &'a str, key: &str) -> Option<&'a str> {
+    for pair in split_top_level_pairs(object) {
+        let Some(colon_idx) = find_top_level_colon(pair.text) else {
+            continue;
+        };
+        let raw_key = pair.text[..colon_idx].trim();
+        let normalized = normalize_key(raw_key);
+        if normalized.eq_ignore_ascii_case(key) {
+            return Some(pair.text[colon_idx + 1..].trim());
+        }
+    }
+
+    None
+}
+
+fn normalize_key(raw_key: &str) -> &str {
+    raw_key
+        .strip_prefix('"')
+        .and_then(|v| v.strip_suffix('"'))
+        .unwrap_or(raw_key)
+        .trim()
+}
+
+fn normalize_scalar_value(raw_value: &str) -> String {
+    let trimmed = raw_value.trim();
+    if let Some(unquoted) = trimmed
+        .strip_prefix('"')
+        .and_then(|v| v.strip_suffix('"'))
+    {
+        return unquoted.trim().to_string();
+    }
+
+    trimmed.to_string()
+}
+
+fn parse_content_key_signature(raw_key: &str) -> Option<ContentKeySignature<'_>> {
+    let open = raw_key.find('(')?;
+    let close = raw_key.rfind(')')?;
+    if close <= open + 1 {
+        return None;
+    }
+
+    let name = raw_key[..open].trim();
+    if name.is_empty() || !is_valid_identifier(name) {
+        return None;
+    }
+
+    let confidence_text = raw_key[open + 1..close].trim();
+    let confidence = confidence_text.parse::<f32>().ok()?;
+
+    Some(ContentKeySignature { name, confidence })
+}
+
+fn is_valid_identifier(value: &str) -> bool {
+    let mut chars = value.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+
+    if !(first == '_' || first.is_ascii_alphabetic()) {
+        return false;
+    }
+
+    chars.all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -575,27 +1254,10 @@ fn to_structured_diagnostics(codes: &[String]) -> Vec<ParseDiagnostic> {
 
 fn parse_avec_block(source: &str, key: &str) -> Option<AvecState> {
     let object = extract_named_object(source, key)?;
-
-    let mut stability = None;
-    let mut friction = None;
-    let mut logic = None;
-    let mut autonomy = None;
-
-    for caps in AVEC_ENTRY_RX.captures_iter(object) {
-        let name = caps.name("k")?.as_str().to_ascii_lowercase();
-        let value = caps
-            .name("v")
-            .and_then(|v| v.as_str().parse::<f32>().ok())
-            .unwrap_or(0.0);
-
-        match name.as_str() {
-            "stability" => stability = Some(value),
-            "friction" => friction = Some(value),
-            "logic" => logic = Some(value),
-            "autonomy" => autonomy = Some(value),
-            _ => {}
-        }
-    }
+    let stability = parse_f32_key_in_object(object, NodeFieldKey::Stability);
+    let friction = parse_f32_key_in_object(object, NodeFieldKey::Friction);
+    let logic = parse_f32_key_in_object(object, NodeFieldKey::Logic);
+    let autonomy = parse_f32_key_in_object(object, NodeFieldKey::Autonomy);
 
     Some(AvecState {
         stability: stability?,
@@ -606,13 +1268,10 @@ fn parse_avec_block(source: &str, key: &str) -> Option<AvecState> {
 }
 
 fn parse_timestamp(raw: &str) -> Option<DateTime<Utc>> {
-    let maybe_ts = TIMESTAMP_RX
-        .captures(raw)
-        .and_then(|c| c.name("v"))
-        .map(|m| m.as_str());
+    let maybe_ts = parse_scalar_token_in_layer(raw, NodeFieldKey::Timestamp);
 
     if let Some(ts) = maybe_ts {
-        if let Ok(parsed) = DateTime::parse_from_rfc3339(ts) {
+        if let Ok(parsed) = DateTime::parse_from_rfc3339(&ts) {
             return Some(parsed.with_timezone(&Utc));
         }
     }
@@ -621,55 +1280,43 @@ fn parse_timestamp(raw: &str) -> Option<DateTime<Utc>> {
 }
 
 fn parse_tier(raw: &str) -> Option<String> {
-    TIER_RX
-        .captures(raw)
-        .and_then(|c| c.name("v"))
-        .map(|m| m.as_str().to_string())
+    parse_scalar_token_in_layer(raw, NodeFieldKey::Tier)
 }
 
 fn parse_parent_node(raw: &str) -> Option<String> {
-    let caps = PARENT_NODE_RX.captures(raw)?;
-    if caps.name("null").is_some() {
+    let value = parse_scalar_token_in_layer(raw, NodeFieldKey::ParentNode)?;
+    if value.eq_ignore_ascii_case("null") {
         return None;
     }
 
-    if let Some(v) = caps.name("ref") {
-        return Some(v.as_str().to_string());
+    if let Some(reference) = value.strip_prefix("ref:") {
+        return Some(reference.trim().to_string());
     }
 
-    if let Some(v) = caps.name("quoted") {
-        return Some(v.as_str().to_string());
-    }
-
-    None
+    Some(value)
 }
 
 fn parse_context_summary(raw: &str) -> Option<String> {
-    let caps = CONTEXT_SUMMARY_RX.captures(raw)?;
-    let value = caps
-        .name("quoted")
-        .or_else(|| caps.name("bare"))
-        .map(|m| m.as_str().trim())?;
+    let prime = extract_named_object(raw, NodeFieldKey::Prime.as_str())?;
+    let value = parse_scalar_token_in_object(prime, NodeFieldKey::ContextSummary)?;
 
     if value.is_empty() {
         None
     } else {
-        Some(value.to_string())
+        Some(value)
     }
 }
 
-fn parse_int(rx: &Regex, raw: &str) -> i32 {
-    rx.captures(raw)
-        .and_then(|c| c.name("v"))
-        .and_then(|v| v.as_str().parse::<i32>().ok())
-        .unwrap_or(0)
+fn parse_i32_key(source: &str, key: NodeFieldKey) -> Option<i32> {
+    parse_scalar_token_in_layer(source, key).and_then(|v| v.parse::<i32>().ok())
 }
 
-fn parse_float(rx: &Regex, raw: &str) -> f32 {
-    rx.captures(raw)
-        .and_then(|c| c.name("v"))
-        .and_then(|v| v.as_str().parse::<f32>().ok())
-        .unwrap_or(0.0)
+fn parse_f32_key(source: &str, key: NodeFieldKey) -> Option<f32> {
+    parse_scalar_token_in_layer(source, key).and_then(|v| v.parse::<f32>().ok())
+}
+
+fn parse_f32_key_in_object(source: &str, key: NodeFieldKey) -> Option<f32> {
+    parse_scalar_token_in_object(source, key).and_then(|v| v.parse::<f32>().ok())
 }
 
 fn extract_named_object<'a>(source: &'a str, key: &str) -> Option<&'a str> {
@@ -819,5 +1466,79 @@ mod tests {
         assert!(!parsed.strict_valid);
         assert!(!parsed.diagnostics.is_empty());
         assert!(parsed.canonical_ast.is_some());
+    }
+
+    #[test]
+    fn strict_profile_should_fail_when_required_property_is_missing() {
+        let parser = SttpNodeParser::new();
+        let raw = r#"
+⊕⟨ { trigger: manual, response_format: temporal_node, compression_depth: 1, parent_node: null, prime: { attractor_config: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7 }, context_summary: "missing origin_session", relevant_tier: raw, retrieval_budget: 3 } } ⟩
+⦿⟨ { timestamp: "2026-03-05T06:30:00Z", tier: raw, session_id: "strict-test", user_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 }, model_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+◈⟨ { note(.99): "ok" } ⟩
+⍉⟨ { rho: 0.1, kappa: 0.2, psi: 2.6, compression_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+"#;
+
+        let parsed = parser.try_parse_strict_typed_ir(raw, "strict-required");
+        assert!(!parsed.success);
+        assert_eq!(parsed.profile, ParseProfile::StrictTypedIr);
+        assert!(parsed.diagnostics.iter().any(|d| {
+            d.code == "STTP_STRICT_MISSING_REQUIRED_KEY" && d.message.contains("origin_session")
+        }));
+    }
+
+    #[test]
+    fn strict_profile_should_fail_on_invalid_enum_value() {
+        let parser = SttpNodeParser::new();
+        let raw = r#"
+⊕⟨ { trigger: manual, response_format: temporal_node, origin_session: "strict-test", compression_depth: 1, parent_node: null, prime: { attractor_config: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7 }, context_summary: "bad tier", relevant_tier: badtier, retrieval_budget: 3 } } ⟩
+⦿⟨ { timestamp: "2026-03-05T06:30:00Z", tier: raw, session_id: "strict-test", user_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 }, model_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+◈⟨ { note(.99): "ok" } ⟩
+⍉⟨ { rho: 0.1, kappa: 0.2, psi: 2.6, compression_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+"#;
+
+        let parsed = parser.try_parse_strict_typed_ir(raw, "strict-enum");
+        assert!(!parsed.success);
+        assert_eq!(parsed.profile, ParseProfile::StrictTypedIr);
+        assert!(parsed.diagnostics.iter().any(|d| {
+            d.code == "STTP_STRICT_INVALID_ENUM"
+                || (d.code == "STTP_STRICT_MISSING_REQUIRED_KEY"
+                    && d.message.contains("relevant_tier"))
+        }));
+    }
+
+    #[test]
+    fn strict_profile_should_fail_when_content_object_is_empty() {
+        let parser = SttpNodeParser::new();
+        let raw = r#"
+⊕⟨ { trigger: manual, response_format: temporal_node, origin_session: "strict-test", compression_depth: 1, parent_node: null, prime: { attractor_config: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7 }, context_summary: "empty content", relevant_tier: raw, retrieval_budget: 3 } } ⟩
+⦿⟨ { timestamp: "2026-03-05T06:30:00Z", tier: raw, session_id: "strict-test", user_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 }, model_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+◈⟨ { } ⟩
+⍉⟨ { rho: 0.1, kappa: 0.2, psi: 2.6, compression_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+"#;
+
+        let parsed = parser.try_parse_strict_typed_ir(raw, "strict-empty-content");
+        assert!(!parsed.success);
+        assert_eq!(parsed.profile, ParseProfile::StrictTypedIr);
+        assert!(
+            parsed
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "STTP_CONTENT_SCHEMA_EMPTY_OBJECT")
+        );
+    }
+
+    #[test]
+    fn strict_profile_without_typed_ir_should_not_require_origin_session() {
+        let parser = SttpNodeParser::new();
+        let raw = r#"
+⊕⟨ { trigger: manual, response_format: temporal_node, compression_depth: 1, parent_node: null, prime: { attractor_config: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7 }, context_summary: "legacy strict", relevant_tier: raw, retrieval_budget: 3 } } ⟩
+⦿⟨ { timestamp: "2026-03-05T06:30:00Z", tier: raw, session_id: "strict-test", user_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 }, model_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+◈⟨ { note(.99): "ok" } ⟩
+⍉⟨ { rho: 0.1, kappa: 0.2, psi: 2.6, compression_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+"#;
+
+        let parsed = parser.try_parse_strict(raw, "strict-legacy");
+        assert!(parsed.success);
+        assert_eq!(parsed.profile, ParseProfile::Strict);
     }
 }
