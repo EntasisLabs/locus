@@ -3161,24 +3161,6 @@ dependencies = [
 
 [[package]]
 name = "locus-core-rs"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19df028ed3588c75dfd8a33e0820b35288cd22a584c38bb8298424c012ef2a7a"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "once_cell",
- "regex",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
- "uuid",
-]
-
-[[package]]
-name = "locus-core-rs"
 version = "0.3.0"
 dependencies = [
  "anyhow",
@@ -3240,13 +3222,13 @@ dependencies = [
 
 [[package]]
 name = "locus-mcp"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
- "locus-core-rs 0.2.1",
- "locus-sdk 0.1.1",
+ "locus-core-rs 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "locus-sdk 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rmcp",
  "schemars 1.2.1",
  "serde",
@@ -3259,9 +3241,7 @@ dependencies = [
 
 [[package]]
 name = "locus-sdk"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a6b5102f0e81892a61d334308bd6fc9e4497962065b7db6f8b9f8b8652f1483"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3272,7 +3252,7 @@ dependencies = [
  "fake",
  "genai",
  "hf-hub",
- "locus-core-rs 0.2.1",
+ "locus-core-rs 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.8.6",
  "rand_chacha 0.3.1",
  "reqwest 0.12.28",
@@ -3286,6 +3266,8 @@ dependencies = [
 [[package]]
 name = "locus-sdk"
 version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67a18aa3e72d9753c5e0093544904af2b5c11593f7f9265e2d55b83ee66edd83"
 dependencies = [
  "anyhow",
  "async-trait",
