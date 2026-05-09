@@ -440,7 +440,7 @@ mod tests {
         clear_session_failures();
         let store = Arc::new(InMemoryNodeStore::new());
         let validator = Arc::new(TreeSitterValidator::new());
-        let service = StoreContextService::new(store, validator, SttpNodeParser::new());
+        let service = StoreContextService::new(store, validator, SttpNodeParser::with_profile(crate::ParseProfile::StrictTypedIr));
 
         let result = service
             .store_async(INVALID_STRICT_NODE, "strict-required-fields")
@@ -464,7 +464,7 @@ mod tests {
                 max_failures_before_cooldown: 3,
                 cooldown: Duration::seconds(60),
             },
-            SttpNodeParser::new()
+            SttpNodeParser::with_profile(crate::ParseProfile::StrictTypedIr)
         );
         let session_id = "cooldown-session";
 
