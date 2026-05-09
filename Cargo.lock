@@ -3153,7 +3153,7 @@ dependencies = [
  "chrono",
  "clap",
  "locus-core-rs 0.2.1",
- "locus-sdk",
+ "locus-sdk 0.1.1",
  "serde_json",
  "surrealdb",
  "tokio",
@@ -3203,7 +3203,7 @@ dependencies = [
  "chrono",
  "clap",
  "locus-core-rs 0.2.1",
- "locus-sdk",
+ "locus-sdk 0.1.1",
  "prost 0.13.5",
  "prost-types 0.13.5",
  "protoc-bin-vendored",
@@ -3227,8 +3227,8 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
- "locus-core-rs 0.2.1",
- "locus-sdk",
+ "locus-core-rs 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "locus-sdk 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rmcp",
  "schemars 1.2.1",
  "serde",
@@ -3242,6 +3242,32 @@ dependencies = [
 [[package]]
 name = "locus-sdk"
 version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "candle-core",
+ "candle-nn",
+ "candle-transformers",
+ "chrono",
+ "fake",
+ "genai",
+ "hf-hub",
+ "locus-core-rs 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.8.6",
+ "rand_chacha 0.3.1",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokenizers",
+ "tokio",
+]
+
+[[package]]
+name = "locus-sdk"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a6b5102f0e81892a61d334308bd6fc9e4497962065b7db6f8b9f8b8652f1483"
 dependencies = [
  "anyhow",
  "async-trait",
