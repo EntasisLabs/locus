@@ -3,7 +3,7 @@
 All notable changes specific to locus-core-rs are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
-## [Unreleased]
+## [0.2.1] - 2026-05-08
 
 ### Added
 
