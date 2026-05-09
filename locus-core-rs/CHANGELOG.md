@@ -3,6 +3,12 @@
 All notable changes specific to locus-core-rs are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [0.3.0] - 2026-5-09
+### Changed
+- Updated `SttpNodeParser` to receive a `ParseProfile` for dynamic sttp node parsing
+- Updated contract for `StoreContextService` to explicitly take a parser when created
+
+
 ## [0.2.1] - 2026-05-08
 
 ### Added

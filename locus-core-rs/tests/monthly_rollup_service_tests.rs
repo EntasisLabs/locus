@@ -11,7 +11,7 @@ use locus_core_rs::storage::InMemoryNodeStore;
 async fn should_create_monthly_rollup_using_first_timeline_node_as_parent() {
     let store = Arc::new(InMemoryNodeStore::new());
     let validator = Arc::new(TreeSitterValidator);
-    let store_context = StoreContextService::new(store.clone(), validator.clone());
+    let store_context = StoreContextService::new(store.clone(), validator.clone(), SttpNodeParser::new());
 
     let first_store = store_context
         .store_async(

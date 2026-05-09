@@ -13,7 +13,7 @@
 //!
 //! use locus_core_rs::{
 //!     CalibrationService, ContextQueryService, InMemoryNodeStore, NodeStoreInitializer,
-//!     StoreContextService, TreeSitterValidator,
+//!     StoreContextService, TreeSitterValidator,SttpNodeParser
 //! };
 //!
 //! # fn main() -> anyhow::Result<()> {
@@ -27,7 +27,7 @@
 //!     initializer.initialize_async().await?;
 //!
 //!     let validator = Arc::new(TreeSitterValidator::new());
-//!     let store_context = StoreContextService::new(store.clone(), validator);
+//!     let store_context = StoreContextService::new(store.clone(), validator, SttpNodeParser::new());
 //!     let calibration = CalibrationService::new(store.clone());
 //!     let context_query = ContextQueryService::new(store);
 //!
