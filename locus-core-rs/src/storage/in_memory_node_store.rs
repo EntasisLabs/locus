@@ -6,8 +6,9 @@ use uuid::Uuid;
 
 use crate::domain::contracts::{NodeStore, NodeStoreInitializer};
 use crate::domain::models::{
-    AvecState, BatchRekeyResult, ChangeQueryResult, ConnectorMetadata, NodeQuery, NodeUpsertResult,
-    NodeUpsertStatus, ScopeRekeyResult, SttpNode, SyncCheckpoint, SyncCursor,
+    AvecState, BatchRekeyResult, ChangeQueryResult, ConnectorMetadata, NodeDeleteRecord,
+    NodeDeleteRequest, NodeDeleteResult, NodeDeleteStatus, NodeQuery, NodeUpsertResult,
+    NodeUpsertStatus, ScopeRekeyResult, SessionPurgeRequest, SttpNode, SyncCheckpoint, SyncCursor,
 };
 
 const DEFAULT_TENANT: &str = "default";
@@ -544,6 +545,247 @@ impl NodeStore for InMemoryNodeStore {
             scopes: scope_results,
             temporal_nodes_updated,
             calibrations_updated,
+        })
+    }
+
+    async fn delete_nodes_async(&self, request: NodeDeleteRequest) -> Result<NodeDeleteResult> {
+        let tenant_id = normalize_tenant_id(&request.tenant_id);
+        let session_id = request.session_id.trim();
+        if session_id.is_empty() {
+            return Err(anyhow!("session id cannot be empty"));
+        }
+        if request.sync_keys.is_empty() && request.node_ids.is_empty() {
+            return Err(anyhow!("at least one sync key or node id is required"));
+        }
+
+        let nodes_snapshot = self.nodes.read().await;
+        let mut records = Vec::new();
+        let mut target_ids = std::collections::BTreeSet::new();
+
+        for sync_key in &request.sync_keys {
+            let sync_key = sync_key.trim();
+            if sync_key.is_empty() {
+                continue;
+            }
+
+            if let Some((node_id, _node)) = nodes_snapshot.iter().find(|(_, node)| {
+                node.session_id == session_id
+                    && node.sync_key == sync_key
+                    && derive_tenant_id_from_session(&node.session_id) == tenant_id
+            }) {
+                target_ids.insert(node_id.clone());
+            } else {
+                records.push(NodeDeleteRecord {
+                    node_id: String::new(),
+                    sync_key: sync_key.to_string(),
+                    status: NodeDeleteStatus::NotFound,
+                    reason: Some("sync key not found in session scope".to_string()),
+                });
+            }
+        }
+
+        for node_id in &request.node_ids {
+            let Some(normalized) = normalize_temporal_node_id(node_id) else {
+                records.push(NodeDeleteRecord {
+                    node_id: node_id.clone(),
+                    sync_key: String::new(),
+                    status: NodeDeleteStatus::NotFound,
+                    reason: Some("invalid node id".to_string()),
+                });
+                continue;
+            };
+
+            if let Some((node_id, node)) = nodes_snapshot
+                .iter()
+                .find(|(id, _)| id == &normalized)
+            {
+                if node.session_id == session_id
+                    && derive_tenant_id_from_session(&node.session_id) == tenant_id
+                {
+                    target_ids.insert(node_id.clone());
+                } else {
+                    records.push(NodeDeleteRecord {
+                        node_id: normalized,
+                        sync_key: node.sync_key.clone(),
+                        status: NodeDeleteStatus::NotFound,
+                        reason: Some("node id not found in session scope".to_string()),
+                    });
+                }
+            } else {
+                records.push(NodeDeleteRecord {
+                    node_id: normalized,
+                    sync_key: String::new(),
+                    status: NodeDeleteStatus::NotFound,
+                    reason: Some("node id not found".to_string()),
+                });
+            }
+        }
+
+        for node_id in &target_ids {
+            if let Some((_, node)) = nodes_snapshot.iter().find(|(id, _)| id == node_id) {
+                let status = if request.dry_run {
+                    NodeDeleteStatus::Skipped
+                } else {
+                    NodeDeleteStatus::Deleted
+                };
+                let reason = if request.dry_run {
+                    Some("would delete".to_string())
+                } else {
+                    None
+                };
+                records.push(NodeDeleteRecord {
+                    node_id: node_id.clone(),
+                    sync_key: node.sync_key.clone(),
+                    status,
+                    reason,
+                });
+            }
+        }
+
+        drop(nodes_snapshot);
+
+        let deleted = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::Deleted)
+            .count();
+        let skipped = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::Skipped)
+            .count();
+        let not_found = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::NotFound)
+            .count();
+
+        if !request.dry_run && !target_ids.is_empty() {
+            let mut nodes = self.nodes.write().await;
+            nodes.retain(|(id, _)| !target_ids.contains(id));
+        }
+
+        Ok(NodeDeleteResult {
+            dry_run: request.dry_run,
+            deleted: if request.dry_run { skipped } else { deleted },
+            blocked: 0,
+            not_found,
+            skipped: if request.dry_run { 0 } else { skipped },
+            calibrations_deleted: 0,
+            checkpoints_deleted: 0,
+            records,
+        })
+    }
+
+    async fn purge_session_async(&self, request: SessionPurgeRequest) -> Result<NodeDeleteResult> {
+        let tenant_id = normalize_tenant_id(&request.tenant_id);
+        let session_id = request.session_id.trim();
+        if session_id.is_empty() {
+            return Err(anyhow!("session id cannot be empty"));
+        }
+
+        let normalized_tiers = normalize_tiers(request.tiers.as_deref());
+        let nodes_snapshot = self.nodes.read().await;
+        let mut target_ids = std::collections::BTreeSet::new();
+        let mut records = Vec::new();
+
+        for (node_id, node) in nodes_snapshot.iter() {
+            if node.session_id != session_id {
+                continue;
+            }
+            if derive_tenant_id_from_session(&node.session_id) != tenant_id {
+                continue;
+            }
+            if let Some(tiers) = normalized_tiers.as_ref() {
+                if !tiers
+                    .iter()
+                    .any(|tier| node.tier.eq_ignore_ascii_case(tier))
+                {
+                    continue;
+                }
+            }
+
+            target_ids.insert(node_id.clone());
+            let status = if request.dry_run {
+                NodeDeleteStatus::Skipped
+            } else {
+                NodeDeleteStatus::Deleted
+            };
+            let reason = if request.dry_run {
+                Some("would delete".to_string())
+            } else {
+                None
+            };
+            records.push(NodeDeleteRecord {
+                node_id: node_id.clone(),
+                sync_key: node.sync_key.clone(),
+                status,
+                reason,
+            });
+        }
+
+        drop(nodes_snapshot);
+
+        let deleted = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::Deleted)
+            .count();
+        let skipped = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::Skipped)
+            .count();
+
+        let mut calibrations_deleted = 0usize;
+        let mut checkpoints_deleted = 0usize;
+
+        if !request.dry_run {
+            if !target_ids.is_empty() {
+                let mut nodes = self.nodes.write().await;
+                nodes.retain(|(id, _)| !target_ids.contains(id));
+            }
+
+            if request.include_calibration {
+                let mut calibrations = self.calibrations.write().await;
+                let before = calibrations.len();
+                calibrations.retain(|(session, _, _)| session != session_id);
+                calibrations_deleted = before.saturating_sub(calibrations.len());
+            }
+
+            if request.include_checkpoints {
+                let mut checkpoints = self.checkpoints.write().await;
+                let before = checkpoints.len();
+                checkpoints.retain(|checkpoint| {
+                    checkpoint.session_id != session_id
+                        || derive_tenant_id_from_session(&checkpoint.session_id) != tenant_id
+                });
+                checkpoints_deleted = before.saturating_sub(checkpoints.len());
+            }
+        } else {
+            if request.include_calibration {
+                let calibrations = self.calibrations.read().await;
+                calibrations_deleted = calibrations
+                    .iter()
+                    .filter(|(session, _, _)| session == session_id)
+                    .count();
+            }
+            if request.include_checkpoints {
+                let checkpoints = self.checkpoints.read().await;
+                checkpoints_deleted = checkpoints
+                    .iter()
+                    .filter(|checkpoint| {
+                        checkpoint.session_id == session_id
+                            && derive_tenant_id_from_session(&checkpoint.session_id) == tenant_id
+                    })
+                    .count();
+            }
+        }
+
+        Ok(NodeDeleteResult {
+            dry_run: request.dry_run,
+            deleted: if request.dry_run { skipped } else { deleted },
+            blocked: 0,
+            not_found: 0,
+            skipped: if request.dry_run { 0 } else { skipped },
+            calibrations_deleted,
+            checkpoints_deleted,
+            records,
         })
     }
 }

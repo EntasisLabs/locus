@@ -144,6 +144,14 @@ impl SttpMcpServer {
     }
 
     #[tool(
+        name = "evict_nodes",
+        description = "Explicitly delete memory nodes by sync key, node id, semantic filter, or full session purge. Supports dry_run preview (recommended first), force to bypass inbound reference blocking, and optional calibration/checkpoint cleanup on session purge."
+    )]
+    async fn evict_nodes(&self, Parameters(request): Parameters<EvictNodesRequest>) -> String {
+        tools::evict_nodes::execute(self, request).await
+    }
+
+    #[tool(
         name = "preview_embedding_migration",
         description = "Preview which nodes would be selected for embedding migration/backfill based on optional filters. Use this before running migration to verify scope and provider availability."
     )]
@@ -276,6 +284,39 @@ pub(crate) struct GetGraphRequest {
 
 fn default_limit_get_graph() -> usize {
     1000
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct EvictNodesRequest {
+    session_id: String,
+    #[serde(default)]
+    sync_keys: Option<Vec<String>>,
+    #[serde(default)]
+    node_ids: Option<Vec<String>>,
+    #[serde(default)]
+    semantic_tags: Option<Vec<String>>,
+    #[serde(default)]
+    link_rel: Option<String>,
+    #[serde(default)]
+    link_target: Option<String>,
+    #[serde(default)]
+    links_to_ref: Option<String>,
+    #[serde(default)]
+    tag_prefix: Option<String>,
+    #[serde(default)]
+    has_semantic_links: Option<bool>,
+    #[serde(default)]
+    purge_session: Option<bool>,
+    #[serde(default)]
+    dry_run: Option<bool>,
+    #[serde(default)]
+    force: Option<bool>,
+    #[serde(default)]
+    max_nodes: Option<usize>,
+    #[serde(default)]
+    include_calibration: Option<bool>,
+    #[serde(default)]
+    include_checkpoints: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]

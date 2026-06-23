@@ -6,4 +6,5 @@
 pub mod ai;
 pub mod compression;
 pub mod graph;
+pub mod evict;
 pub mod memory;

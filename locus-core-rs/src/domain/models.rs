@@ -435,6 +435,59 @@ pub struct BatchRekeyResult {
     pub calibrations_updated: usize,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NodeDeleteStatus {
+    Deleted,
+    NotFound,
+    Blocked,
+    Skipped,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct InboundNodeReferences {
+    pub child_parent_links: Vec<String>,
+    pub incoming_semantic_refs: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct NodeDeleteRecord {
+    pub node_id: String,
+    pub sync_key: String,
+    pub status: NodeDeleteStatus,
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct NodeDeleteResult {
+    pub dry_run: bool,
+    pub deleted: usize,
+    pub blocked: usize,
+    pub not_found: usize,
+    pub skipped: usize,
+    pub calibrations_deleted: usize,
+    pub checkpoints_deleted: usize,
+    pub records: Vec<NodeDeleteRecord>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct NodeDeleteRequest {
+    pub tenant_id: String,
+    pub session_id: String,
+    pub sync_keys: Vec<String>,
+    pub node_ids: Vec<String>,
+    pub dry_run: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct SessionPurgeRequest {
+    pub tenant_id: String,
+    pub session_id: String,
+    pub tiers: Option<Vec<String>>,
+    pub dry_run: bool,
+    pub include_calibration: bool,
+    pub include_checkpoints: bool,
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct StoreResult {
     pub node_id: String,

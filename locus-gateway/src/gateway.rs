@@ -20,10 +20,12 @@ use locus_core_rs::domain::models::{
     self as core_models, ConfidenceBandSummary, MonthlyRollupRequest, NumericRange, PsiRange,
 };
 use locus_core_rs::domain::contracts::EmbeddingProvider;
+use locus_sdk::application::memory_evict::MemoryEvictService;
 use locus_sdk::application::memory_find::MemoryFindService;
 use locus_sdk::application::memory_graph::{MemoryGraphService, graph_node_id};
 use locus_sdk::application::memory_recall::MemoryRecallService;
 use locus_sdk::application::memory_transform::MemoryTransformService;
+use locus_sdk::domain::evict::{MemoryEvictMode, MemoryEvictRequest, MemoryEvictResult};
 use locus_sdk::domain::graph::MemoryGraphRequest;
 use locus_sdk::domain::memory::{
     FallbackPolicy, MemoryFilter, MemoryFindRequest, MemoryPage, MemoryRecallRequest,
@@ -94,6 +96,9 @@ pub(crate) async fn run() -> Result<()> {
         .route("/api/v1/graph", get(graph_handler))
         .route("/api/graph", get(graph_handler))
         .route("/graph", get(graph_handler))
+        .route("/api/v1/evict", post(evict_handler))
+        .route("/api/evict", post(evict_handler))
+        .route("/evict", post(evict_handler))
         .route("/api/v1/moods", get(get_moods_handler))
         .route("/api/v1/rekey", post(batch_rekey_handler))
         .route(
@@ -634,6 +639,119 @@ async fn graph_handler(
     }))
 }
 
+async fn evict_handler(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(request): Json<EvictHttpRequest>,
+) -> ApiResult<EvictHttpResultDto> {
+    let tenant = resolve_http_tenant(request.tenant_id.as_deref(), &headers);
+    let scoped_session = scope_session_id(&tenant, &request.session_id);
+    let mode = resolve_evict_mode(&request)?;
+
+    let purge_session = matches!(mode, MemoryEvictMode::PurgeSession);
+    let include_calibration = request
+        .include_calibration
+        .unwrap_or(purge_session);
+    let include_checkpoints = request
+        .include_checkpoints
+        .unwrap_or(purge_session);
+
+    let result = evict_service(&state)
+        .execute(&MemoryEvictRequest {
+            mode,
+            scope: MemoryScope {
+                tenant_id: Some(tenant),
+                session_ids: Some(vec![scoped_session]),
+                tiers: normalize_request_tiers(request.tiers.as_deref()),
+                from_utc: None,
+                to_utc: None,
+            },
+            filter: build_semantic_memory_filter(
+                request.semantic_tags,
+                request.tags_contains,
+                request.link_rel,
+                request.link_target,
+                request.links_to_ref,
+                request.tag_prefix,
+                request.has_semantic_links,
+            ),
+            sync_keys: request.sync_keys,
+            node_ids: request.node_ids,
+            dry_run: request.dry_run.unwrap_or(false),
+            force: request.force.unwrap_or(false),
+            max_nodes: request.max_nodes.unwrap_or(5000),
+            include_calibration,
+            include_checkpoints,
+        })
+        .await
+        .map_err(internal_error)?;
+
+    Ok(Json(to_evict_dto(result)))
+}
+
+fn resolve_evict_mode(request: &EvictHttpRequest) -> Result<MemoryEvictMode, (StatusCode, Json<ErrorResponse>)> {
+    if request.purge_session.unwrap_or(false) {
+        return Ok(MemoryEvictMode::PurgeSession);
+    }
+
+    if let Some(mode) = request.mode.as_deref() {
+        return match mode.trim().to_ascii_lowercase().as_str() {
+            "by_sync_keys" | "sync_keys" => Ok(MemoryEvictMode::BySyncKeys),
+            "by_node_ids" | "node_ids" => Ok(MemoryEvictMode::ByNodeIds),
+            "by_filter" | "filter" => Ok(MemoryEvictMode::ByFilter),
+            "purge_session" | "purge" => Ok(MemoryEvictMode::PurgeSession),
+            _ => Err(bad_request(format!("unsupported evict mode: {mode}"))),
+        };
+    }
+
+    if request.sync_keys.as_ref().is_some_and(|keys| !keys.is_empty()) {
+        return Ok(MemoryEvictMode::BySyncKeys);
+    }
+    if request.node_ids.as_ref().is_some_and(|ids| !ids.is_empty()) {
+        return Ok(MemoryEvictMode::ByNodeIds);
+    }
+    if request.semantic_tags.is_some()
+        || request.tags_contains.is_some()
+        || request.link_rel.is_some()
+        || request.link_target.is_some()
+        || request.links_to_ref.is_some()
+        || request.tag_prefix.is_some()
+        || request.has_semantic_links.is_some()
+    {
+        return Ok(MemoryEvictMode::ByFilter);
+    }
+
+    Err(bad_request(
+        "evict mode could not be inferred; provide syncKeys, nodeIds, filter fields, or purgeSession=true",
+    ))
+}
+
+fn to_evict_dto(result: MemoryEvictResult) -> EvictHttpResultDto {
+    EvictHttpResultDto {
+        dry_run: result.dry_run,
+        deleted: result.deleted,
+        blocked: result.blocked,
+        not_found: result.not_found,
+        skipped: result.skipped,
+        would_delete: result.would_delete,
+        calibrations_deleted: result.calibrations_deleted,
+        checkpoints_deleted: result.checkpoints_deleted,
+        records: result
+            .records
+            .into_iter()
+            .map(|record| {
+                json!({
+                    "nodeId": record.node_id,
+                    "syncKey": record.sync_key,
+                    "status": record.status,
+                    "reason": record.reason,
+                    "inboundReferences": record.inbound_references,
+                })
+            })
+            .collect(),
+    }
+}
+
 async fn get_moods_handler(
     State(state): State<Arc<AppState>>,
     Query(query): Query<GetMoodsQuery>,
@@ -850,6 +968,11 @@ fn recall_service(state: &AppState) -> MemoryRecallService {
 
 fn find_service(state: &AppState) -> MemoryFindService {
     MemoryFindService::new(state.node_store.clone())
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn evict_service(state: &AppState) -> MemoryEvictService {
+    MemoryEvictService::new(state.node_store.clone())
         .with_semantic_index(state.semantic_index.clone())
 }
 
@@ -1970,6 +2093,145 @@ mod tests {
         .expect_err("mismatched dimensions should fail");
 
         assert_eq!(err.0, StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn http_evict_dry_run_then_delete_roundtrip() {
+        let state = Arc::new(build_in_memory_state().await.expect("state should build"));
+        let session_id = "http-evict-session";
+
+        let _ = store_context_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Json(StoreContextHttpRequest {
+                node: sample_node(session_id),
+                session_id: session_id.to_string(),
+                tenant_id: None,
+            }),
+        )
+        .await
+        .expect("store should succeed");
+
+        let nodes_before = list_nodes_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Query(ListNodesQuery {
+                tenant_id: None,
+                session_id: Some(session_id.to_string()),
+                limit: Some(10),
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+            }),
+        )
+        .await
+        .expect("list should succeed");
+        assert!(nodes_before.retrieved >= 1);
+        let sync_key = nodes_before.nodes[0].sync_key.clone();
+
+        let Json(preview) = evict_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Json(EvictHttpRequest {
+                tenant_id: None,
+                session_id: session_id.to_string(),
+                mode: None,
+                sync_keys: Some(vec![sync_key.clone()]),
+                node_ids: None,
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+                purge_session: None,
+                dry_run: Some(true),
+                force: Some(true),
+                max_nodes: None,
+                include_calibration: None,
+                include_checkpoints: None,
+                tiers: None,
+            }),
+        )
+        .await
+        .expect("dry-run evict should succeed");
+
+        assert_eq!(preview.deleted, 1);
+        assert_eq!(preview.would_delete, vec![sync_key.clone()]);
+
+        let nodes_after_preview = list_nodes_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Query(ListNodesQuery {
+                tenant_id: None,
+                session_id: Some(session_id.to_string()),
+                limit: Some(10),
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+            }),
+        )
+        .await
+        .expect("list should succeed");
+        assert_eq!(nodes_after_preview.retrieved, nodes_before.retrieved);
+
+        let Json(applied) = evict_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Json(EvictHttpRequest {
+                tenant_id: None,
+                session_id: session_id.to_string(),
+                mode: None,
+                sync_keys: Some(vec![sync_key]),
+                node_ids: None,
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+                purge_session: None,
+                dry_run: Some(false),
+                force: Some(true),
+                max_nodes: None,
+                include_calibration: None,
+                include_checkpoints: None,
+                tiers: None,
+            }),
+        )
+        .await
+        .expect("evict should succeed");
+        assert_eq!(applied.deleted, 1);
+
+        let nodes_after = list_nodes_handler(
+            State(state),
+            HeaderMap::new(),
+            Query(ListNodesQuery {
+                tenant_id: None,
+                session_id: Some(session_id.to_string()),
+                limit: Some(10),
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+            }),
+        )
+        .await
+        .expect("list should succeed");
+        assert_eq!(nodes_after.retrieved, 0);
     }
 
     #[tokio::test]

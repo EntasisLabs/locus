@@ -239,6 +239,7 @@ pub struct MemorySchemaResult {
     pub fallback_policies: Vec<String>,
     pub strictness_modes: Vec<String>,
     pub transform_operations: Vec<String>,
+    pub evict_operations: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

@@ -9,7 +9,7 @@ impl MemorySchemaService {
 
     pub fn execute(&self) -> MemorySchemaResult {
         MemorySchemaResult {
-            schema_version: "locus-sdk.memory.v2".to_string(),
+            schema_version: "locus-sdk.memory.v3".to_string(),
             sort_fields: vec![
                 "timestamp".to_string(),
                 "updated_at".to_string(),
@@ -56,6 +56,10 @@ impl MemorySchemaService {
                 "embed_tag_backfill".to_string(),
                 "reindex_tag_embeddings".to_string(),
             ],
+            evict_operations: vec![
+                "delete_nodes".to_string(),
+                "purge_session".to_string(),
+            ],
         }
     }
 }
@@ -75,7 +79,7 @@ mod tests {
         let service = MemorySchemaService::new();
         let schema = service.execute();
 
-        assert_eq!(schema.schema_version, "locus-sdk.memory.v2");
+        assert_eq!(schema.schema_version, "locus-sdk.memory.v3");
         assert!(schema.sort_fields.contains(&"timestamp".to_string()));
         assert!(schema.group_by_fields.contains(&"session_id".to_string()));
         assert!(schema.fallback_policies.contains(&"on_empty".to_string()));

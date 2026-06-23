@@ -12,8 +12,9 @@ use uuid::Uuid;
 
 use crate::domain::contracts::{NodeStore, NodeStoreInitializer};
 use crate::domain::models::{
-    AvecState, BatchRekeyResult, ChangeQueryResult, ConnectorMetadata, NodeQuery, NodeUpsertResult,
-    NodeUpsertStatus, ScopeRekeyResult, SttpNode, SyncCheckpoint, SyncCursor,
+    AvecState, BatchRekeyResult, ChangeQueryResult, ConnectorMetadata, NodeDeleteRecord,
+    NodeDeleteRequest, NodeDeleteResult, NodeDeleteStatus, NodeQuery, NodeUpsertResult,
+    NodeUpsertStatus, ScopeRekeyResult, SessionPurgeRequest, SttpNode, SyncCheckpoint, SyncCursor,
 };
 use crate::storage::surrealdb::client::{QueryParams, SurrealDbClient};
 use crate::storage::surrealdb::models::{
@@ -46,6 +47,16 @@ struct LegacyTemporalRecord {
     sync_key: Option<String>,
     #[serde(default)]
     updated_at: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct NodeIdentityRecord {
+    #[serde(alias = "NodeId", alias = "node_id", default)]
+    node_id: Value,
+    #[serde(alias = "SyncKey", alias = "sync_key", default)]
+    sync_key: Option<String>,
+    #[serde(alias = "SessionId", alias = "session_id", default)]
+    session_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -1088,6 +1099,286 @@ impl NodeStore for SurrealDbNodeStore {
             calibrations_updated,
         })
     }
+
+    async fn delete_nodes_async(&self, request: NodeDeleteRequest) -> Result<NodeDeleteResult> {
+        let tenant_id = normalize_tenant_id(Some(&request.tenant_id));
+        let session_id = request.session_id.trim();
+        if session_id.is_empty() {
+            return Err(anyhow!("session id cannot be empty"));
+        }
+        if request.sync_keys.is_empty() && request.node_ids.is_empty() {
+            return Err(anyhow!("at least one sync key or node id is required"));
+        }
+
+        let mut records = Vec::new();
+        let mut target_ids = BTreeSet::new();
+
+        for sync_key in &request.sync_keys {
+            let sync_key = sync_key.trim();
+            if sync_key.is_empty() {
+                continue;
+            }
+
+            let mut params = QueryParams::new();
+            params.insert("tenant_id".to_string(), json!(tenant_id));
+            params.insert("session_id".to_string(), json!(session_id));
+            params.insert("sync_key".to_string(), json!(sync_key));
+
+            let rows = self
+                .client
+                .raw_query(raw_queries::SELECT_NODE_BY_SYNC_KEY_QUERY, params)
+                .await?;
+            let rows: Vec<NodeIdentityRecord> = decode_rows(rows)?;
+
+            if let Some(row) = rows.into_iter().next() {
+                if let Some(node_id) = value_to_record_component(&row.node_id) {
+                    target_ids.insert(node_id);
+                }
+            } else {
+                records.push(NodeDeleteRecord {
+                    node_id: String::new(),
+                    sync_key: sync_key.to_string(),
+                    status: NodeDeleteStatus::NotFound,
+                    reason: Some("sync key not found in session scope".to_string()),
+                });
+            }
+        }
+
+        for node_id in &request.node_ids {
+            let Some(normalized) = normalize_temporal_node_id(node_id) else {
+                records.push(NodeDeleteRecord {
+                    node_id: node_id.clone(),
+                    sync_key: String::new(),
+                    status: NodeDeleteStatus::NotFound,
+                    reason: Some("invalid node id".to_string()),
+                });
+                continue;
+            };
+
+            let mut params = QueryParams::new();
+            params.insert("node_id".to_string(), json!(normalized));
+
+            let rows = self
+                .client
+                .raw_query(raw_queries::SELECT_NODE_BY_ID_QUERY, params)
+                .await?;
+            let rows: Vec<NodeIdentityRecord> = decode_rows(rows)?;
+
+            if let Some(row) = rows.into_iter().next() {
+                let row_session = row.session_id.unwrap_or_default();
+                if row_session == session_id {
+                    target_ids.insert(normalized.clone());
+                } else {
+                    records.push(NodeDeleteRecord {
+                        node_id: normalized,
+                        sync_key: row.sync_key.unwrap_or_default(),
+                        status: NodeDeleteStatus::NotFound,
+                        reason: Some("node id not found in session scope".to_string()),
+                    });
+                }
+            } else {
+                records.push(NodeDeleteRecord {
+                    node_id: normalized,
+                    sync_key: String::new(),
+                    status: NodeDeleteStatus::NotFound,
+                    reason: Some("node id not found".to_string()),
+                });
+            }
+        }
+
+        for node_id in &target_ids {
+            let mut params = QueryParams::new();
+            params.insert("node_id".to_string(), json!(node_id));
+
+            let rows = self
+                .client
+                .raw_query(raw_queries::SELECT_NODE_BY_ID_QUERY, params)
+                .await?;
+            let rows: Vec<NodeIdentityRecord> = decode_rows(rows)?;
+
+            if let Some(row) = rows.into_iter().next() {
+                let status = if request.dry_run {
+                    NodeDeleteStatus::Skipped
+                } else {
+                    NodeDeleteStatus::Deleted
+                };
+                let reason = if request.dry_run {
+                    Some("would delete".to_string())
+                } else {
+                    None
+                };
+                records.push(NodeDeleteRecord {
+                    node_id: node_id.clone(),
+                    sync_key: row.sync_key.unwrap_or_default(),
+                    status,
+                    reason,
+                });
+            }
+        }
+
+        if !request.dry_run {
+            for node_id in &target_ids {
+                let mut params = QueryParams::new();
+                params.insert("node_id".to_string(), json!(node_id));
+                self.client
+                    .raw_query(raw_queries::DELETE_TEMPORAL_NODE_BY_ID_QUERY, params)
+                    .await?;
+            }
+        }
+
+        let deleted = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::Deleted)
+            .count();
+        let skipped = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::Skipped)
+            .count();
+        let not_found = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::NotFound)
+            .count();
+
+        Ok(NodeDeleteResult {
+            dry_run: request.dry_run,
+            deleted: if request.dry_run { skipped } else { deleted },
+            blocked: 0,
+            not_found,
+            skipped: if request.dry_run { 0 } else { skipped },
+            calibrations_deleted: 0,
+            checkpoints_deleted: 0,
+            records,
+        })
+    }
+
+    async fn purge_session_async(&self, request: SessionPurgeRequest) -> Result<NodeDeleteResult> {
+        let tenant_id = normalize_tenant_id(Some(&request.tenant_id));
+        let session_id = request.session_id.trim();
+        if session_id.is_empty() {
+            return Err(anyhow!("session id cannot be empty"));
+        }
+
+        let mut params = QueryParams::new();
+        params.insert("tenant_id".to_string(), json!(tenant_id));
+        params.insert("session_id".to_string(), json!(session_id));
+
+        let tier_clause = build_tier_predicate(request.tiers.as_deref(), &mut params);
+        let purge_query = raw_queries::purge_temporal_nodes_query(tier_clause.as_deref());
+
+        let select_query = format!(
+            r#"
+            SELECT
+                meta::id(id) AS NodeId,
+                sync_key AS SyncKey
+            FROM temporal_node
+            WHERE tenant_id = $tenant_id AND session_id = $session_id{}
+            "#,
+            tier_clause
+                .as_ref()
+                .map(|clause| format!(" AND {clause}"))
+                .unwrap_or_default()
+        );
+
+        let rows = self.client.raw_query(&select_query, params.clone()).await?;
+        let rows: Vec<NodeIdentityRecord> = decode_rows(rows)?;
+
+        let records = rows
+            .into_iter()
+            .filter_map(|row| {
+                let node_id = value_to_record_component(&row.node_id)?;
+                let status = if request.dry_run {
+                    NodeDeleteStatus::Skipped
+                } else {
+                    NodeDeleteStatus::Deleted
+                };
+                let reason = if request.dry_run {
+                    Some("would delete".to_string())
+                } else {
+                    None
+                };
+                Some(NodeDeleteRecord {
+                    node_id,
+                    sync_key: row.sync_key.unwrap_or_default(),
+                    status,
+                    reason,
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let mut calibrations_deleted = 0usize;
+        let mut checkpoints_deleted = 0usize;
+
+        if request.include_calibration {
+            calibrations_deleted = self
+                .count_scope_rows_async(
+                    raw_queries::COUNT_CALIBRATION_SCOPE_QUERY,
+                    session_id,
+                    &tenant_id,
+                    includes_legacy_tenant_bucket(&tenant_id),
+                )
+                .await?;
+        }
+
+        if request.include_checkpoints {
+            checkpoints_deleted = self
+                .count_scope_rows_async(
+                    raw_queries::COUNT_CHECKPOINT_SCOPE_QUERY,
+                    session_id,
+                    &tenant_id,
+                    includes_legacy_tenant_bucket(&tenant_id),
+                )
+                .await?;
+        }
+
+        if !request.dry_run {
+            self.client
+                .raw_query(&purge_query, params.clone())
+                .await?;
+            self.client
+                .raw_query(raw_queries::DELETE_TAG_ROWS_FOR_SESSION_QUERY, params.clone())
+                .await?;
+
+            if request.include_calibration {
+                self.client
+                    .raw_query(raw_queries::PURGE_CALIBRATION_SESSION_QUERY, params.clone())
+                    .await?;
+            }
+
+            if request.include_checkpoints {
+                self.client
+                    .raw_query(raw_queries::PURGE_CHECKPOINT_SESSION_QUERY, params.clone())
+                    .await?;
+            }
+        }
+
+        let deleted = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::Deleted)
+            .count();
+        let skipped = records
+            .iter()
+            .filter(|record| record.status == NodeDeleteStatus::Skipped)
+            .count();
+
+        Ok(NodeDeleteResult {
+            dry_run: request.dry_run,
+            deleted: if request.dry_run { skipped } else { deleted },
+            blocked: 0,
+            not_found: 0,
+            skipped: if request.dry_run { 0 } else { skipped },
+            calibrations_deleted: if request.include_calibration {
+                calibrations_deleted
+            } else {
+                0
+            },
+            checkpoints_deleted: if request.include_checkpoints {
+                checkpoints_deleted
+            } else {
+                0
+            },
+            records,
+        })
+    }
 }
 
 fn map_to_node(record: SurrealNodeRecord) -> SttpNode {
@@ -1302,6 +1593,31 @@ fn value_to_record_component(value: &Value) -> Option<String> {
         Value::Bool(v) => Some(v.to_string()),
         _ => None,
     }
+}
+
+fn build_tier_predicate(tiers: Option<&[String]>, parameters: &mut QueryParams) -> Option<String> {
+    let normalized_tiers = tiers
+        .unwrap_or(&[])
+        .iter()
+        .map(|tier| tier.trim().to_ascii_lowercase())
+        .filter(|tier| !tier.is_empty())
+        .collect::<Vec<_>>();
+
+    if normalized_tiers.is_empty() {
+        return None;
+    }
+
+    let tier_clauses = normalized_tiers
+        .iter()
+        .enumerate()
+        .map(|(idx, tier)| {
+            let key = format!("tier_{idx}");
+            parameters.insert(key.clone(), json!(tier));
+            format!("string::lowercase(tier) = ${key}")
+        })
+        .collect::<Vec<_>>();
+
+    Some(format!("({})", tier_clauses.join(" OR ")))
 }
 
 fn build_retrieval_predicate(

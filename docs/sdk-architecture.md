@@ -57,6 +57,7 @@ Primary services:
 - `MemoryAggregateService`
 - `MemoryTransformService`
 - `MemoryGraphService`
+- `MemoryEvictService`
 - `MemoryCompositionService`
 - `MemorySchemaService`
 - `ManualCompressionService`
@@ -82,6 +83,7 @@ flowchart TD
     MAS[MemoryAggregateService]
     MTS[MemoryTransformService]
     MGS[MemoryGraphService]
+    MESvc[MemoryEvictService]
     SIS[SemanticIndexStore interface]
     NS[NodeStore interface]
     APR[AiProviderRegistry interface]
@@ -96,6 +98,8 @@ flowchart TD
     MRS --> SIS
     MGS --> NS
     MGS --> SIS
+    MESvc --> NS
+    MESvc --> SIS
     MES --> NS
     MAS --> NS
     MTS --> NS
@@ -140,6 +144,15 @@ classDiagram
 - Transform ops: `embed_tag_backfill`, `reindex_tag_embeddings` on `semantic_tag_index` rows.
 
 Schema version: `locus-sdk.memory.v2`.
+
+### 4.1.2 Node eviction primitives (v3)
+- `MemoryEvictService`: explicit delete orchestration over `NodeStore` with reference blocking, dry-run preview, and semantic index cleanup.
+- Modes: `by_sync_keys`, `by_node_ids`, `by_filter` (scope + `MemoryFilter`), `purge_session`.
+- Reference safety: blocks when inbound `parent_node_id` or `ref:` semantic links target a survivor unless `force=true`.
+- Session purge optionally removes `calibration` and `sync_checkpoint` rows (defaults on at gateway/MCP/CLI for purge operations).
+- Transport parity: `POST /api/v1/evict`, MCP `evict_nodes`, CLI `locus evict`.
+
+Schema version: `locus-sdk.memory.v3` (adds `evict_operations`: `delete_nodes`, `purge_session`).
 
 ### 4.2 Transform and Provider Resolution
 ```mermaid

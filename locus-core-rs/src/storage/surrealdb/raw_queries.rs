@@ -702,6 +702,14 @@ pub const COUNT_CALIBRATION_SCOPE_QUERY: &str = r#"
                         LIMIT 1;
                         "#;
 
+pub const COUNT_CHECKPOINT_SCOPE_QUERY: &str = r#"
+                        SELECT count() AS Count
+                        FROM sync_checkpoint
+                        WHERE session_id = $session_id
+                            AND (tenant_id = $tenant_id OR ($include_legacy AND (tenant_id = NONE OR tenant_id = '')))
+                        LIMIT 1;
+                        "#;
+
 pub const APPLY_SCOPE_REKEY_QUERY: &str = r#"
                         BEGIN TRANSACTION;
 
@@ -725,6 +733,60 @@ pub const APPLY_SCOPE_REKEY_QUERY: &str = r#"
 pub const DELETE_TAG_ROWS_FOR_SYNC_KEY_QUERY: &str = r#"
             DELETE semantic_tag_index
             WHERE tenant_id = $tenant_id AND sync_key = $sync_key;
+            "#;
+
+pub const DELETE_TAG_ROWS_FOR_SESSION_QUERY: &str = r#"
+            DELETE semantic_tag_index
+            WHERE tenant_id = $tenant_id AND session_id = $session_id;
+            "#;
+
+pub const DELETE_TEMPORAL_NODE_BY_SYNC_KEY_QUERY: &str = r#"
+            DELETE temporal_node
+            WHERE tenant_id = $tenant_id AND session_id = $session_id AND sync_key = $sync_key;
+            "#;
+
+pub const DELETE_TEMPORAL_NODE_BY_ID_QUERY: &str = r#"
+            DELETE type::thing('temporal_node', $node_id);
+            "#;
+
+pub fn purge_temporal_nodes_query(tier_clause: Option<&str>) -> String {
+    let tier_filter = tier_clause
+        .map(|clause| format!(" AND {clause}"))
+        .unwrap_or_default();
+    format!(
+        r#"
+            DELETE temporal_node
+            WHERE tenant_id = $tenant_id AND session_id = $session_id{tier_filter};
+            "#
+    )
+}
+
+pub const PURGE_CALIBRATION_SESSION_QUERY: &str = r#"
+            DELETE calibration
+            WHERE tenant_id = $tenant_id AND session_id = $session_id;
+            "#;
+
+pub const PURGE_CHECKPOINT_SESSION_QUERY: &str = r#"
+            DELETE sync_checkpoint
+            WHERE tenant_id = $tenant_id AND session_id = $session_id;
+            "#;
+
+pub const SELECT_NODE_BY_SYNC_KEY_QUERY: &str = r#"
+            SELECT
+                meta::id(id) AS NodeId,
+                sync_key AS SyncKey
+            FROM temporal_node
+            WHERE tenant_id = $tenant_id AND session_id = $session_id AND sync_key = $sync_key
+            LIMIT 1;
+            "#;
+
+pub const SELECT_NODE_BY_ID_QUERY: &str = r#"
+            SELECT
+                meta::id(id) AS NodeId,
+                sync_key AS SyncKey,
+                session_id AS SessionId
+            FROM type::thing('temporal_node', $node_id)
+            LIMIT 1;
             "#;
 
 pub const UPSERT_TAG_ROW_QUERY: &str = r#"

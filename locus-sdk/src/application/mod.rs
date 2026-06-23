@@ -8,6 +8,7 @@ pub mod manual_compression;
 pub mod memory_aggregate;
 pub mod memory_composition;
 pub mod memory_explain;
+pub mod memory_evict;
 pub mod memory_find;
 pub mod memory_filters;
 pub mod memory_graph;

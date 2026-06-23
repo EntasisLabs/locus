@@ -131,6 +131,8 @@ classDiagram
       +get_checkpoint_async(...)
       +put_checkpoint_async(...)
       +batch_rekey_scopes_async(...)
+      +delete_nodes_async(...)
+      +purge_session_async(...)
     }
 
     SttpNode --> AvecState
@@ -290,6 +292,30 @@ Batch rekey performs scope migration over full session scope, not anchor-only ro
 Safety semantics:
 - Dry-run supported at service level.
 - Merge conflict detection for target scope supported.
+
+## 11.1 Node Eviction (Explicit Delete)
+Eviction is an operator-facing delete primitive on `NodeStore` (not an STTP protocol change).
+
+Operations:
+- `delete_nodes_async(request)`: delete by `sync_key` and/or Surreal record `node_id` within `(tenant_id, session_id)`.
+- `purge_session_async(request)`: delete all `temporal_node` rows in a session scope (optional tier filter).
+
+Cascade semantics:
+- Single-node delete: removes `temporal_node` rows only; SDK layer removes matching `semantic_tag_index` rows per deleted `sync_key`.
+- Session purge: deletes `temporal_node` and all `semantic_tag_index` rows for the session in the same Surreal transaction. Optional `calibration` and `sync_checkpoint` rows are removed when `include_calibration` / `include_checkpoints` are enabled (default **on** for purge at the SDK/transport layer).
+
+Reference safety (SDK `MemoryEvictService`, not store):
+- Block delete when another node in the session has `parent_node_id` pointing at the candidate graph id or store id.
+- Block delete when another node has `semantic_links[].target` equal to `ref:<graph_id>`, `ref:<store_node_id>`, or `ref:<sync_key>`.
+- Use `force=true` to bypass reference blocking.
+
+Dry-run:
+- Store returns per-record `Skipped` with reason `would delete` and increments `deleted` as a would-delete count.
+- No writes are performed.
+
+Identity notes:
+- Prefer `sync_key` as the stable operator handle.
+- `node_id` accepts normalized Surreal record ids (`temporal_node:<id>`).
 
 ## 12. Validation and Integrity Constraints
 Protocol-level validation (`TreeSitterValidator`) enforces:

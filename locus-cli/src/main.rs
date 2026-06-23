@@ -14,9 +14,11 @@ use locus_core_rs::{
     SurrealDbClient, SurrealDbEndpointsSettings, SurrealDbNodeStore, SurrealDbRuntimeOptions,
     SurrealDbSemanticIndexStore, SurrealDbSettings, TreeSitterValidator,
 };
+use locus_sdk::application::memory_evict::MemoryEvictService;
 use locus_sdk::application::memory_find::MemoryFindService;
 use locus_sdk::application::memory_graph::MemoryGraphService;
 use locus_sdk::application::memory_recall::MemoryRecallService;
+use locus_sdk::domain::evict::{MemoryEvictMode, MemoryEvictRequest};
 use locus_sdk::domain::graph::MemoryGraphRequest;
 use locus_sdk::domain::memory::{
     MemoryFilter, MemoryFindRequest, MemoryPage, MemoryRecallRequest, MemoryScope,
@@ -153,6 +155,34 @@ enum Commands {
         #[arg(long, value_delimiter = ',')]
         tags: Vec<String>,
     },
+    Evict {
+        #[arg(long)]
+        session: String,
+        #[arg(long)]
+        sync_key: Option<String>,
+        #[arg(long, value_delimiter = ',')]
+        sync_keys: Vec<String>,
+        #[arg(long)]
+        node_id: Option<String>,
+        #[arg(long, value_delimiter = ',')]
+        node_ids: Vec<String>,
+        #[arg(long, value_delimiter = ',')]
+        tags: Vec<String>,
+        #[arg(long)]
+        link_rel: Option<String>,
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        force: bool,
+        #[arg(long)]
+        purge_session: bool,
+        #[arg(long)]
+        include_calibration: bool,
+        #[arg(long)]
+        include_checkpoints: bool,
+        #[arg(long)]
+        max_nodes: Option<usize>,
+    },
     Moods {
         #[arg(long)]
         target_mood: Option<String>,
@@ -191,6 +221,7 @@ struct Services {
     memory_find: MemoryFindService,
     memory_recall: MemoryRecallService,
     memory_graph: MemoryGraphService,
+    memory_evict: MemoryEvictService,
     moods: MoodCatalogService,
     monthly_rollup: MonthlyRollupService,
     storage_mode: &'static str,
@@ -511,6 +542,85 @@ async fn main() -> Result<()> {
                 "edges": result.edges,
             })
         }
+        Commands::Evict {
+            session,
+            sync_key,
+            sync_keys,
+            node_id,
+            node_ids,
+            tags,
+            link_rel,
+            dry_run,
+            force,
+            purge_session,
+            include_calibration,
+            include_checkpoints,
+            max_nodes,
+        } => {
+            let scoped_session = scope_session_id(&tenant, &session);
+            let mut keys = sync_keys;
+            if let Some(key) = sync_key {
+                keys.push(key);
+            }
+            let mut ids = node_ids;
+            if let Some(id) = node_id {
+                ids.push(id);
+            }
+
+            let mode = if purge_session {
+                MemoryEvictMode::PurgeSession
+            } else if !keys.is_empty() {
+                MemoryEvictMode::BySyncKeys
+            } else if !ids.is_empty() {
+                MemoryEvictMode::ByNodeIds
+            } else if !tags.is_empty() || link_rel.is_some() {
+                MemoryEvictMode::ByFilter
+            } else {
+                bail!("provide --sync-key, --node-id, --tags/--link-rel, or --purge-session");
+            };
+
+            let indexed_tags = if tags.is_empty() {
+                None
+            } else {
+                Some(tags)
+            };
+
+            let result = services
+                .memory_evict
+                .execute(&MemoryEvictRequest {
+                    mode,
+                    scope: MemoryScope {
+                        tenant_id: Some(tenant.clone()),
+                        session_ids: Some(vec![scoped_session]),
+                        ..Default::default()
+                    },
+                    filter: MemoryFilter {
+                        indexed_tags,
+                        link_rel,
+                        ..Default::default()
+                    },
+                    sync_keys: if keys.is_empty() { None } else { Some(keys) },
+                    node_ids: if ids.is_empty() { None } else { Some(ids) },
+                    dry_run,
+                    force,
+                    max_nodes: max_nodes.unwrap_or(5000),
+                    include_calibration: include_calibration || purge_session,
+                    include_checkpoints: include_checkpoints || purge_session,
+                })
+                .await?;
+
+            json!({
+                "dryRun": result.dry_run,
+                "deleted": result.deleted,
+                "blocked": result.blocked,
+                "notFound": result.not_found,
+                "skipped": result.skipped,
+                "wouldDelete": result.would_delete,
+                "calibrationsDeleted": result.calibrations_deleted,
+                "checkpointsDeleted": result.checkpoints_deleted,
+                "records": result.records,
+            })
+        }
         Commands::Moods {
             target_mood,
             blend,
@@ -703,6 +813,7 @@ async fn build_services(cli: &Cli) -> Result<Services> {
         memory_recall: MemoryRecallService::new(store.clone())
             .with_semantic_index(semantic_index.clone()),
         memory_graph: MemoryGraphService::new(store.clone()).with_semantic_index(semantic_index.clone()),
+        memory_evict: MemoryEvictService::new(store.clone()).with_semantic_index(semantic_index.clone()),
         moods: MoodCatalogService::new(),
         monthly_rollup: MonthlyRollupService::new(store, validator)
             .with_semantic_index(semantic_index),
