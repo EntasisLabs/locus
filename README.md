@@ -390,49 +390,68 @@ Locus uses Instrumenta-style namespaced component release lines.
 Use the root-level wrapper to orchestrate component release and image scripts in one place:
 
 ```bash
-./build.sh --default-version 0.1.0
+./scripts/release.sh              # preflight (check + test)
+./scripts/release.sh --build      # preflight + release artifact builds
+./scripts/release.sh --build --publish
+```
+
+Or invoke `./build.sh` directly with explicit versions:
+
+```bash
+./build.sh --mode release \
+  --targets core,mcp,gateway,cli \
+  --mcp-version 0.2.0 \
+  --gateway-version 0.3.0 \
+  --cli-version 0.2.0
 ```
 
 Common patterns:
 
 ```bash
 # Release artifacts/checks only
-./build.sh --mode release --default-version 0.1.0
+./build.sh --mode release --mcp-version 0.2.0 --gateway-version 0.3.0 --cli-version 0.2.0
 
 # Release artifacts/checks and publish outputs to GitHub/crates.io targets
-./build.sh --mode release --default-version 0.1.0 --publish
+./build.sh --mode release --mcp-version 0.2.0 --gateway-version 0.3.0 --cli-version 0.2.0 --publish
 
 # Build and tag only service images (mcp + gateway)
-./build.sh --mode images --stack services --default-version 0.1.0
+./build.sh --mode images --stack services --mcp-version 0.2.0 --gateway-version 0.3.0
 ```
 
 ### Suggested Release Sequence
 
 ```bash
+# Full preflight + optional builds (see ./scripts/release.sh --help)
+./scripts/release.sh
+./scripts/release.sh --build
+
 cargo check --workspace
-cargo test --workspace
+cargo test -p locus-core-rs -p locus-sdk -p locus-gateway -p locus-mcp -p locus-cli
 
-# Optional one-command orchestrated release/images flow
-./build.sh --default-version 0.1.0
-
-./locus-core-rs/publish-crates.sh
-cargo publish --manifest-path locus-sdk/Cargo.toml --dry-run
+./locus-core-rs/publish-crates.sh --publish
+./locus-sdk/publish-crates.sh --publish
 
 ./locus-mcp/build.sh --publish
 ./locus-gateway/build.sh --publish
+./locus-cli/build.sh --publish
 
-git tag locus-core-rs/v0.2.0
-git tag locus-sdk/v0.1.0
-git tag locus-mcp/v0.1.0
-git tag locus-gateway/v2.0.0
-git tag locus-cli/v0.1.0
-git push origin locus-core-rs/v0.2.0 locus-sdk/v0.1.0 locus-mcp/v0.1.0 locus-gateway/v2.0.0 locus-cli/v0.1.0
+git tag locus-core-rs/v0.4.0
+git tag locus-sdk/v0.2.0
+git tag locus-mcp/v0.2.0
+git tag locus-gateway/v0.3.0
+git tag locus-cli/v0.2.0
+git push origin \
+  locus-core-rs/v0.4.0 \
+  locus-sdk/v0.2.0 \
+  locus-mcp/v0.2.0 \
+  locus-gateway/v0.3.0 \
+  locus-cli/v0.2.0
 
-./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.1.0
-docker push ghcr.io/entasislabs/locus-mcp:0.1.0
+./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.2.0
+docker push ghcr.io/entasislabs/locus-mcp:0.2.0
 
-./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:2.0.0
-docker push ghcr.io/entasislabs/locus-gateway:2.0.0
+./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:0.3.0
+docker push ghcr.io/entasislabs/locus-gateway:0.3.0
 ```
 
 ## Operational Guardrails
@@ -493,7 +512,12 @@ This allows teams to adopt a minimal surface first and grow into broader deploym
 Crate-level release notes:
 
 1. [locus-core-rs/CHANGELOG.md](locus-core-rs/CHANGELOG.md)
-2. [locus-gateway/CHANGELOG.md](locus-gateway/CHANGELOG.md)
+2. [locus-sdk/CHANGELOG.md](locus-sdk/CHANGELOG.md)
+3. [locus-gateway/CHANGELOG.md](locus-gateway/CHANGELOG.md)
+4. [locus-mcp/CHANGELOG.md](locus-mcp/CHANGELOG.md)
+5. [locus-cli/CHANGELOG.md](locus-cli/CHANGELOG.md)
+
+Release helper: [scripts/release.sh](scripts/release.sh)
 
 ## Contributing
 

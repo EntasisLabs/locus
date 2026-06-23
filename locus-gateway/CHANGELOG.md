@@ -3,7 +3,15 @@
 All notable changes specific to locus-gateway are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
-## [Unreleased]
+## [0.3.0] - 2026-06-23
+
+### Added
+
+- **Semantic retrieval filters** on context, list-nodes, and graph endpoints: `semanticTags`, `tagsContains`, `linkRel`, `linkTarget`, `linksToRef`, `tagPrefix`, `hasSemanticLinks`, and `gamma` (hybrid tag weight).
+- **`GET /api/v1/graph`** (+ aliases `/api/graph`, `/graph`) — memory graph with session topology, lineage, and semantic edges.
+- **`POST /api/v1/evict`** (+ aliases `/api/evict`, `/evict`) — explicit node eviction with dry-run, force, filter-based delete, and session purge.
+- gRPC/proto fields for `semantic_tags` and `semantic_links` on node payloads.
+- App state wiring for `SemanticIndexStore` across find, recall, graph, transform, and evict services.
 
 ### Changed
 
@@ -17,33 +25,25 @@ For historical entries before this split, see ../CHANGELOG.md.
 - Introduced a thin entrypoint design:
 	- `src/main.rs` now acts as composition root and delegates runtime execution
 	- runtime transport implementation moved to `src/gateway.rs` via `gateway::run()`
-- Preserved behavior while modularizing:
-	- HTTP/gRPC route surface and compatibility aliases remain unchanged
-	- default and `local-embedding` test paths remained green through the refactor
 - Added embedding-focused retrieval endpoint for hybrid RAG + AVEC vector queries:
 	- `POST /api/v1/context/embeddings`
 	- aliases: `POST /api/context/embeddings`, `POST /context/embeddings`
-	- accepts separate RAG and AVEC embeddings (or query text), fuses with configurable weights, then executes hybrid context retrieval
-	- validates dimension mismatches and returns `400` for invalid embedding combinations
-- Added gRPC parity for embedding-focused retrieval:
-	- `GetEmbeddingContext(GetEmbeddingContextRequest) -> GetContextReply`
-	- supports separate RAG and AVEC embeddings/text with weighted fusion before hybrid retrieval
-	- returns `INVALID_ARGUMENT` for invalid embedding combinations (for example, mismatched dimensions)
+- Added gRPC parity for embedding-focused retrieval: `GetEmbeddingContext`.
+- Added Resonantia BYO Node Store compatibility aliases for HTTP endpoints.
+- Added BYO CORS support and tenant header aliases.
+- Updated Node Store HTTP response compatibility (`syncKey`, `syntheticId`, `duplicateSkipped`, `upsertStatus`).
+- Added BYO session rename endpoint: `POST /api/v1/session/rename` (+ aliases).
+- Dependency alignment: `locus-core-rs` 0.4.0, `locus-sdk` 0.2.0.
 
-- Added Resonantia BYO Node Store compatibility aliases for HTTP endpoints:
-	- `POST /api/store`, `POST /store` -> `POST /api/v1/store`
-	- `GET /api/nodes`, `GET /nodes` -> `GET /api/v1/nodes`
-	- `GET /api/graph`, `GET /graph` -> `GET /api/v1/graph`
-- Added BYO CORS support and preflight handling with permissive defaults.
-- Added tenant header aliases for HTTP resolution (`x-resonantia-tenant`, `x-tenant-id`, `x-tenant`).
-- Updated Node Store HTTP response compatibility:
-	- list nodes now includes `syncKey` and `syntheticId`
-	- store response now includes `duplicateSkipped` and `upsertStatus`
-- Added BYO session rename endpoint support:
-	- `POST /api/v1/session/rename`
-	- aliases: `POST /api/session/rename`, `POST /session/rename`
-	- request fields: `sourceSessionId`, `targetSessionId`, `allowMerge`
-	- response fields: `sourceSessionId`, `targetSessionId`, `movedNodes`, `movedCalibrations`, `scopesApplied`
+### Tests
+
+- HTTP roundtrip coverage for evict dry-run and apply paths.
+
+## [0.2.0] - 2026-06-09
+
+### Added
+
+- Initial gateway release with HTTP/gRPC transport, in-memory and SurrealDB backends, and SDK-backed memory services.
 
 ## [1.2.3] - 2026-04-14
 
