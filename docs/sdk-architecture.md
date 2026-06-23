@@ -45,6 +45,7 @@ Layer intent:
 ## 3. Module Decomposition
 ### 3.1 Domain Layer
 - `domain/memory.rs`: canonical memory query/recall/aggregate/transform contracts.
+- `domain/graph.rs`: graph traversal request/result contracts.
 - `domain/ai.rs`: provider capability model and routing contracts.
 - `domain/compression.rs`: manual compression request/result schema.
 
@@ -55,6 +56,8 @@ Primary services:
 - `MemoryExplainService`
 - `MemoryAggregateService`
 - `MemoryTransformService`
+- `MemoryGraphService`
+- `MemoryEvictService`
 - `MemoryCompositionService`
 - `MemorySchemaService`
 - `ManualCompressionService`
@@ -79,6 +82,9 @@ flowchart TD
     MES[MemoryExplainService]
     MAS[MemoryAggregateService]
     MTS[MemoryTransformService]
+    MGS[MemoryGraphService]
+    MESvc[MemoryEvictService]
+    SIS[SemanticIndexStore interface]
     NS[NodeStore interface]
     APR[AiProviderRegistry interface]
     AP[AiProvider interface]
@@ -87,7 +93,13 @@ flowchart TD
     MCS --> MES
     MCS --> MAS
     MFS --> NS
+    MFS --> SIS
     MRS --> NS
+    MRS --> SIS
+    MGS --> NS
+    MGS --> SIS
+    MESvc --> NS
+    MESvc --> SIS
     MES --> NS
     MAS --> NS
     MTS --> NS
@@ -122,6 +134,25 @@ classDiagram
     MemoryExplainService ..> NodeStore
     MemoryAggregateService ..> NodeStore
 ```
+
+### 4.1.1 Semantic index and graph primitives (v2)
+- `SemanticIndexStore` (core): per-tag rows with optional embeddings; synced on ingest from `temporal_node.semantic_tags`.
+- `MemoryFilter.indexed_tags` / `tag_prefix`: exact tag pre-filter via index before resonance/hybrid ranking.
+- `MemoryFilter` link fields (`has_semantic_links`, `link_rel`, `link_target`, `links_to_ref`): node-side semantic link predicates.
+- `MemoryGraphService`: materializes session topology, lineage, and semantic edges at read time from stored nodes (no materialized graph table in v2).
+- `MemoryScoring.gamma` + `MemoryRecallRequest.query_tag_embedding`: optional tag-embedding fusion after hybrid recall (default `gamma = 0.0`).
+- Transform ops: `embed_tag_backfill`, `reindex_tag_embeddings` on `semantic_tag_index` rows.
+
+Schema version: `locus-sdk.memory.v2`.
+
+### 4.1.2 Node eviction primitives (v3)
+- `MemoryEvictService`: explicit delete orchestration over `NodeStore` with reference blocking, dry-run preview, and semantic index cleanup.
+- Modes: `by_sync_keys`, `by_node_ids`, `by_filter` (scope + `MemoryFilter`), `purge_session`.
+- Reference safety: blocks when inbound `parent_node_id` or `ref:` semantic links target a survivor unless `force=true`.
+- Session purge optionally removes `calibration` and `sync_checkpoint` rows (defaults on at gateway/MCP/CLI for purge operations).
+- Transport parity: `POST /api/v1/evict`, MCP `evict_nodes`, CLI `locus evict`.
+
+Schema version: `locus-sdk.memory.v3` (adds `evict_operations`: `delete_nodes`, `purge_session`).
 
 ### 4.2 Transform and Provider Resolution
 ```mermaid
@@ -293,6 +324,7 @@ Primary implementation locations:
 - `locus-sdk/src/domain/memory.rs`
 - `locus-sdk/src/domain/ai.rs`
 - `locus-sdk/src/application/memory_find.rs`
+- `locus-sdk/src/application/memory_graph.rs`
 - `locus-sdk/src/application/memory_recall.rs`
 - `locus-sdk/src/application/memory_explain.rs`
 - `locus-sdk/src/application/memory_aggregate.rs`

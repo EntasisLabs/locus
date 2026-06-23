@@ -5,14 +5,18 @@ use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use crate::domain::contracts::{EmbeddingProvider, NodeStore, NodeValidator};
-use crate::domain::models::{ParseDiagnostic, StoreResult};
+use crate::domain::contracts::{
+    EmbeddingProvider, NodeStore, NodeValidator, SemanticIndexStore, TagEmbedding,
+};
+use crate::domain::models::{ParseDiagnostic, SemanticTagNodeRef, StoreResult};
 use crate::parsing::SttpNodeParser;
+use crate::storage::derive_tenant_id_from_session;
 
 pub struct StoreContextService {
     store: Arc<dyn NodeStore>,
     validator: Arc<dyn NodeValidator>,
     embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
+    semantic_index: Option<Arc<dyn SemanticIndexStore>>,
     parser: SttpNodeParser,
     retry_policy: StoreRetryPolicy,
 }
@@ -62,9 +66,18 @@ impl StoreContextService {
             store,
             validator,
             embedding_provider: None,
+            semantic_index: None,
             parser: parser,
             retry_policy,
         }
+    }
+
+    pub fn with_semantic_index(
+        mut self,
+        semantic_index: Arc<dyn SemanticIndexStore>,
+    ) -> Self {
+        self.semantic_index = Some(semantic_index);
+        self
     }
 
     /// Create a store-context service with optional embedding enrichment.
@@ -95,6 +108,7 @@ impl StoreContextService {
             store,
             validator,
             embedding_provider: Some(embedding_provider),
+            semantic_index: None,
             parser: parser,
             retry_policy,
         }
@@ -242,6 +256,18 @@ impl StoreContextService {
 
         match self.store.store_async(parsed.clone()).await {
             Ok(node_id) => {
+                if let Err(err) = self
+                    .sync_semantic_tags_async(&parsed, &node_id)
+                    .await
+                {
+                    emit_ingest_trace(
+                        session_id,
+                        "semantic_index",
+                        "sync_failure",
+                        &format!("error={} content_redacted=true", err),
+                    );
+                }
+
                 self.reset_failures(session_id);
                 emit_ingest_trace(
                     session_id,
@@ -344,6 +370,35 @@ impl StoreContextService {
             None => base,
         }
     }
+
+    async fn sync_semantic_tags_async(
+        &self,
+        parsed: &crate::domain::models::SttpNode,
+        node_id: &str,
+    ) -> anyhow::Result<()> {
+        let Some(index) = self.semantic_index.as_ref() else {
+            return Ok(());
+        };
+
+        let tags = parsed.semantic_tags.clone().unwrap_or_default();
+        let tenant_id = derive_tenant_id_from_session(&parsed.session_id);
+        let node_ref = SemanticTagNodeRef {
+            tenant_id,
+            session_id: parsed.session_id.clone(),
+            node_id: node_id.to_string(),
+            sync_key: parsed.sync_key.clone(),
+        };
+
+        let embeddings = if let Some(provider) = self.embedding_provider.as_ref() {
+            Some(build_tag_embeddings(provider.as_ref(), &tags).await)
+        } else {
+            None
+        };
+
+        index
+            .sync_node_tags_async(node_ref, &tags, embeddings.as_ref())
+            .await
+    }
 }
 
 fn emit_ingest_trace(session_id: &str, stage: &str, reason: &str, detail: &str) {
@@ -408,6 +463,32 @@ fn build_embedding_input(context_summary: Option<&str>, session_id: &str) -> Opt
         Some(summary) => summary,
         None => format!("session_id:{session}"),
     })
+}
+
+async fn build_tag_embeddings(
+    provider: &dyn EmbeddingProvider,
+    tags: &[String],
+) -> HashMap<String, TagEmbedding> {
+    let mut embeddings = HashMap::new();
+
+    for tag in tags {
+        let canonical = tag.trim().to_lowercase();
+        if canonical.is_empty() {
+            continue;
+        }
+
+        if let Ok(vector) = provider.embed_async(tag).await {
+            embeddings.insert(
+                canonical,
+                TagEmbedding {
+                    vector,
+                    model: provider.model_name().to_string(),
+                },
+            );
+        }
+    }
+
+    embeddings
 }
 
 #[cfg(test)]

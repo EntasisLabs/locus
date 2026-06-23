@@ -1,6 +1,7 @@
 use axum::Json;
 use axum::http::HeaderValue;
 use chrono::{DateTime, Utc};
+use locus_core_rs::SemanticLink;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
@@ -53,6 +54,14 @@ pub(crate) struct GetContextHttpRequest {
     pub(crate) query_embedding: Option<Vec<f32>>,
     pub(crate) alpha: Option<f32>,
     pub(crate) beta: Option<f32>,
+    pub(crate) gamma: Option<f32>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) tags_contains: Option<Vec<String>>,
+    pub(crate) link_rel: Option<String>,
+    pub(crate) link_target: Option<String>,
+    pub(crate) links_to_ref: Option<String>,
+    pub(crate) tag_prefix: Option<String>,
+    pub(crate) has_semantic_links: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -76,6 +85,10 @@ pub(crate) struct GetEmbeddingContextHttpRequest {
     pub(crate) avec_weight: Option<f32>,
     pub(crate) alpha: Option<f32>,
     pub(crate) beta: Option<f32>,
+    pub(crate) tag_weight: Option<f32>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) link_rel: Option<String>,
+    pub(crate) link_target: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -101,7 +114,7 @@ pub(crate) struct BatchRekeyHttpRequest {
     pub(crate) allow_merge: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct EmbeddingMigrationFilterHttp {
     pub(crate) session_id: Option<String>,
@@ -113,11 +126,13 @@ pub(crate) struct EmbeddingMigrationFilterHttp {
     pub(crate) sync_keys: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum EmbeddingMigrationModeHttp {
     MissingOnly,
     ReindexAll,
+    Tags,
+    Both,
 }
 
 #[derive(Debug, Deserialize)]
@@ -146,6 +161,13 @@ pub(crate) struct ListNodesQuery {
     pub(crate) limit: Option<usize>,
     pub(crate) session_id: Option<String>,
     pub(crate) tenant_id: Option<String>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) tags_contains: Option<Vec<String>>,
+    pub(crate) link_rel: Option<String>,
+    pub(crate) link_target: Option<String>,
+    pub(crate) links_to_ref: Option<String>,
+    pub(crate) tag_prefix: Option<String>,
+    pub(crate) has_semantic_links: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -165,6 +187,14 @@ pub(crate) struct GraphQuery {
     pub(crate) limit: Option<usize>,
     pub(crate) session_id: Option<String>,
     pub(crate) tenant_id: Option<String>,
+    pub(crate) rel: Option<String>,
+    pub(crate) target_prefix: Option<String>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) link_rel: Option<String>,
+    pub(crate) link_target: Option<String>,
+    pub(crate) links_to_ref: Option<String>,
+    pub(crate) tag_prefix: Option<String>,
+    pub(crate) has_semantic_links: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -195,6 +225,8 @@ pub(crate) struct SttpNodeDto {
     pub(crate) timestamp: DateTime<Utc>,
     pub(crate) compression_depth: i32,
     pub(crate) parent_node_id: Option<String>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) semantic_links: Option<Vec<SemanticLink>>,
     pub(crate) user_avec: AvecStateDto,
     pub(crate) model_avec: AvecStateDto,
     pub(crate) compression_avec: Option<AvecStateDto>,
@@ -405,6 +437,44 @@ pub(crate) struct GraphResponse {
     pub(crate) nodes: Vec<serde_json::Value>,
     pub(crate) edges: Vec<serde_json::Value>,
     pub(crate) retrieved: usize,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct EvictHttpRequest {
+    pub(crate) tenant_id: Option<String>,
+    pub(crate) session_id: String,
+    pub(crate) mode: Option<String>,
+    pub(crate) sync_keys: Option<Vec<String>>,
+    pub(crate) node_ids: Option<Vec<String>>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) tags_contains: Option<Vec<String>>,
+    pub(crate) link_rel: Option<String>,
+    pub(crate) link_target: Option<String>,
+    pub(crate) links_to_ref: Option<String>,
+    pub(crate) tag_prefix: Option<String>,
+    pub(crate) has_semantic_links: Option<bool>,
+    pub(crate) purge_session: Option<bool>,
+    pub(crate) dry_run: Option<bool>,
+    pub(crate) force: Option<bool>,
+    pub(crate) max_nodes: Option<usize>,
+    pub(crate) include_calibration: Option<bool>,
+    pub(crate) include_checkpoints: Option<bool>,
+    pub(crate) tiers: Option<Vec<String>>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct EvictHttpResultDto {
+    pub(crate) dry_run: bool,
+    pub(crate) deleted: usize,
+    pub(crate) blocked: usize,
+    pub(crate) not_found: usize,
+    pub(crate) skipped: usize,
+    pub(crate) would_delete: Vec<String>,
+    pub(crate) calibrations_deleted: usize,
+    pub(crate) checkpoints_deleted: usize,
+    pub(crate) records: Vec<serde_json::Value>,
 }
 
 pub(crate) type ApiResult<T> = Result<Json<T>, (axum::http::StatusCode, Json<ErrorResponse>)>;

@@ -1,5 +1,5 @@
 use locus_sdk::application::memory_recall::MemoryRecallService;
-use locus_sdk::domain::memory::{MemoryPage, MemoryRecallRequest, MemoryScope, MemoryScoring};
+use locus_sdk::domain::memory::{MemoryFilter, MemoryPage, MemoryRecallRequest, MemoryScope, MemoryScoring};
 use serde_json::json;
 use tracing::error;
 
@@ -39,9 +39,15 @@ pub(crate) async fn execute(server: &SttpMcpServer, request: GetContextRequest) 
             return tool_error("InvalidArgument", "beta must be between 0.0 and 1.0");
         }
     }
+    if let Some(gamma) = request.gamma {
+        if !(0.0..=1.0).contains(&gamma) {
+            return tool_error("InvalidArgument", "gamma must be between 0.0 and 1.0");
+        }
+    }
 
     let alpha = request.alpha.unwrap_or(0.7);
     let beta = request.beta.unwrap_or(0.3);
+    let gamma = request.gamma.unwrap_or(0.0);
     let query_text = if context_keywords.is_empty() {
         None
     } else {
@@ -52,8 +58,16 @@ pub(crate) async fn execute(server: &SttpMcpServer, request: GetContextRequest) 
     } else {
         server.embed_context_keywords(&context_keywords).await
     };
+    let query_tag_embedding = if context_keywords.is_empty() {
+        None
+    } else if gamma > 0.0 {
+        server.embed_context_keywords(&context_keywords).await
+    } else {
+        None
+    };
 
-    let recall_service = MemoryRecallService::new(server.node_store.clone());
+    let recall_service = MemoryRecallService::new(server.node_store.clone())
+        .with_semantic_index(server.semantic_index.clone());
     let recall_result = match recall_service
         .execute(&MemoryRecallRequest {
             scope: MemoryScope {
@@ -70,6 +84,13 @@ pub(crate) async fn execute(server: &SttpMcpServer, request: GetContextRequest) 
             scoring: MemoryScoring {
                 alpha,
                 beta,
+                gamma,
+                ..Default::default()
+            },
+            filter: MemoryFilter {
+                indexed_tags: request.semantic_tags,
+                link_rel: request.link_rel,
+                link_target: request.link_target,
                 ..Default::default()
             },
             current_avec: Some(locus_core_rs::AvecState {
@@ -80,6 +101,7 @@ pub(crate) async fn execute(server: &SttpMcpServer, request: GetContextRequest) 
             }),
             query_text,
             query_embedding,
+            query_tag_embedding,
             ..Default::default()
         })
         .await

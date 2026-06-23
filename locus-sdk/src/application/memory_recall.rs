@@ -3,16 +3,20 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use locus_core_rs::ContextQueryService;
-use locus_core_rs::domain::contracts::NodeStore;
-use locus_core_rs::domain::models::{AvecState, PsiRange, SttpNode};
+use locus_core_rs::domain::contracts::{NodeStore, SemanticIndexStore};
+use locus_core_rs::domain::models::{AvecState, PsiRange, SemanticTagQueryFilter, SttpNode};
+use locus_core_rs::storage::derive_tenant_id_from_session;
 
-use crate::application::memory_filters::{build_session_filter, node_matches_common_filters};
+use crate::application::memory_filters::{
+    build_session_filter, node_matches_common_filters, resolve_indexed_sync_keys,
+};
 use crate::domain::memory::{
     FallbackPolicy, MemoryRecallRequest, MemoryRecallResult, RetrievalPath, clamp_limit,
 };
 
 pub struct MemoryRecallService {
     context_query: ContextQueryService,
+    semantic_index: Option<Arc<dyn SemanticIndexStore>>,
 }
 
 impl MemoryRecallService {
@@ -20,7 +24,16 @@ impl MemoryRecallService {
     pub fn new(store: Arc<dyn NodeStore>) -> Self {
         Self {
             context_query: ContextQueryService::new(store),
+            semantic_index: None,
         }
+    }
+
+    pub fn with_semantic_index(
+        mut self,
+        semantic_index: Arc<dyn SemanticIndexStore>,
+    ) -> Self {
+        self.semantic_index = Some(semantic_index);
+        self
     }
 
     /// Retrieve context nodes using resonance or hybrid scoring,
@@ -37,6 +50,25 @@ impl MemoryRecallService {
             .filter(|sessions| sessions.len() == 1)
             .and_then(|sessions| sessions.first().map(String::as_str));
         let session_filter = build_session_filter(&request.scope);
+        let tenant_id = request
+            .scope
+            .tenant_id
+            .clone()
+            .or_else(|| session_scope.map(derive_tenant_id_from_session))
+            .unwrap_or_else(|| "default".to_string());
+
+        let indexed_sync_keys = if let Some(index) = self.semantic_index.as_ref() {
+            resolve_indexed_sync_keys(
+                index.as_ref(),
+                &tenant_id,
+                &request.filter,
+                session_scope,
+                expanded_limit,
+            )
+            .await?
+        } else {
+            None
+        };
 
         let mut path = if request.query_embedding.is_some() {
             RetrievalPath::Hybrid
@@ -58,7 +90,7 @@ impl MemoryRecallService {
                     Some(query_embedding),
                     request.scoring.alpha,
                     request.scoring.beta,
-                    limit,
+                    expanded_limit,
                 )
                 .await
         } else {
@@ -72,12 +104,17 @@ impl MemoryRecallService {
                     request.scope.from_utc,
                     request.scope.to_utc,
                     request.scope.tiers.as_deref(),
-                    limit,
+                    expanded_limit,
                 )
                 .await
         };
 
-        let mut nodes = filter_nodes(primary.nodes, request, session_filter.as_ref());
+        let mut nodes = filter_nodes(
+            primary.nodes,
+            request,
+            session_filter.as_ref(),
+            indexed_sync_keys.as_ref(),
+        );
 
         if let Some(query_text) = request.query_text.as_deref() {
             let need_fallback = match request.scoring.fallback_policy {
@@ -103,7 +140,12 @@ impl MemoryRecallService {
                     .await;
 
                 let lexical = lexical_filter(
-                    filter_nodes(fallback_result.nodes, request, session_filter.as_ref()),
+                    filter_nodes(
+                        fallback_result.nodes,
+                        request,
+                        session_filter.as_ref(),
+                        indexed_sync_keys.as_ref(),
+                    ),
                     query_text,
                 );
 
@@ -115,6 +157,20 @@ impl MemoryRecallService {
 
                 path = RetrievalPath::LexicalFallback;
             }
+        }
+
+        if request.scoring.gamma > 0.0
+            && let Some(query_tag_embedding) = request.query_tag_embedding.as_deref()
+            && let Some(index) = self.semantic_index.as_ref()
+        {
+            rerank_by_tag_similarity(
+                &mut nodes,
+                index.as_ref(),
+                &tenant_id,
+                query_tag_embedding,
+                request.scoring.gamma,
+            )
+            .await?;
         }
 
         let has_more = nodes.len() > limit;
@@ -137,13 +193,102 @@ impl MemoryRecallService {
     }
 }
 
+async fn rerank_by_tag_similarity(
+    nodes: &mut Vec<SttpNode>,
+    index: &dyn SemanticIndexStore,
+    tenant_id: &str,
+    query_embedding: &[f32],
+    gamma: f32,
+) -> Result<()> {
+    if nodes.is_empty() {
+        return Ok(());
+    }
+
+    let sync_keys: Vec<String> = nodes.iter().map(|node| node.sync_key.clone()).collect();
+    let records = index
+        .query_tag_records_async(SemanticTagQueryFilter {
+            tenant_id: Some(tenant_id.to_string()),
+            tags: None,
+            tag_prefix: None,
+            has_embedding: Some(true),
+            missing_embedding_only: false,
+            limit: sync_keys.len().saturating_mul(16).max(64),
+            session_id: None,
+        })
+        .await?;
+
+    let mut scores: Vec<(usize, f32)> = nodes
+        .iter()
+        .enumerate()
+        .map(|(index, node)| {
+            let tag_score = records
+                .iter()
+                .filter(|record| record.sync_key == node.sync_key)
+                .filter_map(|record| record.embedding.as_deref())
+                .filter_map(|embedding| cosine_similarity(query_embedding, embedding))
+                .fold(0.0_f32, f32::max);
+            (index, tag_score)
+        })
+        .collect();
+
+    scores.sort_by(|left, right| right.1.partial_cmp(&left.1).unwrap_or(std::cmp::Ordering::Equal));
+
+    let mut reranked = Vec::with_capacity(nodes.len());
+    let mut used = HashSet::new();
+    for (index, _) in scores {
+        if used.insert(index) {
+            reranked.push(nodes[index].clone());
+        }
+    }
+
+    if gamma >= 1.0 {
+        *nodes = reranked;
+    } else {
+        let blend_count = ((nodes.len() as f32) * gamma).ceil() as usize;
+        for (slot, node) in reranked.into_iter().take(blend_count).enumerate() {
+            nodes[slot] = node;
+        }
+    }
+
+    Ok(())
+}
+
+fn cosine_similarity(left: &[f32], right: &[f32]) -> Option<f32> {
+    if left.len() != right.len() || left.is_empty() {
+        return None;
+    }
+
+    let mut dot = 0.0_f32;
+    let mut left_norm = 0.0_f32;
+    let mut right_norm = 0.0_f32;
+
+    for (left_value, right_value) in left.iter().zip(right.iter()) {
+        dot += left_value * right_value;
+        left_norm += left_value * left_value;
+        right_norm += right_value * right_value;
+    }
+
+    if left_norm == 0.0 || right_norm == 0.0 {
+        return None;
+    }
+
+    Some(dot / (left_norm.sqrt() * right_norm.sqrt()))
+}
+
 fn filter_nodes(
     nodes: Vec<SttpNode>,
     request: &MemoryRecallRequest,
     session_filter: Option<&HashSet<String>>,
+    indexed_sync_keys: Option<&HashSet<String>>,
 ) -> Vec<SttpNode> {
     nodes.into_iter()
         .filter(|node| {
+            if let Some(keys) = indexed_sync_keys
+                && !keys.contains(&node.sync_key)
+            {
+                return false;
+            }
+
             node_matches_common_filters(node, &request.scope, &request.filter, session_filter)
         })
         .collect()

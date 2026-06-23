@@ -3,7 +3,34 @@
 All notable changes specific to locus-core-rs are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
-## [0.3.0] - 2026-5-09
+## [0.4.0] - 2026-06-23
+
+### Added
+
+- **Semantic tags and links on `SttpNode`**: parser support for `semantic_tags` and `semantic_links` in typed-IR and tolerant profiles; persisted on `temporal_node` in SurrealDB and in-memory stores.
+- **`semantic_tag_index` table** and **`SemanticIndexStore`** contract with in-memory and SurrealDB implementations for per-tag vocabulary rows and optional tag embeddings.
+- **Tag index sync on ingest**: `StoreContextService` and `MonthlyRollupService` diff and upsert tag rows after successful node writes.
+- **Explicit node eviction primitives** on `NodeStore`:
+  - `delete_nodes_async` — delete by `sync_key` and/or record `node_id` within a session scope, with dry-run preview.
+  - `purge_session_async` — session-scoped bulk delete with optional tier filter; cascades `semantic_tag_index` rows; optional `calibration` and `sync_checkpoint` cleanup.
+- Domain models: `SemanticLink`, `SemanticTagNodeRef`, `SemanticTagRecord`, `NodeDeleteRequest`, `NodeDeleteResult`, `SessionPurgeRequest`, and related status types.
+- `derive_tenant_id_from_session` helper exported from `locus_core_rs::storage`.
+
+### Changed
+
+- STTP typed-IR language spec updated to **1.2.0-draft** with semantic tag/link vocabulary guidance (application policy; storage may denormalize indexes).
+- SurrealDB schema migrations for `semantic_tag_index` indexes and eviction delete queries.
+- Monthly rollup persistence now syncs semantic tag index rows for rollup output nodes.
+
+### Fixed
+
+- In-memory `delete_nodes_async` no longer deadlocks when applying deletes (read guard dropped before write lock).
+
+### Tests
+
+- Added `locus-core-rs/tests/node_evict_tests.rs` for delete-by-sync-key, delete-by-node-id, dry-run, and session purge.
+
+## [0.3.0] - 2026-05-09
 ### Changed
 - Updated `SttpNodeParser` to receive a `ParseProfile` for dynamic sttp node parsing
 - Updated contract for `StoreContextService` to explicitly take a parser when created

@@ -1,9 +1,9 @@
 # STTP Typed IR Language Specification
 ## Formal Contract for Cognitive State Transfer
 
-Status: Current
-Version: 1.1.0
-Last Updated: 2026-04-25
+Status: Draft
+Version: 1.2.0-draft
+Last Updated: 2026-06-23
 
 ## 1. Purpose and Position
 STTP defines a typed intermediate representation for cognition state transfer between agents.
@@ -17,7 +17,11 @@ This specification defines:
 This specification does not define:
 1. storage backend implementation details,
 2. sync authority policy,
-3. retrieval ranking policy.
+3. retrieval ranking policy,
+4. embedding vectors or tag vocabulary registries,
+5. tag-based ranking weights or graph storage backends.
+
+Storage implementations MAY denormalize semantic tags and links into indexes, compute embeddings from tag strings, and materialize graph edges. Those behaviors are application policy, not protocol requirements.
 
 ## 2. Normative Keywords
 Keywords have normative meaning:
@@ -109,6 +113,9 @@ Required keys:
 5. parent_node
 6. prime
 
+Optional keys:
+1. semantic_links
+
 trigger enum:
 1. scheduled
 2. threshold
@@ -127,11 +134,29 @@ prime required keys:
 3. relevant_tier
 4. retrieval_budget
 
+prime optional keys:
+1. semantic_tags
+
 attractor_config required keys:
 1. stability
 2. friction
 3. logic
 4. autonomy
+
+semantic_tags rules (when present in prime):
+1. MUST be a non-empty array of strings.
+2. Each tag MUST be a non-empty string with recommended maximum length of 64 characters.
+3. Tags MUST NOT contain structural STTP markers or `ref:` prefixes (reserved for links).
+4. Strict canonicalization SHOULD lowercase tags, deduplicate, and sort lexicographically.
+
+semantic_links rules (when present on provenance):
+1. MUST be a non-empty array of link objects.
+2. Each link object MUST include `rel` (string) and `target` (string).
+3. `target` SHOULD use `ref:<node_id>` for node-to-node edges.
+4. `target` MAY use `concept:<slug>` or URI strings for vocabulary or external concept edges.
+5. Each link object MAY include `confidence` as a float in [0.0, 1.0].
+
+`parent_node` remains the single compression-lineage hierarchy edge. `semantic_links` provides many-to-many typed relational edges.
 
 ### 7.2 Envelope Layer
 Required keys:
@@ -173,6 +198,11 @@ confidence rules:
 depth rule:
 1. strict maximum nesting depth is 5.
 
+Note (non-normative):
+1. Domain-specific single-value tags (for example `risk_tag(.95): "instruction-precedence"`) remain valid content fields.
+2. `semantic_tags` in provenance prime are node-level classification for cross-node retrieval and graphing.
+3. Implementations MAY promote content tags to prime tags during rollup or composition; the specification does not require it.
+
 ### 7.4 Metrics Layer
 Required keys:
 1. rho
@@ -209,6 +239,11 @@ S4 Confidence invariant:
 S5 Structural depth invariant:
 1. content object nesting depth is less than or equal to 5.
 
+S6 Semantic metadata invariant (when optional fields are present):
+1. `semantic_tags` MUST be a non-empty array of valid tag strings.
+2. `semantic_links` MUST be a non-empty array of objects each with valid `rel` and `target`.
+3. link `confidence` values MUST be range-valid in [0.0, 1.0] when present.
+
 A node that violates any invariant MUST be marked strict-invalid.
 
 ## 9. Compliance Profiles
@@ -223,7 +258,8 @@ Tolerant profile MAY accept legacy forms including:
 1. compact pipe-delimited key-value payloads,
 2. omitted internal node wrappers,
 3. unquoted enum-like values where unambiguous,
-4. mixed formatting and spacing variants.
+4. mixed formatting and spacing variants,
+5. nodes without `semantic_tags` or `semantic_links` (absent fields are treated as empty).
 
 Tolerant profile MUST:
 1. preserve raw source,
@@ -250,7 +286,9 @@ When tolerant recovery is used, implementation SHOULD canonicalize:
 1. layer ordering in AST output,
 2. known aliases into canonical keys,
 3. parent_node into normalized representation,
-4. unambiguous numeric strings into numeric values.
+4. unambiguous numeric strings into numeric values,
+5. semantic_tags into lowercase deduplicated sorted form,
+6. semantic link `ref:` targets into normalized representation.
 
 Canonicalization MUST NOT:
 1. modify original raw text,
@@ -262,7 +300,8 @@ Threat classes:
 1. marker spoofing and layer confusion,
 2. malformed confidence signatures,
 3. delimiter smuggling in compact forms,
-4. layer bleed-through via unbalanced containers.
+4. layer bleed-through via unbalanced containers,
+5. tag injection via structural markers or `ref:` prefixes in tag strings.
 
 Required response:
 1. strict profile fails closed,
@@ -283,12 +322,13 @@ A conformance suite SHOULD include:
 2. tolerant legacy fixtures,
 3. negative fixtures by invariant class,
 4. adversarial fixtures by threat class,
-5. canonical AST snapshot expectations.
+5. canonical AST snapshot expectations,
+6. semantic_tags and semantic_links positive and negative fixtures.
 
 ## 15. Canonical Example
 ```text
-⊕⟨ ⏣0{ trigger: manual, response_format: temporal_node, origin_session: "session-abc", compression_depth: 1, parent_node: null, prime: { attractor_config: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85 }, context_summary: "parser hardening session", relevant_tier: raw, retrieval_budget: 8 } } ⟩
-⦿⟨ ⏣0{ timestamp: "2026-04-25T00:00:00Z", tier: raw, session_id: "session-abc", schema_version: "sttp-1.0", user_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 }, model_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 } } ⟩
+⊕⟨ ⏣0{ trigger: manual, response_format: temporal_node, origin_session: "session-abc", compression_depth: 1, parent_node: null, semantic_links: [{ rel: "related_to", target: "concept:grammar-update", confidence: 0.88 }], prime: { attractor_config: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85 }, context_summary: "parser hardening session", relevant_tier: raw, retrieval_budget: 8, semantic_tags: ["grammar", "parser", "strict-mode"] } } ⟩
+⦿⟨ ⏣0{ timestamp: "2026-04-25T00:00:00Z", tier: raw, session_id: "session-abc", schema_version: "sttp-1.2", user_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 }, model_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 } } ⟩
 ◈⟨ ⏣0{ focus(.99): "grammar update", decision(.96): { parser_mode(.95): "strict_and_tolerant" } } ⟩
 ⍉⟨ ⏣0{ rho: 0.95, kappa: 0.94, psi: 2.93, compression_avec: { stability: 0.90, friction: 0.20, logic: 0.98, autonomy: 0.85, psi: 2.93 } } ⟩
 ```

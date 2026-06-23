@@ -59,6 +59,8 @@ fn build_test_node(session_id: &str) -> SttpNode {
             .with_timezone(&Utc),
         source_metadata: None,
         context_summary: None,
+        semantic_tags: None,
+        semantic_links: None,
         embedding: None,
         embedding_model: None,
         embedding_dimensions: None,
@@ -95,7 +97,8 @@ async fn initialize_runs_schema_query() {
     let queries = client.queries().await;
     assert_eq!(queries.len(), 3);
     assert!(queries[0].contains("DEFINE TABLE IF NOT EXISTS temporal_node"));
-    assert!(queries[0].contains("DEFINE FIELD IF NOT EXISTS tenant_id"));
+    assert!(queries[0].contains("DEFINE FIELD IF NOT EXISTS semantic_tags"));
+    assert!(queries[0].contains("DEFINE FIELD IF NOT EXISTS semantic_links"));
     assert!(queries[1].contains("FROM temporal_node"));
     assert!(queries[2].contains("FROM calibration"));
 }

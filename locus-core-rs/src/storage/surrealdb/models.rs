@@ -1,4 +1,4 @@
-use crate::domain::models::ConnectorMetadata;
+use crate::domain::models::{ConnectorMetadata, SemanticLink};
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -24,6 +24,10 @@ pub struct SurrealNodeRecord {
     pub source_metadata: Option<ConnectorMetadata>,
     #[serde(rename = "ContextSummary", default)]
     pub context_summary: Option<String>,
+    #[serde(rename = "SemanticTags", default)]
+    pub semantic_tags: Option<Vec<String>>,
+    #[serde(rename = "SemanticLinks", default)]
+    pub semantic_links: Option<Vec<SemanticLink>>,
     #[serde(rename = "Embedding", default)]
     pub embedding: Option<Vec<f32>>,
     #[serde(rename = "EmbeddingModel", default)]
@@ -70,6 +74,42 @@ pub struct SurrealNodeRecord {
     pub comp_psi: f64,
     #[serde(rename = "ResonanceDelta", default)]
     pub resonance_delta: f64,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SurrealSemanticTagRecord {
+    #[serde(rename = "TenantId", default)]
+    pub tenant_id: String,
+    #[serde(rename = "SessionId", default)]
+    pub session_id: String,
+    #[serde(rename = "NodeId", default)]
+    pub node_id: String,
+    #[serde(rename = "SyncKey", default)]
+    pub sync_key: String,
+    #[serde(rename = "Tag", default)]
+    pub tag: String,
+    #[serde(rename = "Embedding", default)]
+    pub embedding: Option<Vec<f32>>,
+    #[serde(rename = "EmbeddingModel", default)]
+    pub embedding_model: Option<String>,
+    #[serde(rename = "EmbeddingDimensions", default)]
+    pub embedding_dimensions: Option<usize>,
+    #[serde(rename = "EmbeddedAt", default)]
+    pub embedded_at: Option<String>,
+    #[serde(rename = "UpdatedAt", default)]
+    pub updated_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SurrealTagVocabularyRecord {
+    #[serde(rename = "Tag", default)]
+    pub tag: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SurrealSyncKeyRecord {
+    #[serde(rename = "SyncKey", default)]
+    pub sync_key: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

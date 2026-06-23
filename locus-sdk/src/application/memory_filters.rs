@@ -1,8 +1,56 @@
 use std::collections::HashSet;
 
+use anyhow::Result;
+use locus_core_rs::domain::contracts::SemanticIndexStore;
 use locus_core_rs::domain::models::SttpNode;
 
 use crate::domain::memory::{MemoryFilter, MemoryScope};
+
+pub async fn resolve_indexed_sync_keys(
+    index: &dyn SemanticIndexStore,
+    tenant_id: &str,
+    filter: &MemoryFilter,
+    session_id: Option<&str>,
+    limit: usize,
+) -> Result<Option<HashSet<String>>> {
+    if let Some(tags) = filter.indexed_tags.as_ref() {
+        let normalized: Vec<String> = tags
+            .iter()
+            .map(|tag| tag.trim().to_ascii_lowercase())
+            .filter(|tag| !tag.is_empty())
+            .collect();
+
+        if normalized.is_empty() {
+            return Ok(Some(HashSet::new()));
+        }
+
+        let keys = index
+            .find_sync_keys_by_tags_async(tenant_id, &normalized, true, session_id, limit)
+            .await?;
+        return Ok(Some(keys.into_iter().collect()));
+    }
+
+    if let Some(prefix) = filter.tag_prefix.as_deref() {
+        let prefix = prefix.trim().to_ascii_lowercase();
+        if prefix.is_empty() {
+            return Ok(None);
+        }
+
+        let tags = index
+            .find_tags_async(tenant_id, Some(&prefix), limit)
+            .await?;
+        if tags.is_empty() {
+            return Ok(Some(HashSet::new()));
+        }
+
+        let keys = index
+            .find_sync_keys_by_tags_async(tenant_id, &tags, false, session_id, limit)
+            .await?;
+        return Ok(Some(keys.into_iter().collect()));
+    }
+
+    Ok(None)
+}
 
 pub fn build_session_filter(scope: &MemoryScope) -> Option<HashSet<String>> {
     scope
@@ -79,5 +127,159 @@ pub fn node_matches_common_filters(
         }
     }
 
+    if let Some(expected_tag) = filter.has_tag.as_deref() {
+        let needle = expected_tag.trim().to_ascii_lowercase();
+        if !needle.is_empty() {
+            let tags = node.semantic_tags.as_deref().unwrap_or_default();
+            if !tags
+                .iter()
+                .any(|tag| tag.to_ascii_lowercase() == needle)
+            {
+                return false;
+            }
+        }
+    }
+
+    if let Some(required_tags) = filter.tags_contains.as_ref() {
+        let node_tags = node
+            .semantic_tags
+            .as_deref()
+            .unwrap_or_default()
+            .iter()
+            .map(|tag| tag.to_ascii_lowercase())
+            .collect::<HashSet<_>>();
+
+        if required_tags.iter().any(|tag| {
+            let needle = tag.trim().to_ascii_lowercase();
+            !needle.is_empty() && !node_tags.contains(&needle)
+        }) {
+            return false;
+        }
+    }
+
+    if let Some(expected) = filter.has_semantic_links {
+        let has_links = node
+            .semantic_links
+            .as_ref()
+            .is_some_and(|links| !links.is_empty());
+        if has_links != expected {
+            return false;
+        }
+    }
+
+    if let Some(expected_rel) = filter.link_rel.as_deref() {
+        let needle = expected_rel.trim().to_ascii_lowercase();
+        if !needle.is_empty() {
+            let links = node.semantic_links.as_deref().unwrap_or_default();
+            if !links
+                .iter()
+                .any(|link| link.rel.trim().to_ascii_lowercase() == needle)
+            {
+                return false;
+            }
+        }
+    }
+
+    if let Some(expected_target) = filter.link_target.as_deref() {
+        let needle = expected_target.trim().to_ascii_lowercase();
+        if !needle.is_empty() {
+            let links = node.semantic_links.as_deref().unwrap_or_default();
+            if !links.iter().any(|link| {
+                let target = link.target.trim().to_ascii_lowercase();
+                target == needle || target.starts_with(&needle)
+            }) {
+                return false;
+            }
+        }
+    }
+
+    if let Some(expected_ref) = filter.links_to_ref.as_deref() {
+        let needle = expected_ref.trim();
+        if !needle.is_empty() {
+            let normalized = if needle.starts_with("ref:") {
+                needle.to_string()
+            } else {
+                format!("ref:{needle}")
+            };
+            let links = node.semantic_links.as_deref().unwrap_or_default();
+            if !links.iter().any(|link| link.target.trim() == normalized) {
+                return false;
+            }
+        }
+    }
+
     true
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use locus_core_rs::domain::models::{AvecState, SttpNode};
+
+    use super::node_matches_common_filters;
+    use crate::domain::memory::{MemoryFilter, MemoryScope};
+
+    fn sample_node(tags: Option<Vec<&str>>) -> SttpNode {
+        SttpNode {
+            raw: "raw".to_string(),
+            session_id: "session-a".to_string(),
+            tier: "raw".to_string(),
+            timestamp: Utc::now(),
+            compression_depth: 1,
+            parent_node_id: None,
+            sync_key: String::new(),
+            updated_at: Utc::now(),
+            source_metadata: None,
+            context_summary: Some("summary".to_string()),
+            semantic_tags: tags.map(|values| {
+                values
+                    .into_iter()
+                    .map(|value| value.to_string())
+                    .collect()
+            }),
+            semantic_links: None,
+            embedding: None,
+            embedding_model: None,
+            embedding_dimensions: None,
+            embedded_at: None,
+            user_avec: AvecState::zero(),
+            model_avec: AvecState::zero(),
+            compression_avec: None,
+            rho: 0.0,
+            kappa: 0.0,
+            psi: 0.0,
+        }
+    }
+
+    #[test]
+    fn has_tag_filter_matches_semantic_tags() {
+        let node = sample_node(Some(vec!["safety-eval", "parser"]));
+        let filter = MemoryFilter {
+            has_tag: Some("parser".to_string()),
+            ..Default::default()
+        };
+
+        assert!(node_matches_common_filters(
+            &node,
+            &MemoryScope::default(),
+            &filter,
+            None
+        ));
+    }
+
+    #[test]
+    fn tags_contains_requires_all_tags() {
+        let node = sample_node(Some(vec!["safety-eval", "parser"]));
+        let filter = MemoryFilter {
+            tags_contains: Some(vec!["parser".to_string(), "missing".to_string()]),
+            ..Default::default()
+        };
+
+        assert!(!node_matches_common_filters(
+            &node,
+            &MemoryScope::default(),
+            &filter,
+            None
+        ));
+    }
 }

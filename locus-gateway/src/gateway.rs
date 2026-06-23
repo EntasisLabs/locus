@@ -1,4 +1,3 @@
-use std::collections::{BTreeMap, HashMap};
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -21,9 +20,13 @@ use locus_core_rs::domain::models::{
     self as core_models, ConfidenceBandSummary, MonthlyRollupRequest, NumericRange, PsiRange,
 };
 use locus_core_rs::domain::contracts::EmbeddingProvider;
+use locus_sdk::application::memory_evict::MemoryEvictService;
 use locus_sdk::application::memory_find::MemoryFindService;
+use locus_sdk::application::memory_graph::{MemoryGraphService, graph_node_id};
 use locus_sdk::application::memory_recall::MemoryRecallService;
 use locus_sdk::application::memory_transform::MemoryTransformService;
+use locus_sdk::domain::evict::{MemoryEvictMode, MemoryEvictRequest, MemoryEvictResult};
+use locus_sdk::domain::graph::MemoryGraphRequest;
 use locus_sdk::domain::memory::{
     FallbackPolicy, MemoryFilter, MemoryFindRequest, MemoryPage, MemoryRecallRequest,
     MemoryScope, MemoryScoring, MemoryTransformOperation, MemoryTransformRequest,
@@ -93,6 +96,9 @@ pub(crate) async fn run() -> Result<()> {
         .route("/api/v1/graph", get(graph_handler))
         .route("/api/graph", get(graph_handler))
         .route("/graph", get(graph_handler))
+        .route("/api/v1/evict", post(evict_handler))
+        .route("/api/evict", post(evict_handler))
+        .route("/evict", post(evict_handler))
         .route("/api/v1/moods", get(get_moods_handler))
         .route("/api/v1/rekey", post(batch_rekey_handler))
         .route(
@@ -369,7 +375,16 @@ async fn get_context_handler(
         request.query_embedding.as_deref(),
     )
     .await;
-    let recall_service = MemoryRecallService::new(state.node_store.clone());
+    let recall_service = recall_service(&state);
+    let memory_filter = build_semantic_memory_filter(
+        request.semantic_tags,
+        request.tags_contains,
+        request.link_rel,
+        request.link_target,
+        request.links_to_ref,
+        request.tag_prefix,
+        request.has_semantic_links,
+    );
     let recall_result = recall_service
         .execute(&MemoryRecallRequest {
             scope: MemoryScope {
@@ -389,9 +404,11 @@ async fn get_context_handler(
                     .unwrap_or(DEFAULT_HYBRID_ALPHA)
                     .clamp(0.0, 1.0),
                 beta: request.beta.unwrap_or(DEFAULT_HYBRID_BETA).clamp(0.0, 1.0),
+                gamma: request.gamma.unwrap_or(0.0).clamp(0.0, 1.0),
                 fallback_policy: FallbackPolicy::Never,
                 ..Default::default()
             },
+            filter: memory_filter,
             current_avec: Some(core_models::AvecState {
                 stability: request.stability,
                 friction: request.friction,
@@ -534,7 +551,7 @@ async fn list_nodes_handler(
         TENANT_SCAN_LIMIT
     };
 
-    let find_service = MemoryFindService::new(state.node_store.clone());
+    let find_service = find_service(&state);
     let result = find_service
         .execute(&MemoryFindRequest {
             scope: MemoryScope {
@@ -544,6 +561,15 @@ async fn list_nodes_handler(
                 from_utc: None,
                 to_utc: None,
             },
+            filter: build_semantic_memory_filter(
+                query.semantic_tags,
+                query.tags_contains,
+                query.link_rel,
+                query.link_target,
+                query.links_to_ref,
+                query.tag_prefix,
+                query.has_semantic_links,
+            ),
             page: MemoryPage {
                 limit: backend_limit,
                 cursor: None,
@@ -572,205 +598,158 @@ async fn graph_handler(
     Query(query): Query<GraphQuery>,
 ) -> ApiResult<GraphResponse> {
     let tenant = resolve_http_tenant(query.tenant_id.as_deref(), &headers);
-    let capped_limit = query.limit.unwrap_or(1000).clamp(1, 5000);
     let scoped_session_filter = query
         .session_id
         .as_deref()
         .map(|session_id| scope_session_id(&tenant, session_id));
-    let backend_limit = if scoped_session_filter.is_some() {
-        capped_limit
-    } else {
-        TENANT_SCAN_LIMIT
-    };
 
-    let find_service = MemoryFindService::new(state.node_store.clone());
-    let result = find_service
-        .execute(&MemoryFindRequest {
+    let graph_result = graph_service(&state)
+        .execute(&MemoryGraphRequest {
             scope: MemoryScope {
-                tenant_id: None,
+                tenant_id: Some(tenant.clone()),
                 session_ids: scoped_session_filter.map(|session| vec![session]),
                 tiers: None,
                 from_utc: None,
                 to_utc: None,
             },
-            page: MemoryPage {
-                limit: backend_limit,
-                cursor: None,
-            },
-            ..Default::default()
+            filter: build_semantic_memory_filter(
+                query.semantic_tags,
+                None,
+                query.link_rel,
+                query.link_target,
+                query.links_to_ref,
+                query.tag_prefix,
+                query.has_semantic_links,
+            ),
+            include_lineage: true,
+            include_semantic: true,
+            include_session_topology: true,
+            rel: query.rel,
+            target_prefix: query.target_prefix,
+            limit: query.limit.unwrap_or(1000),
         })
         .await
         .map_err(internal_error)?;
 
-    let mut ordered_nodes = result
-        .nodes
-        .into_iter()
-        .filter_map(|node| normalize_node_for_tenant(node, &tenant))
-        .take(capped_limit)
-        .collect::<Vec<_>>();
-    ordered_nodes.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-
-    #[derive(Clone)]
-    struct SessionGroup {
-        id: String,
-        label: String,
-        nodes: Vec<core_models::SttpNode>,
-        node_count: usize,
-        avg_psi: f32,
-        last_modified: DateTime<Utc>,
-        size: usize,
-    }
-
-    let mut grouped_map: BTreeMap<String, Vec<core_models::SttpNode>> = BTreeMap::new();
-    for node in &ordered_nodes {
-        grouped_map
-            .entry(node.session_id.clone())
-            .or_default()
-            .push(node.clone());
-    }
-
-    let mut grouped = grouped_map
-        .into_iter()
-        .map(|(id, mut nodes)| {
-            nodes.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-            let node_count = nodes.len();
-            let avg_psi = if node_count == 0 {
-                0.0
-            } else {
-                nodes.iter().map(|n| n.psi).sum::<f32>() / node_count as f32
-            };
-            let last_modified = nodes.first().map(|n| n.timestamp).unwrap_or_else(Utc::now);
-            let size = 16 + std::cmp::min(28, node_count * 2);
-
-            SessionGroup {
-                label: id.clone(),
-                id,
-                nodes,
-                node_count,
-                avg_psi,
-                last_modified,
-                size,
-            }
-        })
-        .collect::<Vec<_>>();
-
-    grouped.sort_by(|a, b| b.last_modified.cmp(&a.last_modified));
-
-    let node_by_id = ordered_nodes
-        .iter()
-        .map(|node| (graph_node_id(node), node.clone()))
-        .collect::<HashMap<_, _>>();
-
-    let sessions = grouped
-        .iter()
-        .map(|session| {
-            json!({
-                "id": format!("s:{}", session.id),
-                "label": session.label,
-                "nodeCount": session.node_count,
-                "avgPsi": session.avg_psi,
-                "lastModified": session.last_modified.to_rfc3339(),
-                "size": session.size
-            })
-        })
-        .collect::<Vec<_>>();
-
-    let nodes = ordered_nodes
-        .iter()
-        .map(|node| {
-            json!({
-                "id": graph_node_id(node),
-                "sessionId": node.session_id,
-                "label": format!("{} {}", node.tier, node.timestamp.format("%m-%d %H:%M")),
-                "tier": node.tier,
-                "timestamp": node.timestamp.to_rfc3339(),
-                "psi": node.psi,
-                "parentNodeId": node.parent_node_id,
-                "size": 9
-            })
-        })
-        .collect::<Vec<_>>();
-
-    let mut edges = Vec::new();
-
-    for i in 0..grouped.len().saturating_sub(1) {
-        edges.push(json!({
-            "id": format!("t-{i}"),
-            "source": format!("s:{}", grouped[i].id),
-            "target": format!("s:{}", grouped[i + 1].id),
-            "kind": "timeline"
-        }));
-    }
-
-    for i in 0..grouped.len() {
-        let from = &grouped[i];
-        let mut nearest: Option<usize> = None;
-        let mut nearest_distance = f32::MAX;
-
-        for (j, other) in grouped.iter().enumerate() {
-            if i == j {
-                continue;
-            }
-            let distance = (from.avg_psi - other.avg_psi).abs();
-            if distance < nearest_distance {
-                nearest_distance = distance;
-                nearest = Some(j);
-            }
-        }
-
-        if let Some(nearest_index) = nearest {
-            if i < nearest_index {
-                edges.push(json!({
-                    "id": format!("s-{i}-{nearest_index}"),
-                    "source": format!("s:{}", from.id),
-                    "target": format!("s:{}", grouped[nearest_index].id),
-                    "kind": "similarity"
-                }));
-            }
-        }
-    }
-
-    for session in &grouped {
-        for i in 0..session.nodes.len() {
-            let current = &session.nodes[i];
-            let current_id = graph_node_id(current);
-
-            edges.push(json!({
-                "id": format!("m-{}-{i}", session.id),
-                "source": format!("s:{}", session.id),
-                "target": current_id,
-                "kind": "membership"
-            }));
-
-            if i + 1 < session.nodes.len() {
-                let older = &session.nodes[i + 1];
-                edges.push(json!({
-                    "id": format!("nt-{}-{i}", session.id),
-                    "source": current_id,
-                    "target": graph_node_id(older),
-                    "kind": "node_timeline"
-                }));
-            }
-
-            if let Some(parent) = current.parent_node_id.as_ref() {
-                if node_by_id.contains_key(parent) {
-                    edges.push(json!({
-                        "id": format!("l-{}-{i}", session.id),
-                        "source": current_id,
-                        "target": parent,
-                        "kind": "lineage"
-                    }));
-                }
-            }
-        }
-    }
-
     Ok(Json(GraphResponse {
-        sessions,
-        nodes,
-        edges,
-        retrieved: ordered_nodes.len(),
+        sessions: graph_result.sessions,
+        nodes: graph_result.nodes,
+        edges: graph_result.edges,
+        retrieved: graph_result.retrieved,
     }))
+}
+
+async fn evict_handler(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(request): Json<EvictHttpRequest>,
+) -> ApiResult<EvictHttpResultDto> {
+    let tenant = resolve_http_tenant(request.tenant_id.as_deref(), &headers);
+    let scoped_session = scope_session_id(&tenant, &request.session_id);
+    let mode = resolve_evict_mode(&request)?;
+
+    let purge_session = matches!(mode, MemoryEvictMode::PurgeSession);
+    let include_calibration = request
+        .include_calibration
+        .unwrap_or(purge_session);
+    let include_checkpoints = request
+        .include_checkpoints
+        .unwrap_or(purge_session);
+
+    let result = evict_service(&state)
+        .execute(&MemoryEvictRequest {
+            mode,
+            scope: MemoryScope {
+                tenant_id: Some(tenant),
+                session_ids: Some(vec![scoped_session]),
+                tiers: normalize_request_tiers(request.tiers.as_deref()),
+                from_utc: None,
+                to_utc: None,
+            },
+            filter: build_semantic_memory_filter(
+                request.semantic_tags,
+                request.tags_contains,
+                request.link_rel,
+                request.link_target,
+                request.links_to_ref,
+                request.tag_prefix,
+                request.has_semantic_links,
+            ),
+            sync_keys: request.sync_keys,
+            node_ids: request.node_ids,
+            dry_run: request.dry_run.unwrap_or(false),
+            force: request.force.unwrap_or(false),
+            max_nodes: request.max_nodes.unwrap_or(5000),
+            include_calibration,
+            include_checkpoints,
+        })
+        .await
+        .map_err(internal_error)?;
+
+    Ok(Json(to_evict_dto(result)))
+}
+
+fn resolve_evict_mode(request: &EvictHttpRequest) -> Result<MemoryEvictMode, (StatusCode, Json<ErrorResponse>)> {
+    if request.purge_session.unwrap_or(false) {
+        return Ok(MemoryEvictMode::PurgeSession);
+    }
+
+    if let Some(mode) = request.mode.as_deref() {
+        return match mode.trim().to_ascii_lowercase().as_str() {
+            "by_sync_keys" | "sync_keys" => Ok(MemoryEvictMode::BySyncKeys),
+            "by_node_ids" | "node_ids" => Ok(MemoryEvictMode::ByNodeIds),
+            "by_filter" | "filter" => Ok(MemoryEvictMode::ByFilter),
+            "purge_session" | "purge" => Ok(MemoryEvictMode::PurgeSession),
+            _ => Err(bad_request(format!("unsupported evict mode: {mode}"))),
+        };
+    }
+
+    if request.sync_keys.as_ref().is_some_and(|keys| !keys.is_empty()) {
+        return Ok(MemoryEvictMode::BySyncKeys);
+    }
+    if request.node_ids.as_ref().is_some_and(|ids| !ids.is_empty()) {
+        return Ok(MemoryEvictMode::ByNodeIds);
+    }
+    if request.semantic_tags.is_some()
+        || request.tags_contains.is_some()
+        || request.link_rel.is_some()
+        || request.link_target.is_some()
+        || request.links_to_ref.is_some()
+        || request.tag_prefix.is_some()
+        || request.has_semantic_links.is_some()
+    {
+        return Ok(MemoryEvictMode::ByFilter);
+    }
+
+    Err(bad_request(
+        "evict mode could not be inferred; provide syncKeys, nodeIds, filter fields, or purgeSession=true",
+    ))
+}
+
+fn to_evict_dto(result: MemoryEvictResult) -> EvictHttpResultDto {
+    EvictHttpResultDto {
+        dry_run: result.dry_run,
+        deleted: result.deleted,
+        blocked: result.blocked,
+        not_found: result.not_found,
+        skipped: result.skipped,
+        would_delete: result.would_delete,
+        calibrations_deleted: result.calibrations_deleted,
+        checkpoints_deleted: result.checkpoints_deleted,
+        records: result
+            .records
+            .into_iter()
+            .map(|record| {
+                json!({
+                    "nodeId": record.node_id,
+                    "syncKey": record.sync_key,
+                    "status": record.status,
+                    "reason": record.reason,
+                    "inboundReferences": record.inbound_references,
+                })
+            })
+            .collect(),
+    }
 }
 
 async fn get_moods_handler(
@@ -853,7 +832,7 @@ async fn preview_embedding_migration_handler(
     let max_nodes = request.max_nodes.unwrap_or(5_000).clamp(1, 50_000);
     let (scope, filter, sync_keys) = scoped_memory_filter(request.filter, &tenant);
 
-    let find_service = MemoryFindService::new(state.node_store.clone());
+    let find_service = find_service(&state);
     let find_result = find_service
         .execute(&MemoryFindRequest {
             scope,
@@ -915,19 +894,20 @@ async fn run_embedding_migration_handler(
     {
         EmbeddingMigrationModeHttp::MissingOnly => MemoryTransformOperation::EmbedBackfill,
         EmbeddingMigrationModeHttp::ReindexAll => MemoryTransformOperation::ReindexEmbeddings,
+        EmbeddingMigrationModeHttp::Tags => MemoryTransformOperation::EmbedTagBackfill,
+        EmbeddingMigrationModeHttp::Both => MemoryTransformOperation::EmbedBackfill,
     };
     let dry_run = request.dry_run.unwrap_or(true);
     let batch_size = request.batch_size.unwrap_or(100).clamp(1, 500);
     let max_nodes = request.max_nodes.unwrap_or(5_000).clamp(1, 50_000);
-    let (scope, filter, _sync_keys) = scoped_memory_filter(request.filter, &tenant);
+    let (scope, filter, _sync_keys) = scoped_memory_filter(request.filter.clone(), &tenant);
 
-    let providers = build_gateway_provider_registry(state.embedding_provider.clone());
-    let transform_service = MemoryTransformService::new(state.node_store.clone(), providers);
+    let transform_service = transform_service(&state);
 
-    let result = transform_service
+    let mut result = transform_service
         .execute(&MemoryTransformRequest {
-            scope,
-            filter,
+            scope: scope.clone(),
+            filter: filter.clone(),
             operation: mode,
             dry_run,
             batch_size,
@@ -944,6 +924,32 @@ async fn run_embedding_migration_handler(
         .await
         .map_err(internal_error)?;
 
+    if request.mode == Some(EmbeddingMigrationModeHttp::Both) && !dry_run {
+        let tag_result = transform_service
+            .execute(&MemoryTransformRequest {
+                scope,
+                filter,
+                operation: MemoryTransformOperation::EmbedTagBackfill,
+                dry_run: false,
+                batch_size,
+                max_nodes,
+                provider_id: state
+                    .embedding_provider
+                    .as_ref()
+                    .map(|_| "gateway-embedding".to_string()),
+                model: state
+                    .embedding_provider
+                    .as_ref()
+                    .map(|provider| provider.model_name().to_string()),
+            })
+            .await
+            .map_err(internal_error)?;
+        result.updated += tag_result.updated;
+        result.failed += tag_result.failed;
+        result.skipped += tag_result.skipped;
+        result.failures.extend(tag_result.failures);
+    }
+
     Ok(Json(to_embedding_migration_run_dto(
         result,
         mode,
@@ -953,6 +959,53 @@ async fn run_embedding_migration_handler(
             .as_ref()
             .map(|provider| provider.model_name().to_string()),
     )))
+}
+
+fn recall_service(state: &AppState) -> MemoryRecallService {
+    MemoryRecallService::new(state.node_store.clone())
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn find_service(state: &AppState) -> MemoryFindService {
+    MemoryFindService::new(state.node_store.clone())
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn evict_service(state: &AppState) -> MemoryEvictService {
+    MemoryEvictService::new(state.node_store.clone())
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn graph_service(state: &AppState) -> MemoryGraphService {
+    MemoryGraphService::new(state.node_store.clone())
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn transform_service(state: &AppState) -> MemoryTransformService {
+    let providers = build_gateway_provider_registry(state.embedding_provider.clone());
+    MemoryTransformService::new(state.node_store.clone(), providers)
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn build_semantic_memory_filter(
+    semantic_tags: Option<Vec<String>>,
+    tags_contains: Option<Vec<String>>,
+    link_rel: Option<String>,
+    link_target: Option<String>,
+    links_to_ref: Option<String>,
+    tag_prefix: Option<String>,
+    has_semantic_links: Option<bool>,
+) -> MemoryFilter {
+    MemoryFilter {
+        indexed_tags: semantic_tags,
+        tags_contains,
+        link_rel,
+        link_target,
+        links_to_ref,
+        tag_prefix,
+        has_semantic_links,
+        ..Default::default()
+    }
 }
 
 fn bad_request(message: impl Into<String>) -> (StatusCode, Json<ErrorResponse>) {
@@ -970,16 +1023,6 @@ fn internal_error(error: impl std::fmt::Display) -> (StatusCode, Json<ErrorRespo
         Json(ErrorResponse {
             error: error.to_string(),
         }),
-    )
-}
-
-fn graph_node_id(node: &core_models::SttpNode) -> String {
-    format!(
-        "n:{}|{}|{}|{:.4}",
-        node.session_id,
-        node.timestamp.to_rfc3339(),
-        node.compression_depth,
-        node.psi
     )
 }
 
@@ -1001,6 +1044,8 @@ fn to_node_dto(value: &core_models::SttpNode) -> SttpNodeDto {
         timestamp: value.timestamp,
         compression_depth: value.compression_depth,
         parent_node_id: value.parent_node_id.clone(),
+        semantic_tags: value.semantic_tags.clone(),
+        semantic_links: value.semantic_links.clone(),
         user_avec: to_avec_dto(value.user_avec),
         model_avec: to_avec_dto(value.model_avec),
         compression_avec: value.compression_avec.map(to_avec_dto),
@@ -1149,6 +1194,8 @@ fn to_embedding_migration_run_dto(
         mode: match mode {
             MemoryTransformOperation::EmbedBackfill => "missing_only".to_string(),
             MemoryTransformOperation::ReindexEmbeddings => "reindex_all".to_string(),
+            MemoryTransformOperation::EmbedTagBackfill => "tags".to_string(),
+            MemoryTransformOperation::ReindexTagEmbeddings => "reindex_tags".to_string(),
         },
         failure_reasons: result.failures,
     }
@@ -1625,6 +1672,18 @@ fn to_grpc_node(value: &core_models::SttpNode) -> proto::SttpNode {
         rho: value.rho,
         kappa: value.kappa,
         psi: value.psi,
+        semantic_tags: value.semantic_tags.clone().unwrap_or_default(),
+        semantic_links: value
+            .semantic_links
+            .clone()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|link| proto::SemanticLink {
+                rel: link.rel,
+                target: link.target,
+                confidence: link.confidence,
+            })
+            .collect(),
     }
 }
 
@@ -1923,6 +1982,14 @@ mod tests {
                 query_embedding: None,
                 alpha: None,
                 beta: None,
+                gamma: None,
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
             }),
         )
         .await
@@ -1978,6 +2045,10 @@ mod tests {
                 avec_weight: Some(0.3),
                 alpha: Some(0.65),
                 beta: Some(0.35),
+                tag_weight: None,
+                semantic_tags: None,
+                link_rel: None,
+                link_target: None,
             }),
         )
         .await
@@ -2012,12 +2083,155 @@ mod tests {
                 avec_weight: Some(0.3),
                 alpha: None,
                 beta: None,
+                tag_weight: None,
+                semantic_tags: None,
+                link_rel: None,
+                link_target: None,
             }),
         )
         .await
         .expect_err("mismatched dimensions should fail");
 
         assert_eq!(err.0, StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn http_evict_dry_run_then_delete_roundtrip() {
+        let state = Arc::new(build_in_memory_state().await.expect("state should build"));
+        let session_id = "http-evict-session";
+
+        let _ = store_context_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Json(StoreContextHttpRequest {
+                node: sample_node(session_id),
+                session_id: session_id.to_string(),
+                tenant_id: None,
+            }),
+        )
+        .await
+        .expect("store should succeed");
+
+        let nodes_before = list_nodes_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Query(ListNodesQuery {
+                tenant_id: None,
+                session_id: Some(session_id.to_string()),
+                limit: Some(10),
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+            }),
+        )
+        .await
+        .expect("list should succeed");
+        assert!(nodes_before.retrieved >= 1);
+        let sync_key = nodes_before.nodes[0].sync_key.clone();
+
+        let Json(preview) = evict_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Json(EvictHttpRequest {
+                tenant_id: None,
+                session_id: session_id.to_string(),
+                mode: None,
+                sync_keys: Some(vec![sync_key.clone()]),
+                node_ids: None,
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+                purge_session: None,
+                dry_run: Some(true),
+                force: Some(true),
+                max_nodes: None,
+                include_calibration: None,
+                include_checkpoints: None,
+                tiers: None,
+            }),
+        )
+        .await
+        .expect("dry-run evict should succeed");
+
+        assert_eq!(preview.deleted, 1);
+        assert_eq!(preview.would_delete, vec![sync_key.clone()]);
+
+        let nodes_after_preview = list_nodes_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Query(ListNodesQuery {
+                tenant_id: None,
+                session_id: Some(session_id.to_string()),
+                limit: Some(10),
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+            }),
+        )
+        .await
+        .expect("list should succeed");
+        assert_eq!(nodes_after_preview.retrieved, nodes_before.retrieved);
+
+        let Json(applied) = evict_handler(
+            State(state.clone()),
+            HeaderMap::new(),
+            Json(EvictHttpRequest {
+                tenant_id: None,
+                session_id: session_id.to_string(),
+                mode: None,
+                sync_keys: Some(vec![sync_key]),
+                node_ids: None,
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+                purge_session: None,
+                dry_run: Some(false),
+                force: Some(true),
+                max_nodes: None,
+                include_calibration: None,
+                include_checkpoints: None,
+                tiers: None,
+            }),
+        )
+        .await
+        .expect("evict should succeed");
+        assert_eq!(applied.deleted, 1);
+
+        let nodes_after = list_nodes_handler(
+            State(state),
+            HeaderMap::new(),
+            Query(ListNodesQuery {
+                tenant_id: None,
+                session_id: Some(session_id.to_string()),
+                limit: Some(10),
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
+            }),
+        )
+        .await
+        .expect("list should succeed");
+        assert_eq!(nodes_after.retrieved, 0);
     }
 
     #[tokio::test]

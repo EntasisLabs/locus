@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [0.2.0] - 2026-06-23
+
+### Added
+
+- **`get_graph` MCP tool** — session-scoped memory graph with semantic tag and link filters.
+- **`evict_nodes` MCP tool** — explicit delete by sync key, node id, semantic filter, or session purge; supports `dry_run`, `force`, and purge calibration/checkpoint options.
+- Semantic filter parameters on `get_context`, `list_nodes`, and related tools (`semantic_tags`, `link_rel`, `link_target`, `links_to_ref`, `tag_prefix`, `has_semantic_links`, `gamma`).
+- `composition.rs` and per-tool modules under `src/tools/` for single-responsibility MCP handlers.
+
+### Changed
+
+- Refactored server startup into a clean composition architecture (split from monolithic `main.rs`).
+- Strict typed-IR schema-first guidance in `store_context` error payloads.
+- Parse profile configuration via `LOCUS_MCP_PARSE_PROFILE` and `--parse-profile`.
+- Dependency alignment: `locus-core-rs` 0.4.0, `locus-sdk` 0.2.0.
+- Crate version bumped to `0.2.0`.
+
 ## [0.1.2] - 2026-05-09
 
 ### Added

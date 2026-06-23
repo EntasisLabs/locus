@@ -280,6 +280,8 @@ mod tests {
             updated_at: now,
             source_metadata: None,
             context_summary: Some("summary".to_string()),
+            semantic_tags: None,
+            semantic_links: None,
             embedding_dimensions: None,
             embedding_model: None,
             embedding: None,

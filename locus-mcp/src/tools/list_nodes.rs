@@ -1,5 +1,5 @@
 use locus_sdk::application::memory_find::MemoryFindService;
-use locus_sdk::domain::memory::{MemoryFindRequest, MemoryPage, MemoryScope};
+use locus_sdk::domain::memory::{MemoryFilter, MemoryFindRequest, MemoryPage, MemoryScope};
 use serde_json::json;
 use tracing::error;
 
@@ -20,7 +20,8 @@ pub(crate) async fn execute(server: &SttpMcpServer, request: ListNodesRequest) -
         expanded_limit(limit)
     };
 
-    let find_service = MemoryFindService::new(server.node_store.clone());
+    let find_service = MemoryFindService::new(server.node_store.clone())
+        .with_semantic_index(server.semantic_index.clone());
     let find_result = match find_service
         .execute(&MemoryFindRequest {
             scope: MemoryScope {
@@ -29,6 +30,12 @@ pub(crate) async fn execute(server: &SttpMcpServer, request: ListNodesRequest) -
                 tiers: None,
                 from_utc: None,
                 to_utc: None,
+            },
+            filter: MemoryFilter {
+                indexed_tags: request.semantic_tags,
+                link_rel: request.link_rel,
+                link_target: request.link_target,
+                ..Default::default()
             },
             page: MemoryPage {
                 limit: query_limit,

@@ -110,6 +110,14 @@ pub struct MemoryFilter {
     pub rho: Option<MetricRange>,
     pub kappa: Option<MetricRange>,
     pub text_contains: Option<String>,
+    pub tags_contains: Option<Vec<String>>,
+    pub has_tag: Option<String>,
+    pub indexed_tags: Option<Vec<String>>,
+    pub tag_prefix: Option<String>,
+    pub has_semantic_links: Option<bool>,
+    pub link_rel: Option<String>,
+    pub link_target: Option<String>,
+    pub links_to_ref: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -143,6 +151,7 @@ pub struct MemoryScoring {
     pub lexical_weight: f32,
     pub alpha: f32,
     pub beta: f32,
+    pub gamma: f32,
     pub fallback_policy: FallbackPolicy,
     pub strictness: StrictnessMode,
 }
@@ -155,6 +164,7 @@ impl Default for MemoryScoring {
             lexical_weight: 0.0,
             alpha: 0.7,
             beta: 0.3,
+            gamma: 0.0,
             fallback_policy: FallbackPolicy::OnEmpty,
             strictness: StrictnessMode::Balanced,
         }
@@ -187,6 +197,7 @@ pub struct MemoryRecallRequest {
     pub current_avec: Option<AvecState>,
     pub query_text: Option<String>,
     pub query_embedding: Option<Vec<f32>>,
+    pub query_tag_embedding: Option<Vec<f32>>,
 }
 
 #[derive(Debug, Clone)]
@@ -228,6 +239,7 @@ pub struct MemorySchemaResult {
     pub fallback_policies: Vec<String>,
     pub strictness_modes: Vec<String>,
     pub transform_operations: Vec<String>,
+    pub evict_operations: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -237,6 +249,7 @@ pub enum MemoryGroupBy {
     Tier,
     EmbeddingModel,
     DateDay,
+    SemanticTag,
 }
 
 impl Default for MemoryGroupBy {
@@ -288,6 +301,8 @@ pub struct MemoryAggregateResult {
 pub enum MemoryTransformOperation {
     EmbedBackfill,
     ReindexEmbeddings,
+    EmbedTagBackfill,
+    ReindexTagEmbeddings,
 }
 
 impl Default for MemoryTransformOperation {

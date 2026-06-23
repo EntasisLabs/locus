@@ -2,9 +2,12 @@ use anyhow::Result;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
+use std::collections::HashMap;
+
 use crate::domain::models::{
-    AvecState, BatchRekeyResult, ChangeQueryResult, ConnectorMetadata, NodeQuery, NodeUpsertResult,
-    SttpNode, SyncCheckpoint, SyncCursor, ValidationResult,
+    AvecState, BatchRekeyResult, ChangeQueryResult, ConnectorMetadata, NodeDeleteRequest,
+    NodeDeleteResult, NodeQuery, NodeUpsertResult, SemanticTagNodeRef, SemanticTagQueryFilter,
+    SemanticTagRecord, SessionPurgeRequest, SttpNode, SyncCheckpoint, SyncCursor, ValidationResult,
 };
 
 /// Storage abstraction for STTP nodes and calibration data.
@@ -135,6 +138,58 @@ pub trait NodeStore: Send + Sync {
         dry_run: bool,
         allow_merge: bool,
     ) -> Result<BatchRekeyResult>;
+
+    /// Delete nodes by sync key and/or Surreal record id within a session scope.
+    async fn delete_nodes_async(&self, request: NodeDeleteRequest) -> Result<NodeDeleteResult>;
+
+    /// Delete all nodes (and optionally calibration/checkpoints) in a session scope.
+    async fn purge_session_async(&self, request: SessionPurgeRequest) -> Result<NodeDeleteResult>;
+}
+
+/// Per-tag embedding payload used when syncing the semantic tag index.
+#[derive(Debug, Clone)]
+pub struct TagEmbedding {
+    pub vector: Vec<f32>,
+    pub model: String,
+}
+
+/// Storage for per-tag vocabulary rows and optional tag embeddings.
+#[async_trait]
+pub trait SemanticIndexStore: Send + Sync {
+    async fn sync_node_tags_async(
+        &self,
+        node_ref: SemanticTagNodeRef,
+        tags: &[String],
+        embeddings: Option<&HashMap<String, TagEmbedding>>,
+    ) -> Result<()>;
+
+    async fn delete_node_tags_async(&self, tenant_id: &str, sync_key: &str) -> Result<()>;
+
+    async fn find_sync_keys_by_tags_async(
+        &self,
+        tenant_id: &str,
+        tags: &[String],
+        match_all: bool,
+        session_id: Option<&str>,
+        limit: usize,
+    ) -> Result<Vec<String>>;
+
+    async fn find_tags_async(
+        &self,
+        tenant_id: &str,
+        prefix: Option<&str>,
+        limit: usize,
+    ) -> Result<Vec<String>>;
+
+    async fn query_tag_records_async(
+        &self,
+        filter: SemanticTagQueryFilter,
+    ) -> Result<Vec<SemanticTagRecord>>;
+}
+
+#[async_trait]
+pub trait SemanticIndexStoreInitializer: Send + Sync {
+    async fn initialize_async(&self) -> Result<()>;
 }
 
 #[async_trait]

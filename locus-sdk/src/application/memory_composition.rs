@@ -452,7 +452,7 @@ mod tests {
         let service = MemoryCompositionService::new(store);
         let schema = service.capability_bundle();
 
-        assert_eq!(schema.schema_version, "locus-sdk.memory.v1");
+        assert_eq!(schema.schema_version, "locus-sdk.memory.v3");
         assert!(schema
             .transform_operations
             .contains(&"embed_backfill".to_string()));
@@ -711,6 +711,8 @@ mod tests {
             updated_at: timestamp,
             source_metadata: None,
             context_summary: Some(raw.to_string()),
+            semantic_tags: None,
+            semantic_links: None,
             embedding_dimensions: None,
             embedding_model: None,
             embedding: None,

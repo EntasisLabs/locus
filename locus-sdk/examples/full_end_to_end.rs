@@ -230,6 +230,8 @@ fn build_node(
         updated_at: timestamp,
         source_metadata: None,
         context_summary: Some(summary.to_string()),
+        semantic_tags: None,
+        semantic_links: None,
         embedding_dimensions: embedding.as_ref().map(|v| v.len()),
         embedding_model: embedding.as_ref().map(|_| "seed-model".to_string()),
         embedding,

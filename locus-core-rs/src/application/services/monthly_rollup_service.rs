@@ -3,17 +3,22 @@ use std::sync::Arc;
 
 use chrono::Utc;
 
-use crate::domain::contracts::{NodeStore, NodeValidator};
+use crate::domain::contracts::{
+    EmbeddingProvider, NodeStore, NodeValidator, SemanticIndexStore, TagEmbedding,
+};
 use crate::domain::models::{
     AvecState, ConfidenceBandSummary, MonthlyRollupRequest, MonthlyRollupResult, NodeQuery,
-    NumericRange,
+    NumericRange, SemanticTagNodeRef,
 };
 use crate::parsing::SttpNodeParser;
+use crate::storage::derive_tenant_id_from_session;
 
 pub struct MonthlyRollupService {
     store: Arc<dyn NodeStore>,
     validator: Arc<dyn NodeValidator>,
     parser: SttpNodeParser,
+    semantic_index: Option<Arc<dyn SemanticIndexStore>>,
+    embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
 }
 
 impl MonthlyRollupService {
@@ -23,7 +28,25 @@ impl MonthlyRollupService {
             store,
             validator,
             parser: SttpNodeParser::new(),
+            semantic_index: None,
+            embedding_provider: None,
         }
+    }
+
+    pub fn with_semantic_index(
+        mut self,
+        semantic_index: Arc<dyn SemanticIndexStore>,
+    ) -> Self {
+        self.semantic_index = Some(semantic_index);
+        self
+    }
+
+    pub fn with_embedding_provider(
+        mut self,
+        embedding_provider: Arc<dyn EmbeddingProvider>,
+    ) -> Self {
+        self.embedding_provider = Some(embedding_provider);
+        self
     }
 
     /// Build a monthly rollup node from source nodes in the requested date range.
@@ -143,6 +166,8 @@ impl MonthlyRollupService {
             .clone()
             .unwrap_or_else(|| ordered_nodes[0].session_id.clone());
 
+        let rollup_tags = aggregate_semantic_tags(&ordered_nodes);
+
         let raw_node = build_monthly_node(
             &request,
             &parent_reference,
@@ -157,6 +182,7 @@ impl MonthlyRollupService {
             psi_range,
             rho_bands,
             kappa_bands,
+            &rollup_tags,
         );
 
         let validation = self.validator.validate(&raw_node);
@@ -225,8 +251,21 @@ impl MonthlyRollupService {
                 };
             };
 
+            let parsed_snapshot = parsed_node.clone();
+
             match self.store.store_async(parsed_node).await {
                 Ok(id) => {
+                    if let Err(err) = self
+                        .sync_semantic_tags_async(&parsed_snapshot, &id)
+                        .await
+                    {
+                        emit_rollup_trace(
+                            &request.session_id,
+                            "semantic_index_sync_failure",
+                            &format!("error={} content_redacted=true", err),
+                        );
+                    }
+
                     emit_rollup_trace(
                         &request.session_id,
                         "store_success",
@@ -287,6 +326,68 @@ impl MonthlyRollupService {
             ..MonthlyRollupResult::default()
         }
     }
+
+    async fn sync_semantic_tags_async(
+        &self,
+        parsed: &crate::domain::models::SttpNode,
+        node_id: &str,
+    ) -> anyhow::Result<()> {
+        let Some(index) = self.semantic_index.as_ref() else {
+            return Ok(());
+        };
+
+        sync_semantic_tags_for_rollup(
+            index,
+            self.embedding_provider.as_ref(),
+            parsed,
+            node_id,
+        )
+        .await
+    }
+}
+
+async fn sync_semantic_tags_for_rollup(
+    semantic_index: &Arc<dyn SemanticIndexStore>,
+    embedding_provider: Option<&Arc<dyn EmbeddingProvider>>,
+    parsed: &crate::domain::models::SttpNode,
+    node_id: &str,
+) -> anyhow::Result<()> {
+    use std::collections::HashMap;
+
+    let tags = parsed.semantic_tags.clone().unwrap_or_default();
+    let tenant_id = derive_tenant_id_from_session(&parsed.session_id);
+    let node_ref = SemanticTagNodeRef {
+        tenant_id,
+        session_id: parsed.session_id.clone(),
+        node_id: node_id.to_string(),
+        sync_key: parsed.sync_key.clone(),
+    };
+
+    let embeddings = if let Some(provider) = embedding_provider {
+        let mut map = HashMap::new();
+        for tag in &tags {
+            let canonical = tag.trim().to_lowercase();
+            if canonical.is_empty() {
+                continue;
+            }
+            if let Ok(vector) = provider.embed_async(tag).await {
+                map.insert(
+                    canonical,
+                    TagEmbedding {
+                        vector,
+                        model: provider.model_name().to_string(),
+                    },
+                );
+            }
+        }
+        Some(map)
+    } else {
+        None
+    };
+
+    semantic_index
+        .sync_node_tags_async(node_ref, &tags, embeddings.as_ref())
+        .await
 }
 
 fn emit_rollup_trace(session_id: &str, event: &str, detail: &str) {
@@ -311,6 +412,7 @@ fn build_monthly_node(
     psi_range: NumericRange,
     rho_bands: ConfidenceBandSummary,
     kappa_bands: ConfidenceBandSummary,
+    rollup_tags: &[String],
 ) -> String {
     let timestamp = Utc::now().to_rfc3339();
     let start = request.start_utc.format("%Y-%m-%d").to_string();
@@ -322,7 +424,7 @@ fn build_monthly_node(
         .map(slug)
         .unwrap_or_else(|| "all_sessions".to_string());
 
-    let template = r#"⊕⟨ ⏣0{ trigger: manual, response_format: temporal_node, origin_session: "__SESSION_ID__", compression_depth: 2, parent_node: ref:__PARENT_REFERENCE__, prime: { attractor_config: { stability: __USER_STABILITY__, friction: __USER_FRICTION__, logic: __USER_LOGIC__, autonomy: __USER_AUTONOMY__ }, context_summary: monthly_rollup_across_stored_sttp_nodes_with_average_state_and_confidence_spread, relevant_tier: monthly, retrieval_budget: 16 } } ⟩
+    let template = r#"⊕⟨ ⏣0{ trigger: manual, response_format: temporal_node, origin_session: "__SESSION_ID__", compression_depth: 2, parent_node: ref:__PARENT_REFERENCE__, prime: { attractor_config: { stability: __USER_STABILITY__, friction: __USER_FRICTION__, logic: __USER_LOGIC__, autonomy: __USER_AUTONOMY__ }, context_summary: monthly_rollup_across_stored_sttp_nodes_with_average_state_and_confidence_spread, relevant_tier: monthly, retrieval_budget: 16__SEMANTIC_TAGS_BLOCK__ } } ⟩
 ⦿⟨ ⏣0{ timestamp: "__TIMESTAMP__", tier: monthly, session_id: "__SESSION_ID__", schema_version: "sttp-1.0", user_avec: { stability: __USER_STABILITY__, friction: __USER_FRICTION__, logic: __USER_LOGIC__, autonomy: __USER_AUTONOMY__, psi: __USER_PSI__ }, model_avec: { stability: __MODEL_STABILITY__, friction: __MODEL_FRICTION__, logic: __MODEL_LOGIC__, autonomy: __MODEL_AUTONOMY__, psi: __MODEL_PSI__ } } ⟩
 ◈⟨ ⏣0{ source_nodes(.99): __SOURCE_NODES__, source_user_avec_nodes(.97): __SOURCE_USER_AVEC_NODES__, active_days(.95): __ACTIVE_DAYS__, date_span(.99): __START___to___END__, source_session_filter(.78): __SOURCE_SESSION_TOKEN__, parent_anchor(.99): __PARENT_ANCHOR__, activity_shape(.83): burst_work_pattern_with_gaps_between_deep_sessions, monthly_arc(.86): stabilization_then_design_then_implementation_then_synthesis, behavioral_signature(.84): high_stability_high_logic_high_autonomy_with_low_to_moderate_friction, user_avec_average(.99): { stability: __USER_STABILITY__, friction: __USER_FRICTION__, logic: __USER_LOGIC__, autonomy: __USER_AUTONOMY__, psi: __USER_PSI__ }, model_avec_average(.97): { stability: __MODEL_STABILITY__, friction: __MODEL_FRICTION__, logic: __MODEL_LOGIC__, autonomy: __MODEL_AUTONOMY__, psi: __MODEL_PSI__ }, compression_avec_average(.96): { stability: __COMP_STABILITY__, friction: __COMP_FRICTION__, logic: __COMP_LOGIC__, autonomy: __COMP_AUTONOMY__, psi: __COMP_PSI__ }, confidence_ranges(.94): { rho_avg: __RHO_AVG__, rho_min: __RHO_MIN__, rho_max: __RHO_MAX__, kappa_avg: __KAPPA_AVG__, kappa_min: __KAPPA_MIN__, kappa_max: __KAPPA_MAX__, psi_avg: __PSI_AVG__, psi_min: __PSI_MIN__, psi_max: __PSI_MAX__ }, confidence_bands(.71): { rho_low: __RHO_LOW__, rho_medium: __RHO_MEDIUM__, rho_high: __RHO_HIGH__, kappa_low: __KAPPA_LOW__, kappa_medium: __KAPPA_MEDIUM__, kappa_high: __KAPPA_HIGH__ }, uncertainty(.41): interpretive_fields_carry_lower_confidence_than_numeric_rollups } ⟩
 ⍉⟨ ⏣0{ rho: __RHO_AVG__, kappa: __KAPPA_AVG__, psi: __PSI_AVG__, compression_avec: { stability: __COMP_STABILITY__, friction: __COMP_FRICTION__, logic: __COMP_LOGIC__, autonomy: __COMP_AUTONOMY__, psi: __COMP_PSI__ } } ⟩"#;
@@ -383,6 +485,39 @@ fn build_monthly_node(
         .replace("__KAPPA_LOW__", &kappa_bands.low.to_string())
         .replace("__KAPPA_MEDIUM__", &kappa_bands.medium.to_string())
         .replace("__KAPPA_HIGH__", &kappa_bands.high.to_string())
+        .replace(
+            "__SEMANTIC_TAGS_BLOCK__",
+            &format_semantic_tags_block(rollup_tags),
+        )
+}
+
+fn aggregate_semantic_tags(nodes: &[crate::domain::models::SttpNode]) -> Vec<String> {
+    let mut tags = HashSet::new();
+    for node in nodes {
+        if let Some(node_tags) = &node.semantic_tags {
+            for tag in node_tags {
+                tags.insert(tag.clone());
+            }
+        }
+    }
+
+    let mut sorted = tags.into_iter().collect::<Vec<_>>();
+    sorted.sort();
+    sorted
+}
+
+fn format_semantic_tags_block(tags: &[String]) -> String {
+    if tags.is_empty() {
+        return String::new();
+    }
+
+    let formatted = tags
+        .iter()
+        .map(|tag| format!("\"{}\"", tag.replace('"', "\\\"")))
+        .collect::<Vec<_>>()
+        .join(", ");
+
+    format!(", semantic_tags: [{formatted}]")
 }
 
 fn average_avec<I>(states: I) -> AvecState

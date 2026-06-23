@@ -8,9 +8,10 @@ use std::sync::Arc;
 use anyhow::Result;
 use locus_core_rs::domain::contracts::EmbeddingProvider;
 use locus_core_rs::{
-    CalibrationService, EmbeddingMigrationService, InMemoryNodeStore, MonthlyRollupService,
-    MoodCatalogService, NodeStore, NodeStoreInitializer, NodeValidator, StoreContextService,
-    SttpNodeParser, SurrealDbNodeStore, SurrealDbRuntimeOptions, TreeSitterValidator,
+    CalibrationService, EmbeddingMigrationService, InMemoryNodeStore, InMemorySemanticIndexStore,
+    MonthlyRollupService, MoodCatalogService, NodeStore, NodeStoreInitializer, NodeValidator,
+    SemanticIndexStore, SemanticIndexStoreInitializer, StoreContextService, SttpNodeParser,
+    SurrealDbNodeStore, SurrealDbRuntimeOptions, SurrealDbSemanticIndexStore, TreeSitterValidator,
 };
 use rmcp::handler::server::{router::tool::ToolRouter, wrapper::Parameters};
 use rmcp::{ServerHandler, ServiceExt, tool, tool_handler, tool_router};
@@ -37,6 +38,7 @@ pub(crate) use shared::{
 #[derive(Clone)]
 pub(crate) struct SttpMcpServer {
     pub(crate) node_store: Arc<dyn NodeStore>,
+    pub(crate) semantic_index: Arc<dyn SemanticIndexStore>,
     pub(crate) calibration: Arc<CalibrationService>,
     pub(crate) store_context: Arc<StoreContextService>,
     pub(crate) embedding_migration: Arc<EmbeddingMigrationService>,
@@ -50,6 +52,7 @@ pub(crate) struct SttpMcpServer {
 impl SttpMcpServer {
     fn new(
         node_store: Arc<dyn NodeStore>,
+        semantic_index: Arc<dyn SemanticIndexStore>,
         calibration: Arc<CalibrationService>,
         store_context: Arc<StoreContextService>,
         embedding_migration: Arc<EmbeddingMigrationService>,
@@ -59,6 +62,7 @@ impl SttpMcpServer {
     ) -> Self {
         Self {
             node_store,
+            semantic_index,
             calibration,
             store_context,
             embedding_migration,
@@ -129,6 +133,22 @@ impl SttpMcpServer {
     )]
     async fn list_nodes(&self, Parameters(request): Parameters<ListNodesRequest>) -> String {
         tools::list_nodes::execute(self, request).await
+    }
+
+    #[tool(
+        name = "get_graph",
+        description = "Return a memory graph with session topology, lineage, and semantic link edges materialized from stored nodes. Supports optional session scope plus semantic tag and link filters."
+    )]
+    async fn get_graph(&self, Parameters(request): Parameters<GetGraphRequest>) -> String {
+        tools::get_graph::execute(self, request).await
+    }
+
+    #[tool(
+        name = "evict_nodes",
+        description = "Explicitly delete memory nodes by sync key, node id, semantic filter, or full session purge. Supports dry_run preview (recommended first), force to bypass inbound reference blocking, and optional calibration/checkpoint cleanup on session purge."
+    )]
+    async fn evict_nodes(&self, Parameters(request): Parameters<EvictNodesRequest>) -> String {
+        tools::evict_nodes::execute(self, request).await
     }
 
     #[tool(
@@ -222,6 +242,81 @@ pub(crate) struct GetContextRequest {
     alpha: Option<f32>,
     #[serde(default)]
     beta: Option<f32>,
+    #[serde(default)]
+    gamma: Option<f32>,
+    #[serde(default)]
+    semantic_tags: Option<Vec<String>>,
+    #[serde(default)]
+    link_rel: Option<String>,
+    #[serde(default)]
+    link_target: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct GetGraphRequest {
+    #[serde(default)]
+    session_id: Option<String>,
+    #[serde(default = "default_limit_get_graph")]
+    limit: usize,
+    #[serde(default)]
+    rel: Option<String>,
+    #[serde(default)]
+    target_prefix: Option<String>,
+    #[serde(default)]
+    semantic_tags: Option<Vec<String>>,
+    #[serde(default)]
+    link_rel: Option<String>,
+    #[serde(default)]
+    link_target: Option<String>,
+    #[serde(default)]
+    links_to_ref: Option<String>,
+    #[serde(default)]
+    tag_prefix: Option<String>,
+    #[serde(default)]
+    has_semantic_links: Option<bool>,
+    #[serde(default)]
+    include_lineage: Option<bool>,
+    #[serde(default)]
+    include_semantic: Option<bool>,
+    #[serde(default)]
+    include_session_topology: Option<bool>,
+}
+
+fn default_limit_get_graph() -> usize {
+    1000
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub(crate) struct EvictNodesRequest {
+    session_id: String,
+    #[serde(default)]
+    sync_keys: Option<Vec<String>>,
+    #[serde(default)]
+    node_ids: Option<Vec<String>>,
+    #[serde(default)]
+    semantic_tags: Option<Vec<String>>,
+    #[serde(default)]
+    link_rel: Option<String>,
+    #[serde(default)]
+    link_target: Option<String>,
+    #[serde(default)]
+    links_to_ref: Option<String>,
+    #[serde(default)]
+    tag_prefix: Option<String>,
+    #[serde(default)]
+    has_semantic_links: Option<bool>,
+    #[serde(default)]
+    purge_session: Option<bool>,
+    #[serde(default)]
+    dry_run: Option<bool>,
+    #[serde(default)]
+    force: Option<bool>,
+    #[serde(default)]
+    max_nodes: Option<usize>,
+    #[serde(default)]
+    include_calibration: Option<bool>,
+    #[serde(default)]
+    include_checkpoints: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -232,6 +327,12 @@ pub(crate) struct ListNodesRequest {
     session_id: Option<String>,
     #[serde(default)]
     context_keywords: Option<Vec<String>>,
+    #[serde(default)]
+    semantic_tags: Option<Vec<String>>,
+    #[serde(default)]
+    link_rel: Option<String>,
+    #[serde(default)]
+    link_target: Option<String>,
 }
 
 fn default_limit_list_nodes() -> usize {
@@ -349,11 +450,19 @@ async fn main() -> Result<()> {
             .iter()
             .any(|arg| arg.eq_ignore_ascii_case("--in-memory"));
 
-    let (store, initializer) = if use_in_memory {
+    let (store, semantic_index, initializer, semantic_initializer) = if use_in_memory {
         let store = Arc::new(InMemoryNodeStore::new());
+        let semantic_index = Arc::new(InMemorySemanticIndexStore::new());
         let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+        let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> = semantic_index.clone();
         let node_store: Arc<dyn NodeStore> = store;
-        (node_store, initializer)
+        let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
+        (
+            node_store,
+            semantic_trait,
+            initializer,
+            semantic_initializer,
+        )
     } else {
         let settings = load_surreal_settings(&args)?;
         let runtime_args = runtime_args(&args);
@@ -367,9 +476,12 @@ async fn main() -> Result<()> {
             )
             .await?,
         );
+        let semantic_index = Arc::new(SurrealDbSemanticIndexStore::new(client.clone()));
         let store = Arc::new(SurrealDbNodeStore::new(client));
         let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+        let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> = semantic_index.clone();
         let node_store: Arc<dyn NodeStore> = store;
+        let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
 
         tracing::info!(
             mode = if runtime.use_remote { "remote" } else { "embedded" },
@@ -379,10 +491,16 @@ async fn main() -> Result<()> {
             "configured SurrealDB runtime"
         );
 
-        (node_store, initializer)
+        (
+            node_store,
+            semantic_trait,
+            initializer,
+            semantic_initializer,
+        )
     };
 
     initializer.initialize_async().await?;
+    semantic_initializer.initialize_async().await?;
 
     let validator: Arc<dyn NodeValidator> = Arc::new(TreeSitterValidator::new());
     let embedding_provider = build_embedding_provider(&args)?;
@@ -392,29 +510,41 @@ async fn main() -> Result<()> {
 
     let calibration = Arc::new(CalibrationService::new(store.clone()));
     let store_context = match embedding_provider.clone() {
-        Some(provider) => Arc::new(StoreContextService::with_embedding_provider(
-            store.clone(),
-            validator.clone(),
-            provider,
-            parser,
-        )),
-        None => Arc::new(StoreContextService::new(store.clone(), validator.clone(), parser)),
+        Some(provider) => Arc::new(
+            StoreContextService::with_embedding_provider(
+                store.clone(),
+                validator.clone(),
+                provider,
+                parser,
+            )
+            .with_semantic_index(semantic_index.clone()),
+        ),
+        None => Arc::new(
+            StoreContextService::new(store.clone(), validator.clone(), parser)
+                .with_semantic_index(semantic_index.clone()),
+        ),
     };
     let embedding_migration = Arc::new(EmbeddingMigrationService::new(
         store.clone(),
         embedding_provider.clone(),
     ));
+    let mut monthly_rollup =
+        MonthlyRollupService::new(store.clone(), validator.clone())
+            .with_semantic_index(semantic_index.clone());
+    if let Some(provider) = embedding_provider.clone() {
+        monthly_rollup = monthly_rollup.with_embedding_provider(provider);
+    }
     let moods = Arc::new(MoodCatalogService::new());
-    let monthly_rollup = Arc::new(MonthlyRollupService::new(store.clone(), validator));
 
     let server = SttpMcpServer::new(
         store,
+        semantic_index,
         calibration,
         store_context,
         embedding_migration,
         embedding_provider,
         moods,
-        monthly_rollup,
+        Arc::new(monthly_rollup),
     );
 
     let running = server

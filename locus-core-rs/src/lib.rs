@@ -66,11 +66,13 @@ pub use application::services::{
 };
 pub use application::validation::TreeSitterValidator;
 pub use domain::contracts::{
-    NodeStore, NodeStoreInitializer, NodeValidator, SyncChangeSource, SyncCoordinatorPolicy,
+    NodeStore, NodeStoreInitializer, NodeValidator, SemanticIndexStore,
+    SemanticIndexStoreInitializer, SyncChangeSource, SyncCoordinatorPolicy, TagEmbedding,
 };
 pub use domain::models::*;
 pub use parsing::SttpNodeParser;
 pub use storage::{
-    InMemoryNodeStore, QueryParams, SurrealDbClient, SurrealDbEndpointsSettings,
-    SurrealDbNodeStore, SurrealDbRuntimeOptions, SurrealDbSettings,
+    InMemoryNodeStore, InMemorySemanticIndexStore, QueryParams, SurrealDbClient,
+    SurrealDbEndpointsSettings, SurrealDbNodeStore, SurrealDbRuntimeOptions,
+    SurrealDbSemanticIndexStore, SurrealDbSettings, derive_tenant_id_from_session,
 };

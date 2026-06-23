@@ -24,6 +24,12 @@ message AvecState {
   float psi = 5;
 }
 
+message SemanticLink {
+  string rel = 1;
+  string target = 2;
+  optional float confidence = 3;
+}
+
 message SttpNode {
   string raw = 1;
   string session_id = 2;
@@ -37,6 +43,8 @@ message SttpNode {
   float rho = 10;
   float kappa = 11;
   float psi = 12;
+  repeated string semantic_tags = 13;
+  repeated SemanticLink semantic_links = 14;
 }
 
 message PsiRange {
