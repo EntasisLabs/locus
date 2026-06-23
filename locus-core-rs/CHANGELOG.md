@@ -3,6 +3,16 @@
 All notable changes specific to locus-core-rs are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [0.4.1] - 2026-06-23
+
+### Fixed
+
+- `StoreContextService` and `MonthlyRollupService` now sync `semantic_tag_index` rows using the **canonical sync key returned from upsert**, not the pre-persist parsed value (fixes `indexed_tags` pre-filter misses when ingest nodes have empty `sync_key`).
+
+### Tests
+
+- Added `locus-core-rs/tests/store_context_semantic_index_tests.rs` for canonical sync-key tag index alignment on ingest.
+
 ## [0.4.0] - 2026-06-23
 
 ### Added

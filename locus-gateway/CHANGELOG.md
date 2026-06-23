@@ -3,6 +3,16 @@
 All notable changes specific to locus-gateway are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [0.3.1] - 2026-06-23
+
+### Fixed
+
+- Rebuilt against `locus-core-rs` **0.4.1** so `POST /store` (and rollup ingest) write `semantic_tag_index` rows under the same sync key as persisted nodes — fixes `indexed_tags` / tag-filter retrieval misses after store.
+
+### Changed
+
+- Dependency alignment: `locus-core-rs` 0.4.1, `locus-sdk` 0.2.1.
+
 ## [0.3.0] - 2026-06-23
 
 ### Added
