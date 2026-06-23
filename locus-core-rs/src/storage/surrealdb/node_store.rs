@@ -397,6 +397,20 @@ impl NodeStore for SurrealDbNodeStore {
                 .map_or(Value::Null, |value| json!(value)),
         );
         parameters.insert(
+            "semantic_tags".to_string(),
+            candidate
+                .semantic_tags
+                .clone()
+                .map_or(Value::Null, |value| json!(value)),
+        );
+        parameters.insert(
+            "semantic_links".to_string(),
+            candidate
+                .semantic_links
+                .clone()
+                .map_or(Value::Null, |value| serde_json::to_value(value).unwrap_or(Value::Null)),
+        );
+        parameters.insert(
             "embedding".to_string(),
             candidate
                 .embedding
@@ -1103,6 +1117,8 @@ fn map_to_node(record: SurrealNodeRecord) -> SttpNode {
         updated_at,
         source_metadata: record.source_metadata,
         context_summary: record.context_summary,
+        semantic_tags: record.semantic_tags,
+        semantic_links: record.semantic_links,
         embedding: record.embedding,
         embedding_model: record.embedding_model,
         embedding_dimensions: record.embedding_dimensions,

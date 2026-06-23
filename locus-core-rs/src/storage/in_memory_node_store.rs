@@ -117,6 +117,8 @@ impl NodeStore for InMemoryNodeStore {
                 || existing.compression_depth != candidate.compression_depth
                 || existing.parent_node_id != candidate.parent_node_id
                 || existing.context_summary != candidate.context_summary
+                || existing.semantic_tags != candidate.semantic_tags
+                || existing.semantic_links != candidate.semantic_links
                 || existing.embedding != candidate.embedding
                 || existing.embedding_model != candidate.embedding_model
                 || existing.embedding_dimensions != candidate.embedding_dimensions

@@ -2,20 +2,10 @@
 
 ## Document Control
 - Document ID: LOCUS-CORE-DATA-ARCH-001
-- Status: Current
+- Status: Draft for Internal Review
 - Intended Audience: Platform Engineers, Data Engineers, Reliability Engineers, Security Reviewers
 - Source of Truth: `locus-core-rs` implementation (`domain/models.rs`, `storage/surrealdb/*`, `domain/contracts.rs`)
 - Last Updated: 2026-05-04
-
-## Audience and Use
-
-This document is for teams evaluating data durability, query behavior, and operational safety before adopting Locus in production systems.
-
-Use it to:
-
-1. Validate persistence and indexing behavior against your workload.
-2. Understand multi-tenant and compatibility rules.
-3. Review storage-level guarantees before integration and rollout.
 
 ## 1. Purpose and Scope
 This document specifies the persistence model used by `locus-core-rs` for STTP memory nodes, calibration records, and synchronization checkpoints.
@@ -103,6 +93,8 @@ classDiagram
       +datetime updated_at
       +object source_metadata
       +string context_summary
+      +string[] semantic_tags
+      +SemanticLink[] semantic_links
       +float[] embedding
       +string embedding_model
       +int embedding_dimensions
@@ -167,7 +159,7 @@ Required fields:
 Optional fields:
 - Hierarchy: `parent_node_id`.
 - Source lineage: `source_metadata`.
-- Retrieval acceleration: `context_summary`, `embedding*`, `embedded_at`.
+- Retrieval acceleration: `context_summary`, `semantic_tags`, `semantic_links`, `embedding*`, `embedded_at`.
 
 ### 5.2 Table: `calibration`
 Storage purpose:

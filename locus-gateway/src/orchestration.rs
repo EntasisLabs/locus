@@ -10,6 +10,7 @@ use locus_core_rs::application::validation::TreeSitterValidator;
 use locus_core_rs::domain::contracts::{
     EmbeddingProvider, NodeStore, NodeStoreInitializer, NodeValidator,
 };
+use locus_core_rs::parsing::SttpNodeParser;
 use locus_core_rs::storage::{
     InMemoryNodeStore, SurrealDbEndpointsSettings, SurrealDbNodeStore, SurrealDbRuntimeOptions,
     SurrealDbSettings,
@@ -112,15 +113,18 @@ fn build_services(
     embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
     avec_scorer: Option<Arc<dyn AvecScorer>>,
 ) -> AppState {
+    let parser = SttpNodeParser::new();
     let store_context = match embedding_provider.as_ref() {
         Some(provider) => Arc::new(StoreContextService::with_embedding_provider(
             store_trait.clone(),
             validator.clone(),
             provider.clone(),
+            parser,
         )),
         None => Arc::new(StoreContextService::new(
             store_trait.clone(),
             validator.clone(),
+            parser,
         )),
     };
 

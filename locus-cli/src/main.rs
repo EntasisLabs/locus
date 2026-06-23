@@ -10,7 +10,7 @@ use locus_core_rs::domain::models::{AvecState, MonthlyRollupRequest, SttpNode};
 use locus_core_rs::{
     CalibrationService, InMemoryNodeStore, MonthlyRollupService, MoodCatalogService, NodeStore,
     NodeStoreInitializer, NodeValidator, QueryParams,
-    StoreContextService, SurrealDbClient, SurrealDbEndpointsSettings, SurrealDbNodeStore,
+    StoreContextService, SttpNodeParser, SurrealDbClient, SurrealDbEndpointsSettings, SurrealDbNodeStore,
     SurrealDbRuntimeOptions, SurrealDbSettings, TreeSitterValidator,
 };
 use locus_sdk::application::memory_find::MemoryFindService;
@@ -576,7 +576,11 @@ async fn build_services(cli: &Cli) -> Result<Services> {
 
     Ok(Services {
         calibration: CalibrationService::new(store.clone()),
-        store_context: StoreContextService::new(store.clone(), validator.clone()),
+        store_context: StoreContextService::new(
+            store.clone(),
+            validator.clone(),
+            SttpNodeParser::new(),
+        ),
         memory_find: MemoryFindService::new(store.clone()),
         memory_recall: MemoryRecallService::new(store.clone()),
         moods: MoodCatalogService::new(),
@@ -730,6 +734,16 @@ fn sttp_node_to_json(node: &SttpNode) -> Value {
         "syncKey": node.sync_key,
         "updatedAt": node.updated_at.to_rfc3339(),
         "contextSummary": node.context_summary,
+        "semanticTags": node.semantic_tags,
+        "semanticLinks": node.semantic_links.as_ref().map(|links| {
+            links.iter().map(|link| {
+                json!({
+                    "rel": link.rel,
+                    "target": link.target,
+                    "confidence": link.confidence,
+                })
+            }).collect::<Vec<_>>()
+        }),
         "embeddingModel": node.embedding_model,
         "embeddingDimensions": node.embedding_dimensions,
         "embeddedAt": node.embedded_at.map(|v| v.to_rfc3339()),

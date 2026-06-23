@@ -1,6 +1,7 @@
 use axum::Json;
 use axum::http::HeaderValue;
 use chrono::{DateTime, Utc};
+use locus_core_rs::SemanticLink;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
@@ -195,6 +196,8 @@ pub(crate) struct SttpNodeDto {
     pub(crate) timestamp: DateTime<Utc>,
     pub(crate) compression_depth: i32,
     pub(crate) parent_node_id: Option<String>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) semantic_links: Option<Vec<SemanticLink>>,
     pub(crate) user_avec: AvecStateDto,
     pub(crate) model_avec: AvecStateDto,
     pub(crate) compression_avec: Option<AvecStateDto>,

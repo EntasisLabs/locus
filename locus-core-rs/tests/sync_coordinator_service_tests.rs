@@ -62,6 +62,8 @@ fn build_test_node(session_id: &str, raw: &str, sync_key: &str, updated_at: &str
             .with_timezone(&Utc),
         source_metadata: None,
         context_summary: None,
+        semantic_tags: None,
+        semantic_links: None,
         embedding: None,
         embedding_model: None,
         embedding_dimensions: None,

@@ -93,6 +93,8 @@ classDiagram
       +datetime updated_at
       +object source_metadata
       +string context_summary
+      +string[] semantic_tags
+      +SemanticLink[] semantic_links
       +float[] embedding
       +string embedding_model
       +int embedding_dimensions
@@ -157,7 +159,7 @@ Required fields:
 Optional fields:
 - Hierarchy: `parent_node_id`.
 - Source lineage: `source_metadata`.
-- Retrieval acceleration: `context_summary`, `embedding*`, `embedded_at`.
+- Retrieval acceleration: `context_summary`, `semantic_tags`, `semantic_links`, `embedding*`, `embedded_at`.
 
 ### 5.2 Table: `calibration`
 Storage purpose:

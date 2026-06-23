@@ -110,6 +110,8 @@ pub struct MemoryFilter {
     pub rho: Option<MetricRange>,
     pub kappa: Option<MetricRange>,
     pub text_contains: Option<String>,
+    pub tags_contains: Option<Vec<String>>,
+    pub has_tag: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

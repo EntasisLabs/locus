@@ -113,6 +113,8 @@ pub struct MemoryFilterDto {
     pub rho: Option<MetricRange>,
     pub kappa: Option<MetricRange>,
     pub text_contains: Option<String>,
+    pub tags_contains: Option<Vec<String>>,
+    pub has_tag: Option<String>,
 }
 
 impl From<MemoryFilterDto> for MemoryFilter {
@@ -124,6 +126,8 @@ impl From<MemoryFilterDto> for MemoryFilter {
             rho: value.rho,
             kappa: value.kappa,
             text_contains: value.text_contains,
+            tags_contains: value.tags_contains,
+            has_tag: value.has_tag,
         }
     }
 }
@@ -137,6 +141,8 @@ impl From<MemoryFilter> for MemoryFilterDto {
             rho: value.rho,
             kappa: value.kappa,
             text_contains: value.text_contains,
+            tags_contains: value.tags_contains,
+            has_tag: value.has_tag,
         }
     }
 }

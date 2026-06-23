@@ -24,6 +24,8 @@ impl MemorySchemaService {
                 "rho".to_string(),
                 "kappa".to_string(),
                 "text_contains".to_string(),
+                "tags_contains".to_string(),
+                "has_tag".to_string(),
             ],
             group_by_fields: vec![
                 "session_id".to_string(),
@@ -71,5 +73,16 @@ mod tests {
         assert!(schema
             .transform_operations
             .contains(&"embed_backfill".to_string()));
+        assert!(schema.filter_fields.contains(&"has_tag".to_string()));
+    }
+
+    #[test]
+    fn schema_contains_semantic_tag_filters() {
+        let service = MemorySchemaService::new();
+        let schema = service.execute();
+
+        assert!(schema
+            .filter_fields
+            .contains(&"tags_contains".to_string()));
     }
 }

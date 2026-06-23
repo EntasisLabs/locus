@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use chrono::{DateTime, Utc};
 use locus_core_rs::EmbeddingMigrationMode;
 use serde_json::{Value, json};
@@ -84,6 +86,26 @@ pub(crate) fn normalize_context_keywords(keywords: Option<&[String]>) -> Vec<Str
 }
 
 fn context_keyword_score(node: &locus_core_rs::SttpNode, keywords: &[String]) -> usize {
+    let node_tags = node
+        .semantic_tags
+        .as_deref()
+        .unwrap_or_default()
+        .iter()
+        .map(|tag| tag.to_ascii_lowercase())
+        .collect::<HashSet<_>>();
+
+    let tag_matches = keywords
+        .iter()
+        .filter(|keyword| {
+            let needle = keyword.as_str();
+            node_tags.contains(needle)
+        })
+        .count();
+
+    if tag_matches > 0 {
+        return tag_matches.saturating_mul(10);
+    }
+
     let summary = node
         .context_summary
         .as_deref()
@@ -204,6 +226,22 @@ pub(crate) fn sttp_node_to_json(node: &locus_core_rs::SttpNode) -> Value {
         "updated_at": node.updated_at.to_rfc3339(),
         "source_metadata": node.source_metadata,
         "context_summary": node.context_summary,
+        "semantic_tags": node.semantic_tags,
+        "semantic_links": node
+            .semantic_links
+            .as_ref()
+            .map(|links| {
+                links
+                    .iter()
+                    .map(|link| {
+                        json!({
+                            "rel": link.rel,
+                            "target": link.target,
+                            "confidence": link.confidence,
+                        })
+                    })
+                    .collect::<Vec<_>>()
+            }),
         "has_embedding": node.embedding.as_ref().map(|values| !values.is_empty()).unwrap_or(false),
         "embedding_model": node.embedding_model,
         "embedding_dimensions": node.embedding_dimensions,

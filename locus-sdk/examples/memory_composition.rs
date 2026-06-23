@@ -134,6 +134,8 @@ fn build_node(session_id: &str, timestamp: chrono::DateTime<Utc>, raw: &str) -> 
         updated_at: timestamp,
         source_metadata: None,
         context_summary: Some(raw.to_string()),
+        semantic_tags: None,
+        semantic_links: None,
         embedding_dimensions: None,
         embedding_model: None,
         embedding: None,

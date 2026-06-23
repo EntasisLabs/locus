@@ -325,6 +325,8 @@ mod tests {
             updated_at: now,
             source_metadata: None,
             context_summary: Some("summary".to_string()),
+            semantic_tags: None,
+            semantic_links: None,
             embedding_dimensions: embedding.as_ref().map(|v| v.len()),
             embedding_model: embedding.as_ref().map(|_| "existing".to_string()),
             embedding,

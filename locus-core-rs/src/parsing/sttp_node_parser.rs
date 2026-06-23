@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::domain::models::{
     AvecState, CanonicalAst, CanonicalAstLayer, ParseDiagnostic, ParseDiagnosticSeverity,
-    ParseProfile, ParseResult, ParseSpan, SttpNode,
+    ParseProfile, ParseResult, ParseSpan, SemanticLink, SttpNode,
 };
 use crate::parsing::lexicon::{AVEC_COMPRESSION_KEY, AVEC_MODEL_KEY, AVEC_USER_KEY};
 use crate::parsing::state_machine::{ParserState, SttpLayerStateMachine};
@@ -59,6 +59,8 @@ enum NodeFieldKey {
     CompressionDepth,
     ParentNode,
     Prime,
+    SemanticTags,
+    SemanticLinks,
     AttractorConfig,
     ContextSummary,
     RelevantTier,
@@ -87,6 +89,8 @@ impl NodeFieldKey {
             NodeFieldKey::CompressionDepth => "compression_depth",
             NodeFieldKey::ParentNode => "parent_node",
             NodeFieldKey::Prime => "prime",
+            NodeFieldKey::SemanticTags => "semantic_tags",
+            NodeFieldKey::SemanticLinks => "semantic_links",
             NodeFieldKey::AttractorConfig => "attractor_config",
             NodeFieldKey::ContextSummary => "context_summary",
             NodeFieldKey::RelevantTier => "relevant_tier",
@@ -385,7 +389,25 @@ impl SttpNodeParser {
                     canonical_ast,
                 );
             }
+
+            let semantic_diagnostics = validate_semantic_metadata(
+                provenance,
+                layered.provenance_span,
+            );
+            if !semantic_diagnostics.is_empty() {
+                diagnostics.extend(semantic_diagnostics.clone());
+
+                return ParseResult::fail_with_metadata(
+                    "strict profile violation: semantic_tags or semantic_links invalid",
+                    profile,
+                    diagnostics,
+                    canonical_ast,
+                );
+            }
         }
+
+        let semantic_tags = parse_semantic_tags(provenance);
+        let semantic_links = parse_semantic_links(provenance);
 
         let user_avec = parse_avec_block(envelope, AVEC_USER_KEY)
             .or_else(|| parse_avec_block(raw, AVEC_USER_KEY))
@@ -412,6 +434,8 @@ impl SttpNodeParser {
             source_metadata: None,
             context_summary: parse_context_summary(provenance)
                 .or_else(|| parse_context_summary(raw)),
+            semantic_tags,
+            semantic_links,
             embedding: None,
             embedding_model: None,
             embedding_dimensions: None,
@@ -1297,6 +1321,264 @@ fn parse_parent_node(raw: &str) -> Option<String> {
     Some(value)
 }
 
+fn parse_semantic_tags(provenance: &str) -> Option<Vec<String>> {
+    let provenance_object = extract_first_object(provenance)?;
+    let prime = extract_named_object(provenance_object, NodeFieldKey::Prime.as_str())?;
+    let raw = parse_key_value_in_object(prime, NodeFieldKey::SemanticTags.as_str())?;
+    let tags = parse_string_array(raw)?;
+    canonicalize_semantic_tags(tags)
+}
+
+fn parse_semantic_links(provenance: &str) -> Option<Vec<SemanticLink>> {
+    let provenance_object = extract_first_object(provenance)?;
+    let raw = parse_key_value_in_object(provenance_object, NodeFieldKey::SemanticLinks.as_str())?;
+    let links = parse_semantic_links_array(raw)?;
+    if links.is_empty() {
+        None
+    } else {
+        Some(links)
+    }
+}
+
+fn parse_string_array(raw: &str) -> Option<Vec<String>> {
+    let trimmed = raw.trim();
+    let inner = trimmed.strip_prefix('[')?.strip_suffix(']')?.trim();
+    if inner.is_empty() {
+        return Some(Vec::new());
+    }
+
+    Some(
+        split_top_level_values(inner)
+            .into_iter()
+            .map(normalize_scalar_value)
+            .collect(),
+    )
+}
+
+fn parse_semantic_links_array(raw: &str) -> Option<Vec<SemanticLink>> {
+    let trimmed = raw.trim();
+    let inner = trimmed.strip_prefix('[')?.strip_suffix(']')?.trim();
+    if inner.is_empty() {
+        return Some(Vec::new());
+    }
+
+    let mut links = Vec::new();
+    for element in split_top_level_values(inner) {
+        if let Some(link) = parse_link_object(element) {
+            links.push(link);
+        }
+    }
+
+    Some(links)
+}
+
+fn parse_link_object(raw: &str) -> Option<SemanticLink> {
+    let trimmed = raw.trim();
+    let inner = trimmed.strip_prefix('{')?.strip_suffix('}')?.trim();
+    let rel = parse_key_value_in_object(inner, "rel").map(normalize_scalar_value)?;
+    let target = parse_key_value_in_object(inner, "target").map(normalize_scalar_value)?;
+    if rel.is_empty() || target.is_empty() {
+        return None;
+    }
+
+    let confidence = parse_key_value_in_object(inner, "confidence")
+        .and_then(|value| value.parse::<f32>().ok());
+
+    Some(SemanticLink {
+        rel,
+        target,
+        confidence,
+    })
+}
+
+fn canonicalize_semantic_tags(tags: Vec<String>) -> Option<Vec<String>> {
+    let mut normalized = tags
+        .into_iter()
+        .map(|tag| tag.trim().to_ascii_lowercase())
+        .filter(|tag| !tag.is_empty() && is_valid_semantic_tag(tag))
+        .collect::<Vec<_>>();
+
+    normalized.sort();
+    normalized.dedup();
+
+    if normalized.is_empty() {
+        None
+    } else {
+        Some(normalized)
+    }
+}
+
+fn is_valid_semantic_tag(tag: &str) -> bool {
+    tag.len() <= 64
+        && !tag.contains("ref:")
+        && !tag.contains('⊕')
+        && !tag.contains('⦿')
+        && !tag.contains('◈')
+        && !tag.contains('⍉')
+}
+
+fn split_top_level_values(input: &str) -> Vec<&str> {
+    let mut values = Vec::new();
+    let mut start = 0usize;
+    let mut depth_brace = 0usize;
+    let mut depth_bracket = 0usize;
+    let mut in_quotes = false;
+    let mut escape = false;
+
+    for (idx, ch) in input.char_indices() {
+        if in_quotes {
+            if escape {
+                escape = false;
+                continue;
+            }
+            if ch == '\\' {
+                escape = true;
+                continue;
+            }
+            if ch == '"' {
+                in_quotes = false;
+            }
+            continue;
+        }
+
+        match ch {
+            '"' => in_quotes = true,
+            '{' => depth_brace += 1,
+            '}' => depth_brace = depth_brace.saturating_sub(1),
+            '[' => depth_bracket += 1,
+            ']' => depth_bracket = depth_bracket.saturating_sub(1),
+            ',' if depth_brace == 0 && depth_bracket == 0 => {
+                let slice = input[start..idx].trim();
+                if !slice.is_empty() {
+                    values.push(slice);
+                }
+                start = idx + ch.len_utf8();
+            }
+            _ => {}
+        }
+    }
+
+    let tail = input[start..].trim();
+    if !tail.is_empty() {
+        values.push(tail);
+    }
+
+    values
+}
+
+fn validate_semantic_metadata(
+    provenance: &str,
+    span: Option<crate::parsing::lexer::Span>,
+) -> Vec<ParseDiagnostic> {
+    let mut diagnostics = Vec::new();
+    let Some(provenance_object) = extract_first_object(provenance) else {
+        return diagnostics;
+    };
+
+    let prime_object = extract_named_object(provenance_object, NodeFieldKey::Prime.as_str());
+
+    if let Some(raw_tags) = prime_object
+        .and_then(|prime| parse_key_value_in_object(prime, NodeFieldKey::SemanticTags.as_str()))
+    {
+        let Some(tags) = parse_string_array(raw_tags) else {
+            diagnostics.push(ParseDiagnostic {
+                code: "STTP_SEMANTIC_TAGS_INVALID_ARRAY".to_string(),
+                message: "semantic_tags must be an array of strings".to_string(),
+                severity: ParseDiagnosticSeverity::Error,
+                strict_impact: true,
+                span: span.map(to_parse_span),
+            });
+            return diagnostics;
+        };
+
+        if tags.is_empty() {
+            diagnostics.push(ParseDiagnostic {
+                code: "STTP_SEMANTIC_TAGS_EMPTY".to_string(),
+                message: "semantic_tags must be non-empty when present".to_string(),
+                severity: ParseDiagnosticSeverity::Error,
+                strict_impact: true,
+                span: span.map(to_parse_span),
+            });
+        }
+
+        for tag in tags {
+            let normalized = tag.trim().to_ascii_lowercase();
+            if normalized.is_empty() {
+                diagnostics.push(ParseDiagnostic {
+                    code: "STTP_SEMANTIC_TAGS_EMPTY_VALUE".to_string(),
+                    message: "semantic_tags entries must be non-empty strings".to_string(),
+                    severity: ParseDiagnosticSeverity::Error,
+                    strict_impact: true,
+                    span: span.map(to_parse_span),
+                });
+            } else if !is_valid_semantic_tag(&normalized) {
+                diagnostics.push(ParseDiagnostic {
+                    code: "STTP_SEMANTIC_TAGS_INVALID_VALUE".to_string(),
+                    message: format!(
+                        "semantic_tags entry '{normalized}' is invalid (max 64 chars, no ref: or structural markers)"
+                    ),
+                    severity: ParseDiagnosticSeverity::Error,
+                    strict_impact: true,
+                    span: span.map(to_parse_span),
+                });
+            }
+        }
+    }
+
+    if let Some(raw_links) =
+        parse_key_value_in_object(provenance_object, NodeFieldKey::SemanticLinks.as_str())
+    {
+        let Some(links) = parse_semantic_links_array(raw_links) else {
+            diagnostics.push(ParseDiagnostic {
+                code: "STTP_SEMANTIC_LINKS_INVALID_ARRAY".to_string(),
+                message: "semantic_links must be an array of link objects".to_string(),
+                severity: ParseDiagnosticSeverity::Error,
+                strict_impact: true,
+                span: span.map(to_parse_span),
+            });
+            return diagnostics;
+        };
+
+        if links.is_empty() {
+            diagnostics.push(ParseDiagnostic {
+                code: "STTP_SEMANTIC_LINKS_EMPTY".to_string(),
+                message: "semantic_links must be non-empty when present".to_string(),
+                severity: ParseDiagnosticSeverity::Error,
+                strict_impact: true,
+                span: span.map(to_parse_span),
+            });
+        }
+
+        for link in links {
+            if link.rel.trim().is_empty() || link.target.trim().is_empty() {
+                diagnostics.push(ParseDiagnostic {
+                    code: "STTP_SEMANTIC_LINKS_MISSING_FIELDS".to_string(),
+                    message: "semantic_links entries must include rel and target".to_string(),
+                    severity: ParseDiagnosticSeverity::Error,
+                    strict_impact: true,
+                    span: span.map(to_parse_span),
+                });
+            }
+
+            if let Some(confidence) = link.confidence
+                && !(0.0..=1.0).contains(&confidence)
+            {
+                diagnostics.push(ParseDiagnostic {
+                    code: "STTP_SEMANTIC_LINKS_INVALID_CONFIDENCE".to_string(),
+                    message: format!(
+                        "semantic_links confidence must be in [0,1]: found {confidence}"
+                    ),
+                    severity: ParseDiagnosticSeverity::Error,
+                    strict_impact: true,
+                    span: span.map(to_parse_span),
+                });
+            }
+        }
+    }
+
+    diagnostics
+}
+
 fn parse_context_summary(raw: &str) -> Option<String> {
     let prime = extract_named_object(raw, NodeFieldKey::Prime.as_str())?;
     let value = parse_scalar_token_in_object(prime, NodeFieldKey::ContextSummary)?;
@@ -1537,5 +1819,54 @@ mod tests {
         let parsed = parser.try_parse_strict(raw, "strict-legacy");
         assert!(parsed.success);
         assert_eq!(parsed.profile, ParseProfile::Strict);
+    }
+
+    #[test]
+    fn should_parse_semantic_tags_and_links_from_provenance() {
+        let parser = SttpNodeParser::new();
+        let raw = r#"
+⊕⟨ { trigger: manual, response_format: temporal_node, origin_session: "semantic-test", compression_depth: 1, parent_node: null, semantic_links: [{ rel: "related_to", target: "concept:grammar-update", confidence: 0.88 }], prime: { attractor_config: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7 }, context_summary: "semantic tags test", relevant_tier: raw, retrieval_budget: 3, semantic_tags: ["Grammar", "parser", "strict-mode"] } } ⟩
+⦿⟨ { timestamp: "2026-03-05T06:30:00Z", tier: raw, session_id: "semantic-test", user_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 }, model_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+◈⟨ { note(.99): "ok" } ⟩
+⍉⟨ { rho: 0.1, kappa: 0.2, psi: 2.6, compression_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+"#;
+
+        let parsed = parser.try_parse_strict_typed_ir(raw, "semantic-test");
+        assert!(parsed.success, "{:?}", parsed.error);
+
+        let node = parsed.node.expect("parsed node should exist");
+        assert_eq!(
+            node.semantic_tags,
+            Some(vec![
+                "grammar".to_string(),
+                "parser".to_string(),
+                "strict-mode".to_string()
+            ])
+        );
+        let links = node.semantic_links.expect("semantic links should parse");
+        assert_eq!(links.len(), 1);
+        assert_eq!(links[0].rel, "related_to");
+        assert_eq!(links[0].target, "concept:grammar-update");
+        assert_eq!(links[0].confidence, Some(0.88));
+    }
+
+    #[test]
+    fn strict_profile_should_fail_on_empty_semantic_tags() {
+        let parser = SttpNodeParser::new();
+        let raw = r#"
+⊕⟨ { trigger: manual, response_format: temporal_node, origin_session: "semantic-test", compression_depth: 1, parent_node: null, prime: { attractor_config: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7 }, context_summary: "bad tags", relevant_tier: raw, retrieval_budget: 3, semantic_tags: [] } } ⟩
+⦿⟨ { timestamp: "2026-03-05T06:30:00Z", tier: raw, session_id: "semantic-test", user_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 }, model_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+◈⟨ { note(.99): "ok" } ⟩
+⍉⟨ { rho: 0.1, kappa: 0.2, psi: 2.6, compression_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+"#;
+
+        let parsed = parser.try_parse_strict_typed_ir(raw, "semantic-test");
+        assert!(!parsed.success);
+        assert!(
+            parsed
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "STTP_SEMANTIC_TAGS_EMPTY")
+        );
     }
 }

@@ -686,6 +686,7 @@ async fn graph_handler(
                 "timestamp": node.timestamp.to_rfc3339(),
                 "psi": node.psi,
                 "parentNodeId": node.parent_node_id,
+                "semanticTags": node.semantic_tags,
                 "size": 9
             })
         })
@@ -760,6 +761,35 @@ async fn graph_handler(
                         "target": parent,
                         "kind": "lineage"
                     }));
+                }
+            }
+
+            if let Some(links) = current.semantic_links.as_ref() {
+                for (link_index, link) in links.iter().enumerate() {
+                    let target = if let Some(reference) = link.target.strip_prefix("ref:") {
+                        let reference = reference.trim();
+                        if node_by_id.contains_key(reference) {
+                            reference.to_string()
+                        } else {
+                            link.target.clone()
+                        }
+                    } else {
+                        link.target.clone()
+                    };
+
+                    let mut edge = json!({
+                        "id": format!("sl-{}-{i}-{link_index}", session.id),
+                        "source": current_id,
+                        "target": target,
+                        "kind": "semantic",
+                        "rel": link.rel,
+                    });
+                    if let Some(confidence) = link.confidence {
+                        edge.as_object_mut().map(|object| {
+                            object.insert("confidence".to_string(), json!(confidence));
+                        });
+                    }
+                    edges.push(edge);
                 }
             }
         }
@@ -1001,6 +1031,8 @@ fn to_node_dto(value: &core_models::SttpNode) -> SttpNodeDto {
         timestamp: value.timestamp,
         compression_depth: value.compression_depth,
         parent_node_id: value.parent_node_id.clone(),
+        semantic_tags: value.semantic_tags.clone(),
+        semantic_links: value.semantic_links.clone(),
         user_avec: to_avec_dto(value.user_avec),
         model_avec: to_avec_dto(value.model_avec),
         compression_avec: value.compression_avec.map(to_avec_dto),
@@ -1625,6 +1657,18 @@ fn to_grpc_node(value: &core_models::SttpNode) -> proto::SttpNode {
         rho: value.rho,
         kappa: value.kappa,
         psi: value.psi,
+        semantic_tags: value.semantic_tags.clone().unwrap_or_default(),
+        semantic_links: value
+            .semantic_links
+            .clone()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|link| proto::SemanticLink {
+                rel: link.rel,
+                target: link.target,
+                confidence: link.confidence,
+            })
+            .collect(),
     }
 }
 

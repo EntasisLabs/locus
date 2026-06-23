@@ -11,6 +11,8 @@ pub const INIT_SCHEMA_QUERY: &str = r#"
             DEFINE FIELD IF NOT EXISTS updated_at        ON temporal_node TYPE datetime;
             DEFINE FIELD IF NOT EXISTS source_metadata   ON temporal_node TYPE option<object>;
             DEFINE FIELD IF NOT EXISTS context_summary   ON temporal_node TYPE option<string>;
+            DEFINE FIELD IF NOT EXISTS semantic_tags     ON temporal_node TYPE option<array<string>>;
+            DEFINE FIELD IF NOT EXISTS semantic_links    ON temporal_node TYPE option<array<object>>;
             DEFINE FIELD IF NOT EXISTS embedding         ON temporal_node TYPE option<array<float>>;
             DEFINE FIELD IF NOT EXISTS embedding_model   ON temporal_node TYPE option<string>;
             DEFINE FIELD IF NOT EXISTS embedding_dimensions ON temporal_node TYPE option<int>;
@@ -81,6 +83,8 @@ pub fn query_nodes_query(where_clause: &str, capped_limit: usize) -> String {
                 updated_at AS UpdatedAt,
                 source_metadata AS SourceMetadata,
                 context_summary AS ContextSummary,
+                semantic_tags AS SemanticTags,
+                semantic_links AS SemanticLinks,
                 embedding AS Embedding,
                 embedding_model AS EmbeddingModel,
                 embedding_dimensions AS EmbeddingDimensions,
@@ -198,7 +202,9 @@ pub fn create_temporal_node_query(
                 comp_friction = $comp_friction,
                 comp_logic = $comp_logic,
                 comp_autonomy = $comp_autonomy,
-                comp_psi = $comp_psi;
+                comp_psi = $comp_psi,
+                semantic_tags = $semantic_tags,
+                semantic_links = $semantic_links;
             "#
     )
 }
@@ -235,6 +241,8 @@ pub fn get_by_resonance_query(
                 updated_at AS UpdatedAt,
                 source_metadata AS SourceMetadata,
                 context_summary AS ContextSummary,
+                semantic_tags AS SemanticTags,
+                semantic_links AS SemanticLinks,
                 embedding AS Embedding,
                 embedding_model AS EmbeddingModel,
                 embedding_dimensions AS EmbeddingDimensions,
@@ -305,6 +313,8 @@ pub fn get_by_resonance_global_query(
                 updated_at AS UpdatedAt,
                 source_metadata AS SourceMetadata,
                 context_summary AS ContextSummary,
+                semantic_tags AS SemanticTags,
+                semantic_links AS SemanticLinks,
                 embedding AS Embedding,
                 embedding_model AS EmbeddingModel,
                 embedding_dimensions AS EmbeddingDimensions,
@@ -392,6 +402,8 @@ pub const FIND_EXISTING_NODE_BY_SYNC_KEY_QUERY: &str = r#"
                 id AS Id,
                 source_metadata AS SourceMetadata,
                 context_summary AS ContextSummary,
+                semantic_tags AS SemanticTags,
+                semantic_links AS SemanticLinks,
                 embedding AS Embedding,
                 embedding_model AS EmbeddingModel,
                 embedding_dimensions AS EmbeddingDimensions,
@@ -408,6 +420,8 @@ pub const FIND_EXISTING_NODE_BY_SYNC_KEY_EXACT_QUERY: &str = r#"
                 id AS Id,
                 source_metadata AS SourceMetadata,
                 context_summary AS ContextSummary,
+                semantic_tags AS SemanticTags,
+                semantic_links AS SemanticLinks,
                 embedding AS Embedding,
                 embedding_model AS EmbeddingModel,
                 embedding_dimensions AS EmbeddingDimensions,
@@ -424,6 +438,8 @@ pub const FIND_EXISTING_NODE_BY_SYNC_KEY_ANY_TENANT_QUERY: &str = r#"
                 id AS Id,
                 source_metadata AS SourceMetadata,
                 context_summary AS ContextSummary,
+                semantic_tags AS SemanticTags,
+                semantic_links AS SemanticLinks,
                 embedding AS Embedding,
                 embedding_model AS EmbeddingModel,
                 embedding_dimensions AS EmbeddingDimensions,
@@ -540,7 +556,9 @@ pub fn update_temporal_node_query(
                 comp_friction = $comp_friction,
                 comp_logic = $comp_logic,
                 comp_autonomy = $comp_autonomy,
-                comp_psi = $comp_psi;
+                comp_psi = $comp_psi,
+                semantic_tags = $semantic_tags,
+                semantic_links = $semantic_links;
             "#
     )
 }
@@ -560,6 +578,8 @@ pub fn query_changes_since_query(limit: usize) -> String {
                 updated_at AS UpdatedAt,
                 source_metadata AS SourceMetadata,
                 context_summary AS ContextSummary,
+                semantic_tags AS SemanticTags,
+                semantic_links AS SemanticLinks,
                 embedding AS Embedding,
                 embedding_model AS EmbeddingModel,
                 embedding_dimensions AS EmbeddingDimensions,

@@ -1,4 +1,4 @@
-use crate::domain::models::ConnectorMetadata;
+use crate::domain::models::{ConnectorMetadata, SemanticLink};
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -24,6 +24,10 @@ pub struct SurrealNodeRecord {
     pub source_metadata: Option<ConnectorMetadata>,
     #[serde(rename = "ContextSummary", default)]
     pub context_summary: Option<String>,
+    #[serde(rename = "SemanticTags", default)]
+    pub semantic_tags: Option<Vec<String>>,
+    #[serde(rename = "SemanticLinks", default)]
+    pub semantic_links: Option<Vec<SemanticLink>>,
     #[serde(rename = "Embedding", default)]
     pub embedding: Option<Vec<f32>>,
     #[serde(rename = "EmbeddingModel", default)]

@@ -141,6 +141,15 @@ impl Default for AvecState {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, SerdeSerialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SemanticLink {
+    pub rel: String,
+    pub target: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub confidence: Option<f32>,
+}
+
 #[derive(Debug, Clone)]
 pub struct SttpNode {
     pub raw: String,
@@ -153,6 +162,8 @@ pub struct SttpNode {
     pub updated_at: DateTime<Utc>,
     pub source_metadata: Option<ConnectorMetadata>,
     pub context_summary: Option<String>,
+    pub semantic_tags: Option<Vec<String>>,
+    pub semantic_links: Option<Vec<SemanticLink>>,
     pub embedding: Option<Vec<f32>>,
     pub embedding_model: Option<String>,
     pub embedding_dimensions: Option<usize>,
