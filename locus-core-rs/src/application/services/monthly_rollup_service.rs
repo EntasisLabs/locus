@@ -253,10 +253,10 @@ impl MonthlyRollupService {
 
             let parsed_snapshot = parsed_node.clone();
 
-            match self.store.store_async(parsed_node).await {
-                Ok(id) => {
+            match self.store.upsert_node_async(parsed_node).await {
+                Ok(upsert) => {
                     if let Err(err) = self
-                        .sync_semantic_tags_async(&parsed_snapshot, &id)
+                        .sync_semantic_tags_async(&parsed_snapshot, &upsert.node_id, &upsert.sync_key)
                         .await
                     {
                         emit_rollup_trace(
@@ -269,9 +269,12 @@ impl MonthlyRollupService {
                     emit_rollup_trace(
                         &request.session_id,
                         "store_success",
-                        &format!("node_id={} source_nodes={} content_redacted=true", id, ordered_nodes.len()),
+                        &format!(
+                            "node_id={} sync_key={} source_nodes={} content_redacted=true",
+                            upsert.node_id, upsert.sync_key, ordered_nodes.len()
+                        ),
                     );
-                    node_id = id
+                    node_id = upsert.node_id
                 }
                 Err(err) => {
                     emit_rollup_trace(
@@ -331,6 +334,7 @@ impl MonthlyRollupService {
         &self,
         parsed: &crate::domain::models::SttpNode,
         node_id: &str,
+        sync_key: &str,
     ) -> anyhow::Result<()> {
         let Some(index) = self.semantic_index.as_ref() else {
             return Ok(());
@@ -341,6 +345,7 @@ impl MonthlyRollupService {
             self.embedding_provider.as_ref(),
             parsed,
             node_id,
+            sync_key,
         )
         .await
     }
@@ -351,6 +356,7 @@ async fn sync_semantic_tags_for_rollup(
     embedding_provider: Option<&Arc<dyn EmbeddingProvider>>,
     parsed: &crate::domain::models::SttpNode,
     node_id: &str,
+    sync_key: &str,
 ) -> anyhow::Result<()> {
     use std::collections::HashMap;
 
@@ -360,7 +366,7 @@ async fn sync_semantic_tags_for_rollup(
         tenant_id,
         session_id: parsed.session_id.clone(),
         node_id: node_id.to_string(),
-        sync_key: parsed.sync_key.clone(),
+        sync_key: sync_key.to_string(),
     };
 
     let embeddings = if let Some(provider) = embedding_provider {

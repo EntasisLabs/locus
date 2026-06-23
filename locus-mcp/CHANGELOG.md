@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [0.2.1] - 2026-06-23
+
+### Fixed
+
+- Rebuilt against `locus-core-rs` **0.4.1** so `store_context` tag-index sync matches persisted node sync keys — fixes `indexed_tags` pre-filter misses when using MCP semantic tag filters after ingest.
+
+### Changed
+
+- Dependency alignment: `locus-core-rs` 0.4.1, `locus-sdk` 0.2.1.
+
 ## [0.2.0] - 2026-06-23
 
 ### Added

@@ -2,6 +2,16 @@
 
 All notable changes specific to locus-cli are documented in this file.
 
+## [0.2.1] - 2026-06-23
+
+### Fixed
+
+- Rebuilt against `locus-core-rs` **0.4.1** so `store` / rollup ingest aligns tag-index sync keys with persisted nodes (same fix as gateway/MCP for `indexed_tags` retrieval).
+
+### Changed
+
+- Dependency alignment: `locus-core-rs` 0.4.1, `locus-sdk` 0.2.1.
+
 ## [0.2.0] - 2026-06-23
 
 ### Added

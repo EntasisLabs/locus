@@ -254,10 +254,10 @@ impl StoreContextService {
             }
         }
 
-        match self.store.store_async(parsed.clone()).await {
-            Ok(node_id) => {
+        match self.store.upsert_node_async(parsed.clone()).await {
+            Ok(upsert) => {
                 if let Err(err) = self
-                    .sync_semantic_tags_async(&parsed, &node_id)
+                    .sync_semantic_tags_async(&parsed, &upsert.node_id, &upsert.sync_key)
                     .await
                 {
                     emit_ingest_trace(
@@ -274,12 +274,12 @@ impl StoreContextService {
                     "store",
                     "ok",
                     &format!(
-                        "node_persisted=true node_id={} psi={} content_redacted=true",
-                        node_id, parsed.psi
+                        "node_persisted=true node_id={} sync_key={} psi={} content_redacted=true",
+                        upsert.node_id, upsert.sync_key, parsed.psi
                     ),
                 );
                 StoreResult {
-                    node_id,
+                    node_id: upsert.node_id,
                     psi: parsed.psi,
                     valid: true,
                     validation_error: None,
@@ -375,6 +375,7 @@ impl StoreContextService {
         &self,
         parsed: &crate::domain::models::SttpNode,
         node_id: &str,
+        sync_key: &str,
     ) -> anyhow::Result<()> {
         let Some(index) = self.semantic_index.as_ref() else {
             return Ok(());
@@ -386,7 +387,7 @@ impl StoreContextService {
             tenant_id,
             session_id: parsed.session_id.clone(),
             node_id: node_id.to_string(),
-            sync_key: parsed.sync_key.clone(),
+            sync_key: sync_key.to_string(),
         };
 
         let embeddings = if let Some(provider) = self.embedding_provider.as_ref() {
