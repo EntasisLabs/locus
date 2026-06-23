@@ -177,6 +177,28 @@ Key characteristics:
 - `SCHEMAFULL` table.
 - Unique by `(tenant_id, session_id, connector_id)`.
 
+### 5.4 Table: `semantic_tag_index`
+Storage purpose:
+- Per-tag vocabulary rows for cross-node tag lookup and optional tag embeddings.
+- Authoritative for indexed tag filters (`indexed_tags`, `tag_prefix`) and tag-similarity ranking (`gamma`).
+
+Key characteristics:
+- `SCHEMAFULL` table.
+- Unique by `(tenant_id, sync_key, tag)` where `tag` is canonical lowercase.
+- One row per tag per node sync identity.
+
+Fields:
+- Scope: `tenant_id`, `session_id`, `node_id`, `sync_key`.
+- Vocabulary: `tag`.
+- Optional embeddings: `embedding`, `embedding_model`, `embedding_dimensions`, `embedded_at`.
+- Bookkeeping: `updated_at`.
+
+Sync policy (ingest):
+1. After successful `temporal_node` upsert, diff `node.semantic_tags` against existing index rows for the same `sync_key`.
+2. Upsert new tags; delete removed tags.
+3. When an `EmbeddingProvider` is configured, embed each tag string (not joined summary text) and store per-row vectors.
+4. Summary embeddings remain on `temporal_node.embedding` from `context_summary` only (STTP boundary unchanged).
+
 ## 6. Index and Access Pattern Mapping
 - `idx_node_sync_identity (tenant_id, session_id, sync_key UNIQUE)`
   - Supports idempotent upsert semantics.
@@ -190,6 +212,12 @@ Key characteristics:
   - Supports latest calibration and trigger history.
 - `idx_checkpoint_scope (tenant_id, session_id, connector_id UNIQUE)`
   - Supports deterministic checkpoint upsert.
+- `idx_tag_sync_identity (tenant_id, sync_key, tag UNIQUE)`
+  - Supports idempotent per-tag upsert and tag removal on resync.
+- `idx_tag_lookup (tenant_id, tag)`
+  - Supports vocabulary browse and exact tag pre-filtering.
+- `idx_tag_node (tenant_id, node_id)`
+  - Supports node-scoped tag inspection and backfill.
 
 ## 7. Write Path Rules
 ### 7.1 Idempotent Upsert

@@ -115,6 +115,12 @@ pub struct MemoryFilterDto {
     pub text_contains: Option<String>,
     pub tags_contains: Option<Vec<String>>,
     pub has_tag: Option<String>,
+    pub indexed_tags: Option<Vec<String>>,
+    pub tag_prefix: Option<String>,
+    pub has_semantic_links: Option<bool>,
+    pub link_rel: Option<String>,
+    pub link_target: Option<String>,
+    pub links_to_ref: Option<String>,
 }
 
 impl From<MemoryFilterDto> for MemoryFilter {
@@ -128,6 +134,12 @@ impl From<MemoryFilterDto> for MemoryFilter {
             text_contains: value.text_contains,
             tags_contains: value.tags_contains,
             has_tag: value.has_tag,
+            indexed_tags: value.indexed_tags,
+            tag_prefix: value.tag_prefix,
+            has_semantic_links: value.has_semantic_links,
+            link_rel: value.link_rel,
+            link_target: value.link_target,
+            links_to_ref: value.links_to_ref,
         }
     }
 }
@@ -143,6 +155,12 @@ impl From<MemoryFilter> for MemoryFilterDto {
             text_contains: value.text_contains,
             tags_contains: value.tags_contains,
             has_tag: value.has_tag,
+            indexed_tags: value.indexed_tags,
+            tag_prefix: value.tag_prefix,
+            has_semantic_links: value.has_semantic_links,
+            link_rel: value.link_rel,
+            link_target: value.link_target,
+            links_to_ref: value.links_to_ref,
         }
     }
 }
@@ -180,6 +198,8 @@ pub struct MemoryScoringDto {
     pub lexical_weight: f32,
     pub alpha: f32,
     pub beta: f32,
+    #[serde(default)]
+    pub gamma: f32,
     pub fallback_policy: FallbackPolicy,
     pub strictness: StrictnessMode,
 }
@@ -192,6 +212,7 @@ impl From<MemoryScoringDto> for MemoryScoring {
             lexical_weight: value.lexical_weight,
             alpha: value.alpha,
             beta: value.beta,
+            gamma: value.gamma,
             fallback_policy: value.fallback_policy,
             strictness: value.strictness,
         }
@@ -206,6 +227,7 @@ impl From<MemoryScoring> for MemoryScoringDto {
             lexical_weight: value.lexical_weight,
             alpha: value.alpha,
             beta: value.beta,
+            gamma: value.gamma,
             fallback_policy: value.fallback_policy,
             strictness: value.strictness,
         }
@@ -242,6 +264,7 @@ pub struct MemoryRecallRequestDto {
     pub current_avec: Option<AvecStateDto>,
     pub query_text: Option<String>,
     pub query_embedding: Option<Vec<f32>>,
+    pub query_tag_embedding: Option<Vec<f32>>,
 }
 
 impl From<MemoryRecallRequestDto> for MemoryRecallRequest {
@@ -254,6 +277,7 @@ impl From<MemoryRecallRequestDto> for MemoryRecallRequest {
             current_avec: value.current_avec.map(Into::into),
             query_text: value.query_text,
             query_embedding: value.query_embedding,
+            query_tag_embedding: value.query_tag_embedding,
         }
     }
 }

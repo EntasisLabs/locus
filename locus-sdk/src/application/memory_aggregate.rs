@@ -68,6 +68,26 @@ impl MemoryAggregateService {
 
         let mut grouped: HashMap<String, Vec<SttpNode>> = HashMap::new();
         for node in filtered {
+            if request.group_by == MemoryGroupBy::SemanticTag {
+                let tags = node.semantic_tags.as_deref().unwrap_or_default();
+                if tags.is_empty() {
+                    grouped
+                        .entry("untagged".to_string())
+                        .or_default()
+                        .push(node);
+                    continue;
+                }
+
+                for tag in tags {
+                    let key = tag.trim().to_ascii_lowercase();
+                    if key.is_empty() {
+                        continue;
+                    }
+                    grouped.entry(key).or_default().push(node.clone());
+                }
+                continue;
+            }
+
             let key = group_key(&node, request.group_by);
             grouped.entry(key).or_default().push(node);
         }
@@ -104,6 +124,7 @@ fn group_key(node: &SttpNode, group_by: MemoryGroupBy) -> String {
             .clone()
             .unwrap_or_else(|| "none".to_string()),
         MemoryGroupBy::DateDay => node.timestamp.date_naive().to_string(),
+        MemoryGroupBy::SemanticTag => "semantic_tag".to_string(),
     }
 }
 

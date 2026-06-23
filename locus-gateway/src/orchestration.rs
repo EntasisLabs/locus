@@ -8,12 +8,13 @@ use locus_core_rs::application::services::{
 };
 use locus_core_rs::application::validation::TreeSitterValidator;
 use locus_core_rs::domain::contracts::{
-    EmbeddingProvider, NodeStore, NodeStoreInitializer, NodeValidator,
+    EmbeddingProvider, NodeStore, NodeStoreInitializer, NodeValidator, SemanticIndexStore,
+    SemanticIndexStoreInitializer,
 };
 use locus_core_rs::parsing::SttpNodeParser;
 use locus_core_rs::storage::{
-    InMemoryNodeStore, SurrealDbEndpointsSettings, SurrealDbNodeStore, SurrealDbRuntimeOptions,
-    SurrealDbSettings,
+    InMemoryNodeStore, InMemorySemanticIndexStore, SurrealDbEndpointsSettings, SurrealDbNodeStore,
+    SurrealDbRuntimeOptions, SurrealDbSemanticIndexStore, SurrealDbSettings,
 };
 #[cfg(feature = "local-embedding")]
 use locus_sdk::infrastructure::embeddings::LocalEmbeddingProvider;
@@ -90,17 +91,23 @@ async fn build_state_with_backend(
 
 async fn build_in_memory_state_with_args(args: Option<&GatewayArgs>) -> Result<AppState> {
     let store = Arc::new(InMemoryNodeStore::new());
+    let semantic_index = Arc::new(InMemorySemanticIndexStore::new());
 
     let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
     initializer.initialize_async().await?;
 
+    let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> = semantic_index.clone();
+    semantic_initializer.initialize_async().await?;
+
     let store_trait: Arc<dyn NodeStore> = store;
+    let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
     let validator: Arc<dyn NodeValidator> = Arc::new(TreeSitterValidator);
     let embedding_provider = build_embedding_provider(args)?;
     let avec_scorer = build_avec_scorer(args);
 
     Ok(build_services(
         store_trait,
+        semantic_trait,
         validator,
         embedding_provider,
         avec_scorer,
@@ -109,34 +116,45 @@ async fn build_in_memory_state_with_args(args: Option<&GatewayArgs>) -> Result<A
 
 fn build_services(
     store_trait: Arc<dyn NodeStore>,
+    semantic_index: Arc<dyn SemanticIndexStore>,
     validator: Arc<dyn NodeValidator>,
     embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
     avec_scorer: Option<Arc<dyn AvecScorer>>,
 ) -> AppState {
     let parser = SttpNodeParser::new();
     let store_context = match embedding_provider.as_ref() {
-        Some(provider) => Arc::new(StoreContextService::with_embedding_provider(
-            store_trait.clone(),
-            validator.clone(),
-            provider.clone(),
-            parser,
-        )),
-        None => Arc::new(StoreContextService::new(
-            store_trait.clone(),
-            validator.clone(),
-            parser,
-        )),
+        Some(provider) => Arc::new(
+            StoreContextService::with_embedding_provider(
+                store_trait.clone(),
+                validator.clone(),
+                provider.clone(),
+                parser,
+            )
+            .with_semantic_index(semantic_index.clone()),
+        ),
+        None => Arc::new(
+            StoreContextService::new(store_trait.clone(), validator.clone(), SttpNodeParser::new())
+                .with_semantic_index(semantic_index.clone()),
+        ),
     };
+
+    let mut monthly_rollup =
+        MonthlyRollupService::new(store_trait.clone(), validator.clone())
+            .with_semantic_index(semantic_index.clone());
+    if let Some(provider) = embedding_provider.as_ref() {
+        monthly_rollup = monthly_rollup.with_embedding_provider(provider.clone());
+    }
 
     AppState {
         node_store: store_trait.clone(),
+        semantic_index,
         embedding_provider: embedding_provider.clone(),
         avec_scorer,
         calibration: Arc::new(CalibrationService::new(store_trait.clone())),
         context_query: Arc::new(ContextQueryService::new(store_trait.clone())),
         mood_catalog: Arc::new(MoodCatalogService::new()),
         store_context,
-        monthly_rollup: Arc::new(MonthlyRollupService::new(store_trait.clone(), validator)),
+        monthly_rollup: Arc::new(monthly_rollup),
         rekey_scope: Arc::new(RekeyScopeService::new(store_trait)),
     }
 }
@@ -192,18 +210,24 @@ async fn build_surreal_state(args: &GatewayArgs) -> Result<AppState> {
         .await?,
     );
 
+    let semantic_index = Arc::new(SurrealDbSemanticIndexStore::new(client.clone()));
     let store = Arc::new(SurrealDbNodeStore::new(client));
 
     let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
     initializer.initialize_async().await?;
 
+    let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> = semantic_index.clone();
+    semantic_initializer.initialize_async().await?;
+
     let store_trait: Arc<dyn NodeStore> = store;
+    let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
     let validator: Arc<dyn NodeValidator> = Arc::new(TreeSitterValidator);
     let embedding_provider = build_embedding_provider(Some(args))?;
     let avec_scorer = build_avec_scorer(Some(args));
 
     Ok(build_services(
         store_trait,
+        semantic_trait,
         validator,
         embedding_provider,
         avec_scorer,

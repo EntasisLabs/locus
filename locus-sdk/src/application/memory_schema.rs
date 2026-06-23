@@ -9,7 +9,7 @@ impl MemorySchemaService {
 
     pub fn execute(&self) -> MemorySchemaResult {
         MemorySchemaResult {
-            schema_version: "locus-sdk.memory.v1".to_string(),
+            schema_version: "locus-sdk.memory.v2".to_string(),
             sort_fields: vec![
                 "timestamp".to_string(),
                 "updated_at".to_string(),
@@ -26,12 +26,19 @@ impl MemorySchemaService {
                 "text_contains".to_string(),
                 "tags_contains".to_string(),
                 "has_tag".to_string(),
+                "indexed_tags".to_string(),
+                "tag_prefix".to_string(),
+                "has_semantic_links".to_string(),
+                "link_rel".to_string(),
+                "link_target".to_string(),
+                "links_to_ref".to_string(),
             ],
             group_by_fields: vec![
                 "session_id".to_string(),
                 "tier".to_string(),
                 "embedding_model".to_string(),
                 "date_day".to_string(),
+                "semantic_tag".to_string(),
             ],
             fallback_policies: vec![
                 "never".to_string(),
@@ -46,6 +53,8 @@ impl MemorySchemaService {
             transform_operations: vec![
                 "embed_backfill".to_string(),
                 "reindex_embeddings".to_string(),
+                "embed_tag_backfill".to_string(),
+                "reindex_tag_embeddings".to_string(),
             ],
         }
     }
@@ -66,7 +75,7 @@ mod tests {
         let service = MemorySchemaService::new();
         let schema = service.execute();
 
-        assert_eq!(schema.schema_version, "locus-sdk.memory.v1");
+        assert_eq!(schema.schema_version, "locus-sdk.memory.v2");
         assert!(schema.sort_fields.contains(&"timestamp".to_string()));
         assert!(schema.group_by_fields.contains(&"session_id".to_string()));
         assert!(schema.fallback_policies.contains(&"on_empty".to_string()));
@@ -84,5 +93,11 @@ mod tests {
         assert!(schema
             .filter_fields
             .contains(&"tags_contains".to_string()));
+        assert!(schema
+            .filter_fields
+            .contains(&"indexed_tags".to_string()));
+        assert!(schema
+            .filter_fields
+            .contains(&"link_rel".to_string()));
     }
 }

@@ -1,6 +1,7 @@
 pub(crate) mod calibrate_session;
 pub(crate) mod create_monthly_rollup;
 pub(crate) mod get_context;
+pub(crate) mod get_graph;
 pub(crate) mod get_moods;
 pub(crate) mod get_schema;
 pub(crate) mod list_nodes;

@@ -1,8 +1,56 @@
 use std::collections::HashSet;
 
+use anyhow::Result;
+use locus_core_rs::domain::contracts::SemanticIndexStore;
 use locus_core_rs::domain::models::SttpNode;
 
 use crate::domain::memory::{MemoryFilter, MemoryScope};
+
+pub async fn resolve_indexed_sync_keys(
+    index: &dyn SemanticIndexStore,
+    tenant_id: &str,
+    filter: &MemoryFilter,
+    session_id: Option<&str>,
+    limit: usize,
+) -> Result<Option<HashSet<String>>> {
+    if let Some(tags) = filter.indexed_tags.as_ref() {
+        let normalized: Vec<String> = tags
+            .iter()
+            .map(|tag| tag.trim().to_ascii_lowercase())
+            .filter(|tag| !tag.is_empty())
+            .collect();
+
+        if normalized.is_empty() {
+            return Ok(Some(HashSet::new()));
+        }
+
+        let keys = index
+            .find_sync_keys_by_tags_async(tenant_id, &normalized, true, session_id, limit)
+            .await?;
+        return Ok(Some(keys.into_iter().collect()));
+    }
+
+    if let Some(prefix) = filter.tag_prefix.as_deref() {
+        let prefix = prefix.trim().to_ascii_lowercase();
+        if prefix.is_empty() {
+            return Ok(None);
+        }
+
+        let tags = index
+            .find_tags_async(tenant_id, Some(&prefix), limit)
+            .await?;
+        if tags.is_empty() {
+            return Ok(Some(HashSet::new()));
+        }
+
+        let keys = index
+            .find_sync_keys_by_tags_async(tenant_id, &tags, false, session_id, limit)
+            .await?;
+        return Ok(Some(keys.into_iter().collect()));
+    }
+
+    Ok(None)
+}
 
 pub fn build_session_filter(scope: &MemoryScope) -> Option<HashSet<String>> {
     scope
@@ -106,6 +154,57 @@ pub fn node_matches_common_filters(
             !needle.is_empty() && !node_tags.contains(&needle)
         }) {
             return false;
+        }
+    }
+
+    if let Some(expected) = filter.has_semantic_links {
+        let has_links = node
+            .semantic_links
+            .as_ref()
+            .is_some_and(|links| !links.is_empty());
+        if has_links != expected {
+            return false;
+        }
+    }
+
+    if let Some(expected_rel) = filter.link_rel.as_deref() {
+        let needle = expected_rel.trim().to_ascii_lowercase();
+        if !needle.is_empty() {
+            let links = node.semantic_links.as_deref().unwrap_or_default();
+            if !links
+                .iter()
+                .any(|link| link.rel.trim().to_ascii_lowercase() == needle)
+            {
+                return false;
+            }
+        }
+    }
+
+    if let Some(expected_target) = filter.link_target.as_deref() {
+        let needle = expected_target.trim().to_ascii_lowercase();
+        if !needle.is_empty() {
+            let links = node.semantic_links.as_deref().unwrap_or_default();
+            if !links.iter().any(|link| {
+                let target = link.target.trim().to_ascii_lowercase();
+                target == needle || target.starts_with(&needle)
+            }) {
+                return false;
+            }
+        }
+    }
+
+    if let Some(expected_ref) = filter.links_to_ref.as_deref() {
+        let needle = expected_ref.trim();
+        if !needle.is_empty() {
+            let normalized = if needle.starts_with("ref:") {
+                needle.to_string()
+            } else {
+                format!("ref:{needle}")
+            };
+            let links = node.semantic_links.as_deref().unwrap_or_default();
+            if !links.iter().any(|link| link.target.trim() == normalized) {
+                return false;
+            }
         }
     }
 

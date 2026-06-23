@@ -2,8 +2,9 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use chrono::Utc;
-use locus_core_rs::domain::contracts::NodeStore;
-use locus_core_rs::domain::models::{NodeQuery, NodeUpsertStatus};
+use locus_core_rs::domain::contracts::{NodeStore, SemanticIndexStore, TagEmbedding};
+use locus_core_rs::domain::models::{NodeQuery, NodeUpsertStatus, SemanticTagNodeRef, SemanticTagQueryFilter};
+use locus_core_rs::storage::derive_tenant_id_from_session;
 
 use crate::application::ai_router::route_embedding;
 use crate::application::memory_filters::{build_session_filter, node_matches_common_filters};
@@ -16,12 +17,25 @@ use crate::domain::memory::{
 pub struct MemoryTransformService {
     store: Arc<dyn NodeStore>,
     providers: Arc<dyn AiProviderRegistry>,
+    semantic_index: Option<Arc<dyn SemanticIndexStore>>,
 }
 
 impl MemoryTransformService {
     /// Create a transform service with storage and provider registry dependencies.
     pub fn new(store: Arc<dyn NodeStore>, providers: Arc<dyn AiProviderRegistry>) -> Self {
-        Self { store, providers }
+        Self {
+            store,
+            providers,
+            semantic_index: None,
+        }
+    }
+
+    pub fn with_semantic_index(
+        mut self,
+        semantic_index: Arc<dyn SemanticIndexStore>,
+    ) -> Self {
+        self.semantic_index = Some(semantic_index);
+        self
     }
 
     /// Execute a bulk memory transform operation.
@@ -29,6 +43,13 @@ impl MemoryTransformService {
     /// The current implementation supports embedding backfill with optional
     /// dry-run behavior, batch control, and bounded failure reporting.
     pub async fn execute(&self, request: &MemoryTransformRequest) -> Result<MemoryTransformResult> {
+        if matches!(
+            request.operation,
+            MemoryTransformOperation::EmbedTagBackfill | MemoryTransformOperation::ReindexTagEmbeddings
+        ) {
+            return self.execute_tag_transform(request).await;
+        }
+
         let started_at = Utc::now();
         let max_nodes = clamp_nodes(if request.max_nodes == 0 {
             5000
@@ -70,6 +91,10 @@ impl MemoryTransformService {
 
         if request.operation == MemoryTransformOperation::EmbedBackfill {
             selected.retain(|node| node.embedding.as_ref().is_none_or(|values| values.is_empty()));
+        }
+
+        if request.operation == MemoryTransformOperation::ReindexEmbeddings {
+            // Reindex all selected nodes.
         }
 
         let mut result = MemoryTransformResult {
@@ -145,6 +170,160 @@ impl MemoryTransformService {
                     Err(err) => {
                         result.failed += 1;
                         push_failure(&mut result.failures, format!("store upsert failed: {err}"));
+                    }
+                }
+            }
+        }
+
+        result.completed_at = Utc::now();
+        Ok(result)
+    }
+
+    async fn execute_tag_transform(
+        &self,
+        request: &MemoryTransformRequest,
+    ) -> Result<MemoryTransformResult> {
+        let started_at = Utc::now();
+        let index = self
+            .semantic_index
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("semantic index store is not configured"))?;
+
+        let tenant_id = request
+            .scope
+            .tenant_id
+            .clone()
+            .or_else(|| {
+                request
+                    .scope
+                    .session_ids
+                    .as_ref()
+                    .and_then(|sessions| sessions.first().cloned())
+                    .map(|session| derive_tenant_id_from_session(&session))
+            })
+            .unwrap_or_else(|| "default".to_string());
+
+        let missing_only = request.operation == MemoryTransformOperation::EmbedTagBackfill;
+        let records = index
+            .query_tag_records_async(SemanticTagQueryFilter {
+                tenant_id: Some(tenant_id),
+                session_id: request
+                    .scope
+                    .session_ids
+                    .as_ref()
+                    .and_then(|sessions| sessions.first().cloned()),
+                tags: request.filter.indexed_tags.clone(),
+                tag_prefix: request.filter.tag_prefix.clone(),
+                has_embedding: if missing_only {
+                    None
+                } else {
+                    Some(true)
+                },
+                missing_embedding_only: missing_only,
+                limit: clamp_nodes(if request.max_nodes == 0 {
+                    5000
+                } else {
+                    request.max_nodes
+                }),
+            })
+            .await?;
+
+        let mut result = MemoryTransformResult {
+            scanned: records.len(),
+            selected: records.len(),
+            started_at,
+            completed_at: started_at,
+            ..Default::default()
+        };
+
+        if request.dry_run {
+            result.updated = result.selected;
+            result.completed_at = Utc::now();
+            return Ok(result);
+        }
+
+        let batch_size = clamp_batch_size(if request.batch_size == 0 {
+            100
+        } else {
+            request.batch_size
+        });
+
+        for chunk in records.chunks(batch_size) {
+            for record in chunk {
+                let embed_request = EmbedRequest {
+                    text: record.tag.clone(),
+                    task: AiTask::SemanticEmbedding,
+                    provider_id: request.provider_id.clone(),
+                    model: request.model.clone(),
+                    policy: if request.provider_id.is_some() {
+                        ProviderPolicy::Required
+                    } else {
+                        ProviderPolicy::Auto
+                    },
+                };
+
+                let vector = match route_embedding(self.providers.as_ref(), &embed_request).await {
+                    Ok(values) if !values.is_empty() => values,
+                    Ok(_) => {
+                        result.failed += 1;
+                        push_failure(
+                            &mut result.failures,
+                            format!(
+                                "{}:{}: embedding provider returned empty vector",
+                                record.sync_key, record.tag
+                            ),
+                        );
+                        continue;
+                    }
+                    Err(err) => {
+                        result.failed += 1;
+                        push_failure(
+                            &mut result.failures,
+                            format!(
+                                "{}:{}: embedding failed: {err}",
+                                record.sync_key, record.tag
+                            ),
+                        );
+                        continue;
+                    }
+                };
+
+                let model = request
+                    .model
+                    .clone()
+                    .or_else(|| request.provider_id.clone())
+                    .unwrap_or_else(|| "sdk-memory-transform".to_string());
+
+                let mut embeddings = std::collections::HashMap::new();
+                embeddings.insert(
+                    record.tag.clone(),
+                    TagEmbedding {
+                        vector,
+                        model,
+                    },
+                );
+
+                let node_ref = SemanticTagNodeRef {
+                    tenant_id: record.tenant_id.clone(),
+                    session_id: record.session_id.clone(),
+                    node_id: record.node_id.clone(),
+                    sync_key: record.sync_key.clone(),
+                };
+
+                match index
+                    .sync_node_tags_async(node_ref, &[record.tag.clone()], Some(&embeddings))
+                    .await
+                {
+                    Ok(()) => result.updated += 1,
+                    Err(err) => {
+                        result.failed += 1;
+                        push_failure(
+                            &mut result.failures,
+                            format!(
+                                "{}:{}: semantic index sync failed: {err}",
+                                record.sync_key, record.tag
+                            ),
+                        );
                     }
                 }
             }

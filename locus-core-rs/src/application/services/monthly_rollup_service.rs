@@ -3,17 +3,22 @@ use std::sync::Arc;
 
 use chrono::Utc;
 
-use crate::domain::contracts::{NodeStore, NodeValidator};
+use crate::domain::contracts::{
+    EmbeddingProvider, NodeStore, NodeValidator, SemanticIndexStore, TagEmbedding,
+};
 use crate::domain::models::{
     AvecState, ConfidenceBandSummary, MonthlyRollupRequest, MonthlyRollupResult, NodeQuery,
-    NumericRange,
+    NumericRange, SemanticTagNodeRef,
 };
 use crate::parsing::SttpNodeParser;
+use crate::storage::derive_tenant_id_from_session;
 
 pub struct MonthlyRollupService {
     store: Arc<dyn NodeStore>,
     validator: Arc<dyn NodeValidator>,
     parser: SttpNodeParser,
+    semantic_index: Option<Arc<dyn SemanticIndexStore>>,
+    embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
 }
 
 impl MonthlyRollupService {
@@ -23,7 +28,25 @@ impl MonthlyRollupService {
             store,
             validator,
             parser: SttpNodeParser::new(),
+            semantic_index: None,
+            embedding_provider: None,
         }
+    }
+
+    pub fn with_semantic_index(
+        mut self,
+        semantic_index: Arc<dyn SemanticIndexStore>,
+    ) -> Self {
+        self.semantic_index = Some(semantic_index);
+        self
+    }
+
+    pub fn with_embedding_provider(
+        mut self,
+        embedding_provider: Arc<dyn EmbeddingProvider>,
+    ) -> Self {
+        self.embedding_provider = Some(embedding_provider);
+        self
     }
 
     /// Build a monthly rollup node from source nodes in the requested date range.
@@ -228,8 +251,21 @@ impl MonthlyRollupService {
                 };
             };
 
+            let parsed_snapshot = parsed_node.clone();
+
             match self.store.store_async(parsed_node).await {
                 Ok(id) => {
+                    if let Err(err) = self
+                        .sync_semantic_tags_async(&parsed_snapshot, &id)
+                        .await
+                    {
+                        emit_rollup_trace(
+                            &request.session_id,
+                            "semantic_index_sync_failure",
+                            &format!("error={} content_redacted=true", err),
+                        );
+                    }
+
                     emit_rollup_trace(
                         &request.session_id,
                         "store_success",
@@ -290,6 +326,68 @@ impl MonthlyRollupService {
             ..MonthlyRollupResult::default()
         }
     }
+
+    async fn sync_semantic_tags_async(
+        &self,
+        parsed: &crate::domain::models::SttpNode,
+        node_id: &str,
+    ) -> anyhow::Result<()> {
+        let Some(index) = self.semantic_index.as_ref() else {
+            return Ok(());
+        };
+
+        sync_semantic_tags_for_rollup(
+            index,
+            self.embedding_provider.as_ref(),
+            parsed,
+            node_id,
+        )
+        .await
+    }
+}
+
+async fn sync_semantic_tags_for_rollup(
+    semantic_index: &Arc<dyn SemanticIndexStore>,
+    embedding_provider: Option<&Arc<dyn EmbeddingProvider>>,
+    parsed: &crate::domain::models::SttpNode,
+    node_id: &str,
+) -> anyhow::Result<()> {
+    use std::collections::HashMap;
+
+    let tags = parsed.semantic_tags.clone().unwrap_or_default();
+    let tenant_id = derive_tenant_id_from_session(&parsed.session_id);
+    let node_ref = SemanticTagNodeRef {
+        tenant_id,
+        session_id: parsed.session_id.clone(),
+        node_id: node_id.to_string(),
+        sync_key: parsed.sync_key.clone(),
+    };
+
+    let embeddings = if let Some(provider) = embedding_provider {
+        let mut map = HashMap::new();
+        for tag in &tags {
+            let canonical = tag.trim().to_lowercase();
+            if canonical.is_empty() {
+                continue;
+            }
+            if let Ok(vector) = provider.embed_async(tag).await {
+                map.insert(
+                    canonical,
+                    TagEmbedding {
+                        vector,
+                        model: provider.model_name().to_string(),
+                    },
+                );
+            }
+        }
+        Some(map)
+    } else {
+        None
+    };
+
+    semantic_index
+        .sync_node_tags_async(node_ref, &tags, embeddings.as_ref())
+        .await
 }
 
 fn emit_rollup_trace(session_id: &str, event: &str, detail: &str) {

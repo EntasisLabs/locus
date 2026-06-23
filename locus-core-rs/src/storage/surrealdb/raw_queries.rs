@@ -36,6 +36,18 @@ pub const INIT_SCHEMA_QUERY: &str = r#"
             DEFINE FIELD IF NOT EXISTS comp_autonomy     ON temporal_node TYPE float;
             DEFINE FIELD IF NOT EXISTS comp_psi          ON temporal_node TYPE float;
 
+            DEFINE TABLE IF NOT EXISTS semantic_tag_index SCHEMAFULL;
+            DEFINE FIELD IF NOT EXISTS tenant_id            ON semantic_tag_index TYPE string;
+            DEFINE FIELD IF NOT EXISTS session_id           ON semantic_tag_index TYPE string;
+            DEFINE FIELD IF NOT EXISTS node_id              ON semantic_tag_index TYPE string;
+            DEFINE FIELD IF NOT EXISTS sync_key             ON semantic_tag_index TYPE string;
+            DEFINE FIELD IF NOT EXISTS tag                  ON semantic_tag_index TYPE string;
+            DEFINE FIELD IF NOT EXISTS embedding            ON semantic_tag_index TYPE option<array<float>>;
+            DEFINE FIELD IF NOT EXISTS embedding_model      ON semantic_tag_index TYPE option<string>;
+            DEFINE FIELD IF NOT EXISTS embedding_dimensions ON semantic_tag_index TYPE option<int>;
+            DEFINE FIELD IF NOT EXISTS embedded_at          ON semantic_tag_index TYPE option<datetime>;
+            DEFINE FIELD IF NOT EXISTS updated_at           ON semantic_tag_index TYPE datetime;
+
             DEFINE TABLE IF NOT EXISTS calibration SCHEMAFULL;
             DEFINE FIELD IF NOT EXISTS tenant_id   ON calibration TYPE string;
             DEFINE FIELD IF NOT EXISTS session_id  ON calibration TYPE string;
@@ -62,6 +74,9 @@ pub const INIT_SCHEMA_QUERY: &str = r#"
             DEFINE INDEX IF NOT EXISTS idx_node_timestamp ON temporal_node FIELDS timestamp;
             DEFINE INDEX IF NOT EXISTS idx_node_change_cursor ON temporal_node FIELDS tenant_id, session_id, updated_at, sync_key;
             DEFINE INDEX IF NOT EXISTS idx_node_sync_identity ON temporal_node FIELDS tenant_id, session_id, sync_key UNIQUE;
+            DEFINE INDEX IF NOT EXISTS idx_tag_lookup ON semantic_tag_index FIELDS tenant_id, tag;
+            DEFINE INDEX IF NOT EXISTS idx_tag_node ON semantic_tag_index FIELDS tenant_id, node_id;
+            DEFINE INDEX IF NOT EXISTS idx_tag_sync_identity ON semantic_tag_index FIELDS tenant_id, sync_key, tag UNIQUE;
             DEFINE INDEX IF NOT EXISTS idx_cal_session ON calibration FIELDS session_id;
             DEFINE INDEX IF NOT EXISTS idx_cal_tenant_session ON calibration FIELDS tenant_id, session_id;
             DEFINE INDEX IF NOT EXISTS idx_checkpoint_scope ON sync_checkpoint FIELDS tenant_id, session_id, connector_id UNIQUE;
@@ -706,6 +721,104 @@ pub const APPLY_SCOPE_REKEY_QUERY: &str = r#"
 
                         COMMIT TRANSACTION;
                         "#;
+
+pub const DELETE_TAG_ROWS_FOR_SYNC_KEY_QUERY: &str = r#"
+            DELETE semantic_tag_index
+            WHERE tenant_id = $tenant_id AND sync_key = $sync_key;
+            "#;
+
+pub const UPSERT_TAG_ROW_QUERY: &str = r#"
+            UPSERT semantic_tag_index
+            SET
+                tenant_id = $tenant_id,
+                session_id = $session_id,
+                node_id = $node_id,
+                sync_key = $sync_key,
+                tag = $tag,
+                embedding = $embedding,
+                embedding_model = $embedding_model,
+                embedding_dimensions = $embedding_dimensions,
+                embedded_at = $embedded_at,
+                updated_at = $updated_at
+            WHERE tenant_id = $tenant_id AND sync_key = $sync_key AND tag = $tag;
+            "#;
+
+pub const UPSERT_TAG_ROW_META_QUERY: &str = r#"
+            UPSERT semantic_tag_index
+            SET
+                tenant_id = $tenant_id,
+                session_id = $session_id,
+                node_id = $node_id,
+                sync_key = $sync_key,
+                tag = $tag,
+                updated_at = $updated_at
+            WHERE tenant_id = $tenant_id AND sync_key = $sync_key AND tag = $tag;
+            "#;
+
+pub const LIST_TAGS_FOR_SYNC_KEY_QUERY: &str = r#"
+            SELECT tag AS Tag FROM semantic_tag_index
+            WHERE tenant_id = $tenant_id AND sync_key = $sync_key;
+            "#;
+
+pub fn query_tag_records_query(where_clause: &str, capped_limit: usize) -> String {
+    format!(
+        r#"
+            SELECT
+                tenant_id AS TenantId,
+                session_id AS SessionId,
+                node_id AS NodeId,
+                sync_key AS SyncKey,
+                tag AS Tag,
+                embedding AS Embedding,
+                embedding_model AS EmbeddingModel,
+                embedding_dimensions AS EmbeddingDimensions,
+                embedded_at AS EmbeddedAt,
+                updated_at AS UpdatedAt
+            FROM semantic_tag_index
+            WHERE {where_clause}
+            ORDER BY updated_at DESC
+            LIMIT {capped_limit};
+            "#
+    )
+}
+
+pub fn find_sync_keys_by_tags_query(match_all: bool) -> String {
+    if match_all {
+        r#"
+            SELECT sync_key AS SyncKey, count() AS TagCount
+            FROM semantic_tag_index
+            WHERE tenant_id = $tenant_id
+              AND tag IN $tags
+              AND ($session_id IS NONE OR session_id = $session_id)
+            GROUP BY sync_key
+            HAVING TagCount = array::len($tags)
+            LIMIT $limit;
+            "#
+            .to_string()
+    } else {
+        r#"
+            SELECT DISTINCT sync_key AS SyncKey
+            FROM semantic_tag_index
+            WHERE tenant_id = $tenant_id
+              AND tag IN $tags
+              AND ($session_id IS NONE OR session_id = $session_id)
+            LIMIT $limit;
+            "#
+            .to_string()
+    }
+}
+
+pub fn find_tags_vocabulary_query(where_clause: &str, capped_limit: usize) -> String {
+    format!(
+        r#"
+            SELECT DISTINCT tag AS Tag
+            FROM semantic_tag_index
+            WHERE {where_clause}
+            ORDER BY tag ASC
+            LIMIT {capped_limit};
+            "#
+    )
+}
 
 pub fn update_record_tenant_query(record_id: &str) -> String {
     format!(

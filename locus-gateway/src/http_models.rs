@@ -54,6 +54,14 @@ pub(crate) struct GetContextHttpRequest {
     pub(crate) query_embedding: Option<Vec<f32>>,
     pub(crate) alpha: Option<f32>,
     pub(crate) beta: Option<f32>,
+    pub(crate) gamma: Option<f32>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) tags_contains: Option<Vec<String>>,
+    pub(crate) link_rel: Option<String>,
+    pub(crate) link_target: Option<String>,
+    pub(crate) links_to_ref: Option<String>,
+    pub(crate) tag_prefix: Option<String>,
+    pub(crate) has_semantic_links: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -77,6 +85,10 @@ pub(crate) struct GetEmbeddingContextHttpRequest {
     pub(crate) avec_weight: Option<f32>,
     pub(crate) alpha: Option<f32>,
     pub(crate) beta: Option<f32>,
+    pub(crate) tag_weight: Option<f32>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) link_rel: Option<String>,
+    pub(crate) link_target: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -102,7 +114,7 @@ pub(crate) struct BatchRekeyHttpRequest {
     pub(crate) allow_merge: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct EmbeddingMigrationFilterHttp {
     pub(crate) session_id: Option<String>,
@@ -114,11 +126,13 @@ pub(crate) struct EmbeddingMigrationFilterHttp {
     pub(crate) sync_keys: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum EmbeddingMigrationModeHttp {
     MissingOnly,
     ReindexAll,
+    Tags,
+    Both,
 }
 
 #[derive(Debug, Deserialize)]
@@ -147,6 +161,13 @@ pub(crate) struct ListNodesQuery {
     pub(crate) limit: Option<usize>,
     pub(crate) session_id: Option<String>,
     pub(crate) tenant_id: Option<String>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) tags_contains: Option<Vec<String>>,
+    pub(crate) link_rel: Option<String>,
+    pub(crate) link_target: Option<String>,
+    pub(crate) links_to_ref: Option<String>,
+    pub(crate) tag_prefix: Option<String>,
+    pub(crate) has_semantic_links: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -166,6 +187,14 @@ pub(crate) struct GraphQuery {
     pub(crate) limit: Option<usize>,
     pub(crate) session_id: Option<String>,
     pub(crate) tenant_id: Option<String>,
+    pub(crate) rel: Option<String>,
+    pub(crate) target_prefix: Option<String>,
+    pub(crate) semantic_tags: Option<Vec<String>>,
+    pub(crate) link_rel: Option<String>,
+    pub(crate) link_target: Option<String>,
+    pub(crate) links_to_ref: Option<String>,
+    pub(crate) tag_prefix: Option<String>,
+    pub(crate) has_semantic_links: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]

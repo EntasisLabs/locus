@@ -141,6 +141,41 @@ impl Default for AvecState {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, SerdeSerialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SemanticTagNodeRef {
+    pub tenant_id: String,
+    pub session_id: String,
+    pub node_id: String,
+    pub sync_key: String,
+}
+
+#[derive(Debug, Clone, PartialEq, SerdeSerialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SemanticTagRecord {
+    pub tenant_id: String,
+    pub session_id: String,
+    pub node_id: String,
+    pub sync_key: String,
+    pub tag: String,
+    pub embedding: Option<Vec<f32>>,
+    pub embedding_model: Option<String>,
+    pub embedding_dimensions: Option<usize>,
+    pub embedded_at: Option<DateTime<Utc>>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct SemanticTagQueryFilter {
+    pub tenant_id: Option<String>,
+    pub session_id: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub tag_prefix: Option<String>,
+    pub has_embedding: Option<bool>,
+    pub missing_embedding_only: bool,
+    pub limit: usize,
+}
+
 #[derive(Debug, Clone, PartialEq, SerdeSerialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SemanticLink {

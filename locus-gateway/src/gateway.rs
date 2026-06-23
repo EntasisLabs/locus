@@ -1,4 +1,3 @@
-use std::collections::{BTreeMap, HashMap};
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -22,8 +21,10 @@ use locus_core_rs::domain::models::{
 };
 use locus_core_rs::domain::contracts::EmbeddingProvider;
 use locus_sdk::application::memory_find::MemoryFindService;
+use locus_sdk::application::memory_graph::{MemoryGraphService, graph_node_id};
 use locus_sdk::application::memory_recall::MemoryRecallService;
 use locus_sdk::application::memory_transform::MemoryTransformService;
+use locus_sdk::domain::graph::MemoryGraphRequest;
 use locus_sdk::domain::memory::{
     FallbackPolicy, MemoryFilter, MemoryFindRequest, MemoryPage, MemoryRecallRequest,
     MemoryScope, MemoryScoring, MemoryTransformOperation, MemoryTransformRequest,
@@ -369,7 +370,16 @@ async fn get_context_handler(
         request.query_embedding.as_deref(),
     )
     .await;
-    let recall_service = MemoryRecallService::new(state.node_store.clone());
+    let recall_service = recall_service(&state);
+    let memory_filter = build_semantic_memory_filter(
+        request.semantic_tags,
+        request.tags_contains,
+        request.link_rel,
+        request.link_target,
+        request.links_to_ref,
+        request.tag_prefix,
+        request.has_semantic_links,
+    );
     let recall_result = recall_service
         .execute(&MemoryRecallRequest {
             scope: MemoryScope {
@@ -389,9 +399,11 @@ async fn get_context_handler(
                     .unwrap_or(DEFAULT_HYBRID_ALPHA)
                     .clamp(0.0, 1.0),
                 beta: request.beta.unwrap_or(DEFAULT_HYBRID_BETA).clamp(0.0, 1.0),
+                gamma: request.gamma.unwrap_or(0.0).clamp(0.0, 1.0),
                 fallback_policy: FallbackPolicy::Never,
                 ..Default::default()
             },
+            filter: memory_filter,
             current_avec: Some(core_models::AvecState {
                 stability: request.stability,
                 friction: request.friction,
@@ -534,7 +546,7 @@ async fn list_nodes_handler(
         TENANT_SCAN_LIMIT
     };
 
-    let find_service = MemoryFindService::new(state.node_store.clone());
+    let find_service = find_service(&state);
     let result = find_service
         .execute(&MemoryFindRequest {
             scope: MemoryScope {
@@ -544,6 +556,15 @@ async fn list_nodes_handler(
                 from_utc: None,
                 to_utc: None,
             },
+            filter: build_semantic_memory_filter(
+                query.semantic_tags,
+                query.tags_contains,
+                query.link_rel,
+                query.link_target,
+                query.links_to_ref,
+                query.tag_prefix,
+                query.has_semantic_links,
+            ),
             page: MemoryPage {
                 limit: backend_limit,
                 cursor: None,
@@ -572,234 +593,44 @@ async fn graph_handler(
     Query(query): Query<GraphQuery>,
 ) -> ApiResult<GraphResponse> {
     let tenant = resolve_http_tenant(query.tenant_id.as_deref(), &headers);
-    let capped_limit = query.limit.unwrap_or(1000).clamp(1, 5000);
     let scoped_session_filter = query
         .session_id
         .as_deref()
         .map(|session_id| scope_session_id(&tenant, session_id));
-    let backend_limit = if scoped_session_filter.is_some() {
-        capped_limit
-    } else {
-        TENANT_SCAN_LIMIT
-    };
 
-    let find_service = MemoryFindService::new(state.node_store.clone());
-    let result = find_service
-        .execute(&MemoryFindRequest {
+    let graph_result = graph_service(&state)
+        .execute(&MemoryGraphRequest {
             scope: MemoryScope {
-                tenant_id: None,
+                tenant_id: Some(tenant.clone()),
                 session_ids: scoped_session_filter.map(|session| vec![session]),
                 tiers: None,
                 from_utc: None,
                 to_utc: None,
             },
-            page: MemoryPage {
-                limit: backend_limit,
-                cursor: None,
-            },
-            ..Default::default()
+            filter: build_semantic_memory_filter(
+                query.semantic_tags,
+                None,
+                query.link_rel,
+                query.link_target,
+                query.links_to_ref,
+                query.tag_prefix,
+                query.has_semantic_links,
+            ),
+            include_lineage: true,
+            include_semantic: true,
+            include_session_topology: true,
+            rel: query.rel,
+            target_prefix: query.target_prefix,
+            limit: query.limit.unwrap_or(1000),
         })
         .await
         .map_err(internal_error)?;
 
-    let mut ordered_nodes = result
-        .nodes
-        .into_iter()
-        .filter_map(|node| normalize_node_for_tenant(node, &tenant))
-        .take(capped_limit)
-        .collect::<Vec<_>>();
-    ordered_nodes.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-
-    #[derive(Clone)]
-    struct SessionGroup {
-        id: String,
-        label: String,
-        nodes: Vec<core_models::SttpNode>,
-        node_count: usize,
-        avg_psi: f32,
-        last_modified: DateTime<Utc>,
-        size: usize,
-    }
-
-    let mut grouped_map: BTreeMap<String, Vec<core_models::SttpNode>> = BTreeMap::new();
-    for node in &ordered_nodes {
-        grouped_map
-            .entry(node.session_id.clone())
-            .or_default()
-            .push(node.clone());
-    }
-
-    let mut grouped = grouped_map
-        .into_iter()
-        .map(|(id, mut nodes)| {
-            nodes.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-            let node_count = nodes.len();
-            let avg_psi = if node_count == 0 {
-                0.0
-            } else {
-                nodes.iter().map(|n| n.psi).sum::<f32>() / node_count as f32
-            };
-            let last_modified = nodes.first().map(|n| n.timestamp).unwrap_or_else(Utc::now);
-            let size = 16 + std::cmp::min(28, node_count * 2);
-
-            SessionGroup {
-                label: id.clone(),
-                id,
-                nodes,
-                node_count,
-                avg_psi,
-                last_modified,
-                size,
-            }
-        })
-        .collect::<Vec<_>>();
-
-    grouped.sort_by(|a, b| b.last_modified.cmp(&a.last_modified));
-
-    let node_by_id = ordered_nodes
-        .iter()
-        .map(|node| (graph_node_id(node), node.clone()))
-        .collect::<HashMap<_, _>>();
-
-    let sessions = grouped
-        .iter()
-        .map(|session| {
-            json!({
-                "id": format!("s:{}", session.id),
-                "label": session.label,
-                "nodeCount": session.node_count,
-                "avgPsi": session.avg_psi,
-                "lastModified": session.last_modified.to_rfc3339(),
-                "size": session.size
-            })
-        })
-        .collect::<Vec<_>>();
-
-    let nodes = ordered_nodes
-        .iter()
-        .map(|node| {
-            json!({
-                "id": graph_node_id(node),
-                "sessionId": node.session_id,
-                "label": format!("{} {}", node.tier, node.timestamp.format("%m-%d %H:%M")),
-                "tier": node.tier,
-                "timestamp": node.timestamp.to_rfc3339(),
-                "psi": node.psi,
-                "parentNodeId": node.parent_node_id,
-                "semanticTags": node.semantic_tags,
-                "size": 9
-            })
-        })
-        .collect::<Vec<_>>();
-
-    let mut edges = Vec::new();
-
-    for i in 0..grouped.len().saturating_sub(1) {
-        edges.push(json!({
-            "id": format!("t-{i}"),
-            "source": format!("s:{}", grouped[i].id),
-            "target": format!("s:{}", grouped[i + 1].id),
-            "kind": "timeline"
-        }));
-    }
-
-    for i in 0..grouped.len() {
-        let from = &grouped[i];
-        let mut nearest: Option<usize> = None;
-        let mut nearest_distance = f32::MAX;
-
-        for (j, other) in grouped.iter().enumerate() {
-            if i == j {
-                continue;
-            }
-            let distance = (from.avg_psi - other.avg_psi).abs();
-            if distance < nearest_distance {
-                nearest_distance = distance;
-                nearest = Some(j);
-            }
-        }
-
-        if let Some(nearest_index) = nearest {
-            if i < nearest_index {
-                edges.push(json!({
-                    "id": format!("s-{i}-{nearest_index}"),
-                    "source": format!("s:{}", from.id),
-                    "target": format!("s:{}", grouped[nearest_index].id),
-                    "kind": "similarity"
-                }));
-            }
-        }
-    }
-
-    for session in &grouped {
-        for i in 0..session.nodes.len() {
-            let current = &session.nodes[i];
-            let current_id = graph_node_id(current);
-
-            edges.push(json!({
-                "id": format!("m-{}-{i}", session.id),
-                "source": format!("s:{}", session.id),
-                "target": current_id,
-                "kind": "membership"
-            }));
-
-            if i + 1 < session.nodes.len() {
-                let older = &session.nodes[i + 1];
-                edges.push(json!({
-                    "id": format!("nt-{}-{i}", session.id),
-                    "source": current_id,
-                    "target": graph_node_id(older),
-                    "kind": "node_timeline"
-                }));
-            }
-
-            if let Some(parent) = current.parent_node_id.as_ref() {
-                if node_by_id.contains_key(parent) {
-                    edges.push(json!({
-                        "id": format!("l-{}-{i}", session.id),
-                        "source": current_id,
-                        "target": parent,
-                        "kind": "lineage"
-                    }));
-                }
-            }
-
-            if let Some(links) = current.semantic_links.as_ref() {
-                for (link_index, link) in links.iter().enumerate() {
-                    let target = if let Some(reference) = link.target.strip_prefix("ref:") {
-                        let reference = reference.trim();
-                        if node_by_id.contains_key(reference) {
-                            reference.to_string()
-                        } else {
-                            link.target.clone()
-                        }
-                    } else {
-                        link.target.clone()
-                    };
-
-                    let mut edge = json!({
-                        "id": format!("sl-{}-{i}-{link_index}", session.id),
-                        "source": current_id,
-                        "target": target,
-                        "kind": "semantic",
-                        "rel": link.rel,
-                    });
-                    if let Some(confidence) = link.confidence {
-                        edge.as_object_mut().map(|object| {
-                            object.insert("confidence".to_string(), json!(confidence));
-                        });
-                    }
-                    edges.push(edge);
-                }
-            }
-        }
-    }
-
     Ok(Json(GraphResponse {
-        sessions,
-        nodes,
-        edges,
-        retrieved: ordered_nodes.len(),
+        sessions: graph_result.sessions,
+        nodes: graph_result.nodes,
+        edges: graph_result.edges,
+        retrieved: graph_result.retrieved,
     }))
 }
 
@@ -883,7 +714,7 @@ async fn preview_embedding_migration_handler(
     let max_nodes = request.max_nodes.unwrap_or(5_000).clamp(1, 50_000);
     let (scope, filter, sync_keys) = scoped_memory_filter(request.filter, &tenant);
 
-    let find_service = MemoryFindService::new(state.node_store.clone());
+    let find_service = find_service(&state);
     let find_result = find_service
         .execute(&MemoryFindRequest {
             scope,
@@ -945,19 +776,20 @@ async fn run_embedding_migration_handler(
     {
         EmbeddingMigrationModeHttp::MissingOnly => MemoryTransformOperation::EmbedBackfill,
         EmbeddingMigrationModeHttp::ReindexAll => MemoryTransformOperation::ReindexEmbeddings,
+        EmbeddingMigrationModeHttp::Tags => MemoryTransformOperation::EmbedTagBackfill,
+        EmbeddingMigrationModeHttp::Both => MemoryTransformOperation::EmbedBackfill,
     };
     let dry_run = request.dry_run.unwrap_or(true);
     let batch_size = request.batch_size.unwrap_or(100).clamp(1, 500);
     let max_nodes = request.max_nodes.unwrap_or(5_000).clamp(1, 50_000);
-    let (scope, filter, _sync_keys) = scoped_memory_filter(request.filter, &tenant);
+    let (scope, filter, _sync_keys) = scoped_memory_filter(request.filter.clone(), &tenant);
 
-    let providers = build_gateway_provider_registry(state.embedding_provider.clone());
-    let transform_service = MemoryTransformService::new(state.node_store.clone(), providers);
+    let transform_service = transform_service(&state);
 
-    let result = transform_service
+    let mut result = transform_service
         .execute(&MemoryTransformRequest {
-            scope,
-            filter,
+            scope: scope.clone(),
+            filter: filter.clone(),
             operation: mode,
             dry_run,
             batch_size,
@@ -974,6 +806,32 @@ async fn run_embedding_migration_handler(
         .await
         .map_err(internal_error)?;
 
+    if request.mode == Some(EmbeddingMigrationModeHttp::Both) && !dry_run {
+        let tag_result = transform_service
+            .execute(&MemoryTransformRequest {
+                scope,
+                filter,
+                operation: MemoryTransformOperation::EmbedTagBackfill,
+                dry_run: false,
+                batch_size,
+                max_nodes,
+                provider_id: state
+                    .embedding_provider
+                    .as_ref()
+                    .map(|_| "gateway-embedding".to_string()),
+                model: state
+                    .embedding_provider
+                    .as_ref()
+                    .map(|provider| provider.model_name().to_string()),
+            })
+            .await
+            .map_err(internal_error)?;
+        result.updated += tag_result.updated;
+        result.failed += tag_result.failed;
+        result.skipped += tag_result.skipped;
+        result.failures.extend(tag_result.failures);
+    }
+
     Ok(Json(to_embedding_migration_run_dto(
         result,
         mode,
@@ -983,6 +841,48 @@ async fn run_embedding_migration_handler(
             .as_ref()
             .map(|provider| provider.model_name().to_string()),
     )))
+}
+
+fn recall_service(state: &AppState) -> MemoryRecallService {
+    MemoryRecallService::new(state.node_store.clone())
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn find_service(state: &AppState) -> MemoryFindService {
+    MemoryFindService::new(state.node_store.clone())
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn graph_service(state: &AppState) -> MemoryGraphService {
+    MemoryGraphService::new(state.node_store.clone())
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn transform_service(state: &AppState) -> MemoryTransformService {
+    let providers = build_gateway_provider_registry(state.embedding_provider.clone());
+    MemoryTransformService::new(state.node_store.clone(), providers)
+        .with_semantic_index(state.semantic_index.clone())
+}
+
+fn build_semantic_memory_filter(
+    semantic_tags: Option<Vec<String>>,
+    tags_contains: Option<Vec<String>>,
+    link_rel: Option<String>,
+    link_target: Option<String>,
+    links_to_ref: Option<String>,
+    tag_prefix: Option<String>,
+    has_semantic_links: Option<bool>,
+) -> MemoryFilter {
+    MemoryFilter {
+        indexed_tags: semantic_tags,
+        tags_contains,
+        link_rel,
+        link_target,
+        links_to_ref,
+        tag_prefix,
+        has_semantic_links,
+        ..Default::default()
+    }
 }
 
 fn bad_request(message: impl Into<String>) -> (StatusCode, Json<ErrorResponse>) {
@@ -1000,16 +900,6 @@ fn internal_error(error: impl std::fmt::Display) -> (StatusCode, Json<ErrorRespo
         Json(ErrorResponse {
             error: error.to_string(),
         }),
-    )
-}
-
-fn graph_node_id(node: &core_models::SttpNode) -> String {
-    format!(
-        "n:{}|{}|{}|{:.4}",
-        node.session_id,
-        node.timestamp.to_rfc3339(),
-        node.compression_depth,
-        node.psi
     )
 }
 
@@ -1181,6 +1071,8 @@ fn to_embedding_migration_run_dto(
         mode: match mode {
             MemoryTransformOperation::EmbedBackfill => "missing_only".to_string(),
             MemoryTransformOperation::ReindexEmbeddings => "reindex_all".to_string(),
+            MemoryTransformOperation::EmbedTagBackfill => "tags".to_string(),
+            MemoryTransformOperation::ReindexTagEmbeddings => "reindex_tags".to_string(),
         },
         failure_reasons: result.failures,
     }
@@ -1967,6 +1859,14 @@ mod tests {
                 query_embedding: None,
                 alpha: None,
                 beta: None,
+                gamma: None,
+                semantic_tags: None,
+                tags_contains: None,
+                link_rel: None,
+                link_target: None,
+                links_to_ref: None,
+                tag_prefix: None,
+                has_semantic_links: None,
             }),
         )
         .await
@@ -2022,6 +1922,10 @@ mod tests {
                 avec_weight: Some(0.3),
                 alpha: Some(0.65),
                 beta: Some(0.35),
+                tag_weight: None,
+                semantic_tags: None,
+                link_rel: None,
+                link_target: None,
             }),
         )
         .await
@@ -2056,6 +1960,10 @@ mod tests {
                 avec_weight: Some(0.3),
                 alpha: None,
                 beta: None,
+                tag_weight: None,
+                semantic_tags: None,
+                link_rel: None,
+                link_target: None,
             }),
         )
         .await

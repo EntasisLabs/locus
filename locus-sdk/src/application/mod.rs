@@ -10,6 +10,7 @@ pub mod memory_composition;
 pub mod memory_explain;
 pub mod memory_find;
 pub mod memory_filters;
+pub mod memory_graph;
 pub mod memory_recall;
 pub mod memory_schema;
 pub mod memory_transform;

@@ -53,7 +53,7 @@ pub(crate) fn parse_migration_mode(value: Option<&str>) -> Result<EmbeddingMigra
     {
         "missing_only" => Ok(EmbeddingMigrationMode::MissingOnly),
         "reindex_all" => Ok(EmbeddingMigrationMode::ReindexAll),
-        _ => Err("mode must be one of: missing_only, reindex_all".to_string()),
+        _ => Err("mode must be one of: missing_only, reindex_all, tags, both".to_string()),
     }
 }
 

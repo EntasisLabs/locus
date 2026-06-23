@@ -4,13 +4,14 @@ use locus_core_rs::application::services::{
     CalibrationService, ContextQueryService, MonthlyRollupService, MoodCatalogService,
     RekeyScopeService, StoreContextService,
 };
-use locus_core_rs::domain::contracts::{EmbeddingProvider, NodeStore};
+use locus_core_rs::domain::contracts::{EmbeddingProvider, NodeStore, SemanticIndexStore};
 
 use crate::providers::AvecScorer;
 
 #[derive(Clone)]
 pub(crate) struct AppState {
     pub(crate) node_store: Arc<dyn NodeStore>,
+    pub(crate) semantic_index: Arc<dyn SemanticIndexStore>,
     pub(crate) embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
     pub(crate) avec_scorer: Option<Arc<dyn AvecScorer>>,
     pub(crate) calibration: Arc<CalibrationService>,

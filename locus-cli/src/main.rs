@@ -8,14 +8,19 @@ use chrono::{DateTime, Utc};
 use clap::{Parser, Subcommand, ValueEnum};
 use locus_core_rs::domain::models::{AvecState, MonthlyRollupRequest, SttpNode};
 use locus_core_rs::{
-    CalibrationService, InMemoryNodeStore, MonthlyRollupService, MoodCatalogService, NodeStore,
-    NodeStoreInitializer, NodeValidator, QueryParams,
-    StoreContextService, SttpNodeParser, SurrealDbClient, SurrealDbEndpointsSettings, SurrealDbNodeStore,
-    SurrealDbRuntimeOptions, SurrealDbSettings, TreeSitterValidator,
+    CalibrationService, InMemoryNodeStore, InMemorySemanticIndexStore, MonthlyRollupService,
+    MoodCatalogService, NodeStore, NodeStoreInitializer, NodeValidator, QueryParams,
+    SemanticIndexStore, SemanticIndexStoreInitializer, StoreContextService, SttpNodeParser,
+    SurrealDbClient, SurrealDbEndpointsSettings, SurrealDbNodeStore, SurrealDbRuntimeOptions,
+    SurrealDbSemanticIndexStore, SurrealDbSettings, TreeSitterValidator,
 };
 use locus_sdk::application::memory_find::MemoryFindService;
+use locus_sdk::application::memory_graph::MemoryGraphService;
 use locus_sdk::application::memory_recall::MemoryRecallService;
-use locus_sdk::domain::memory::{MemoryFindRequest, MemoryPage, MemoryRecallRequest, MemoryScope};
+use locus_sdk::domain::graph::MemoryGraphRequest;
+use locus_sdk::domain::memory::{
+    MemoryFilter, MemoryFindRequest, MemoryPage, MemoryRecallRequest, MemoryScope,
+};
 use serde_json::{Value, json};
 use surrealdb::engine::any::{Any, connect};
 use surrealdb::opt::auth::Root;
@@ -121,12 +126,32 @@ enum Commands {
         alpha: Option<f32>,
         #[arg(long)]
         beta: Option<f32>,
+        #[arg(long, value_delimiter = ',')]
+        tags: Vec<String>,
+        #[arg(long)]
+        link_rel: Option<String>,
     },
     Nodes {
         #[arg(long)]
         limit: Option<usize>,
         #[arg(long)]
         session_id: Option<String>,
+        #[arg(long, value_delimiter = ',')]
+        tags: Vec<String>,
+        #[arg(long)]
+        link_rel: Option<String>,
+    },
+    Graph {
+        #[arg(long)]
+        session_id: Option<String>,
+        #[arg(long)]
+        limit: Option<usize>,
+        #[arg(long)]
+        link_rel: Option<String>,
+        #[arg(long)]
+        target_prefix: Option<String>,
+        #[arg(long, value_delimiter = ',')]
+        tags: Vec<String>,
     },
     Moods {
         #[arg(long)]
@@ -165,6 +190,7 @@ struct Services {
     store_context: StoreContextService,
     memory_find: MemoryFindService,
     memory_recall: MemoryRecallService,
+    memory_graph: MemoryGraphService,
     moods: MoodCatalogService,
     monthly_rollup: MonthlyRollupService,
     storage_mode: &'static str,
@@ -334,11 +360,18 @@ async fn main() -> Result<()> {
             query_text,
             alpha,
             beta,
+            tags,
+            link_rel,
         } => {
             let session_id = scope_session_id(&tenant, &session_id);
             let from_utc = parse_utc_optional(from_utc.as_deref(), "from_utc")?;
             let to_utc = parse_utc_optional(to_utc.as_deref(), "to_utc")?;
             let tiers = normalize_tiers(tiers);
+            let indexed_tags = if tags.is_empty() {
+                None
+            } else {
+                Some(tags)
+            };
 
             let request = MemoryRecallRequest {
                 scope: MemoryScope {
@@ -355,6 +388,11 @@ async fn main() -> Result<()> {
                 scoring: locus_sdk::domain::memory::MemoryScoring {
                     alpha: alpha.unwrap_or(0.7),
                     beta: beta.unwrap_or(0.3),
+                    ..Default::default()
+                },
+                filter: MemoryFilter {
+                    indexed_tags,
+                    link_rel,
                     ..Default::default()
                 },
                 current_avec: Some(AvecState {
@@ -384,8 +422,18 @@ async fn main() -> Result<()> {
                 "nextCursor": result.next_cursor,
             })
         }
-        Commands::Nodes { limit, session_id } => {
+        Commands::Nodes {
+            limit,
+            session_id,
+            tags,
+            link_rel,
+        } => {
             let requested_limit = limit.unwrap_or(50).clamp(1, 200);
+            let indexed_tags = if tags.is_empty() {
+                None
+            } else {
+                Some(tags)
+            };
 
             let scoped_session = session_id.as_deref().map(|id| scope_session_id(&tenant, id));
             let result = services
@@ -393,6 +441,11 @@ async fn main() -> Result<()> {
                 .execute(&MemoryFindRequest {
                     scope: MemoryScope {
                         session_ids: scoped_session.map(|id| vec![id]),
+                        ..Default::default()
+                    },
+                    filter: MemoryFilter {
+                        indexed_tags,
+                        link_rel,
                         ..Default::default()
                     },
                     page: MemoryPage {
@@ -413,6 +466,49 @@ async fn main() -> Result<()> {
             json!({
                 "nodes": nodes.iter().map(sttp_node_to_json).collect::<Vec<_>>(),
                 "retrieved": nodes.len(),
+            })
+        }
+        Commands::Graph {
+            session_id,
+            limit,
+            link_rel,
+            target_prefix,
+            tags,
+        } => {
+            let scoped_session = session_id.as_deref().map(|id| scope_session_id(&tenant, id));
+            let indexed_tags = if tags.is_empty() {
+                None
+            } else {
+                Some(tags)
+            };
+
+            let result = services
+                .memory_graph
+                .execute(&MemoryGraphRequest {
+                    scope: MemoryScope {
+                        tenant_id: Some(tenant.clone()),
+                        session_ids: scoped_session.map(|id| vec![id]),
+                        ..Default::default()
+                    },
+                    filter: MemoryFilter {
+                        indexed_tags,
+                        link_rel: link_rel.clone(),
+                        ..Default::default()
+                    },
+                    include_lineage: true,
+                    include_semantic: true,
+                    include_session_topology: true,
+                    rel: link_rel,
+                    target_prefix,
+                    limit: limit.unwrap_or(1000),
+                })
+                .await?;
+
+            json!({
+                "retrieved": result.retrieved,
+                "sessions": result.sessions,
+                "nodes": result.nodes,
+                "edges": result.edges,
             })
         }
         Commands::Moods {
@@ -523,15 +619,29 @@ async fn main() -> Result<()> {
 }
 
 async fn build_services(cli: &Cli) -> Result<Services> {
-    let (store, initializer, storage_mode, storage_endpoint, storage_namespace, storage_database) =
-        match cli.storage {
+    let (
+        store,
+        semantic_index,
+        initializer,
+        semantic_initializer,
+        storage_mode,
+        storage_endpoint,
+        storage_namespace,
+        storage_database,
+    ) = match cli.storage {
             StorageMode::InMemory => {
                 let store = Arc::new(InMemoryNodeStore::new());
+                let semantic_index = Arc::new(InMemorySemanticIndexStore::new());
                 let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+                let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
+                    semantic_index.clone();
                 let node_store: Arc<dyn NodeStore> = store;
+                let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
                 (
                     node_store,
+                    semantic_trait,
                     initializer,
+                    semantic_initializer,
                     "in-memory",
                     None,
                     None,
@@ -551,13 +661,19 @@ async fn build_services(cli: &Cli) -> Result<Services> {
                     .await?,
                 );
 
+                let semantic_index = Arc::new(SurrealDbSemanticIndexStore::new(client.clone()));
                 let store = Arc::new(SurrealDbNodeStore::new(client));
                 let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+                let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
+                    semantic_index.clone();
                 let node_store: Arc<dyn NodeStore> = store;
+                let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
 
                 (
                     node_store,
+                    semantic_trait,
                     initializer,
+                    semantic_initializer,
                     if runtime.use_remote {
                         "surreal-remote"
                     } else {
@@ -571,6 +687,7 @@ async fn build_services(cli: &Cli) -> Result<Services> {
         };
 
     initializer.initialize_async().await?;
+    semantic_initializer.initialize_async().await?;
 
     let validator: Arc<dyn NodeValidator> = Arc::new(TreeSitterValidator::new());
 
@@ -580,11 +697,15 @@ async fn build_services(cli: &Cli) -> Result<Services> {
             store.clone(),
             validator.clone(),
             SttpNodeParser::new(),
-        ),
-        memory_find: MemoryFindService::new(store.clone()),
-        memory_recall: MemoryRecallService::new(store.clone()),
+        )
+        .with_semantic_index(semantic_index.clone()),
+        memory_find: MemoryFindService::new(store.clone()).with_semantic_index(semantic_index.clone()),
+        memory_recall: MemoryRecallService::new(store.clone())
+            .with_semantic_index(semantic_index.clone()),
+        memory_graph: MemoryGraphService::new(store.clone()).with_semantic_index(semantic_index.clone()),
         moods: MoodCatalogService::new(),
-        monthly_rollup: MonthlyRollupService::new(store, validator),
+        monthly_rollup: MonthlyRollupService::new(store, validator)
+            .with_semantic_index(semantic_index),
         storage_mode,
         storage_endpoint,
         storage_namespace,
