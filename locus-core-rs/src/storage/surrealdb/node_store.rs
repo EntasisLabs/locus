@@ -275,6 +275,8 @@ impl SurrealDbNodeStore {
         include_embedding_model_assignment: bool,
         include_embedding_dimensions_assignment: bool,
         include_embedded_at_assignment: bool,
+        include_semantic_tags_assignment: bool,
+        include_semantic_links_assignment: bool,
         parameters: QueryParams,
     ) -> Result<()> {
         let update_query = raw_queries::update_temporal_node_query(
@@ -287,6 +289,8 @@ impl SurrealDbNodeStore {
             include_embedding_model_assignment,
             include_embedding_dimensions_assignment,
             include_embedded_at_assignment,
+            include_semantic_tags_assignment,
+            include_semantic_links_assignment,
         );
 
         self.client.raw_query(&update_query, parameters).await?;
@@ -375,6 +379,8 @@ impl NodeStore for SurrealDbNodeStore {
             || include_embedding_dimensions_assignment
             || candidate.embedded_at.is_some();
         let include_embedded_at_assignment = candidate.embedded_at.is_some();
+        let include_semantic_tags_assignment = candidate.semantic_tags.is_some();
+        let include_semantic_links_assignment = candidate.semantic_links.is_some();
 
         let tenant_id = derive_tenant_id_from_session(&candidate.session_id);
 
@@ -531,6 +537,8 @@ impl NodeStore for SurrealDbNodeStore {
                 include_embedding_model_assignment,
                 include_embedding_dimensions_assignment,
                 include_embedded_at_assignment,
+                include_semantic_tags_assignment,
+                include_semantic_links_assignment,
                 parameters.clone(),
             )
             .await?;
@@ -554,6 +562,8 @@ impl NodeStore for SurrealDbNodeStore {
             include_embedding_model_assignment,
             include_embedding_dimensions_assignment,
             include_embedded_at_assignment,
+            include_semantic_tags_assignment,
+            include_semantic_links_assignment,
         );
 
         if let Err(create_err) = self.client.raw_query(&query_text, parameters.clone()).await {
@@ -572,6 +582,8 @@ impl NodeStore for SurrealDbNodeStore {
                     include_embedding_model_assignment,
                     include_embedding_dimensions_assignment,
                     include_embedded_at_assignment,
+                    include_semantic_tags_assignment,
+                    include_semantic_links_assignment,
                     parameters.clone(),
                 )
                 .await?;
@@ -609,6 +621,8 @@ impl NodeStore for SurrealDbNodeStore {
                     include_embedding_model_assignment,
                     include_embedding_dimensions_assignment,
                     include_embedded_at_assignment,
+                    include_semantic_tags_assignment,
+                    include_semantic_links_assignment,
                     parameters,
                 )
                 .await?;

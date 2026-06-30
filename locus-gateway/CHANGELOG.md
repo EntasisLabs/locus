@@ -3,6 +3,16 @@
 All notable changes specific to locus-gateway are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [0.3.2] - 2026-06-23
+
+### Fixed
+
+- Rebuilt against `locus-core-rs` **0.4.2** so store/query paths accept nodes with `semantic_tags: null` / `semantic_links: null` and read legacy Surreal rows that stored JSON `NULL` for absent semantic fields.
+
+### Changed
+
+- Dependency alignment: `locus-core-rs` 0.4.2, `locus-sdk` 0.2.2.
+
 ## [0.3.1] - 2026-06-23
 
 ### Fixed

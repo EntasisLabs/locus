@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [0.2.2] - 2026-06-23
+
+### Fixed
+
+- Rebuilt against `locus-core-rs` **0.4.2** so `store_context` and node query tools handle `semantic_tags: null` / `semantic_links: null` in STTP payloads and deserialize legacy Surreal rows with null semantic columns.
+
+### Changed
+
+- Dependency alignment: `locus-core-rs` 0.4.2, `locus-sdk` 0.2.2.
+
 ## [0.2.1] - 2026-06-23
 
 ### Fixed

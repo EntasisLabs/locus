@@ -2,6 +2,16 @@
 
 All notable changes specific to locus-cli are documented in this file.
 
+## [0.2.2] - 2026-06-23
+
+### Fixed
+
+- Rebuilt against `locus-core-rs` **0.4.2** so `store` and query commands accept nodes with null semantic fields and read legacy Surreal rows written before the `NONE`-aware semantic write path.
+
+### Changed
+
+- Dependency alignment: `locus-core-rs` 0.4.2, `locus-sdk` 0.2.2.
+
 ## [0.2.1] - 2026-06-23
 
 ### Fixed

@@ -400,22 +400,22 @@ Or invoke `./build.sh` directly with explicit versions:
 ```bash
 ./build.sh --mode release \
   --targets core,mcp,gateway,cli \
-  --mcp-version 0.2.1 \
-  --gateway-version 0.3.1 \
-  --cli-version 0.2.1
+  --mcp-version 0.2.2 \
+  --gateway-version 0.3.2 \
+  --cli-version 0.2.2
 ```
 
 Common patterns:
 
 ```bash
 # Release artifacts/checks only
-./build.sh --mode release --mcp-version 0.2.1 --gateway-version 0.3.1 --cli-version 0.2.1
+./build.sh --mode release --mcp-version 0.2.2 --gateway-version 0.3.2 --cli-version 0.2.2
 
 # Release artifacts/checks and publish outputs to GitHub/crates.io targets
-./build.sh --mode release --mcp-version 0.2.1 --gateway-version 0.3.1 --cli-version 0.2.1 --publish
+./build.sh --mode release --mcp-version 0.2.2 --gateway-version 0.3.2 --cli-version 0.2.2 --publish
 
 # Build and tag only service images (mcp + gateway)
-./build.sh --mode images --stack services --mcp-version 0.2.1 --gateway-version 0.3.1
+./build.sh --mode images --stack services --mcp-version 0.2.2 --gateway-version 0.3.2
 ```
 
 ### Suggested Release Sequence
@@ -435,23 +435,23 @@ cargo test -p locus-core-rs -p locus-sdk -p locus-gateway -p locus-mcp -p locus-
 ./locus-gateway/build.sh --publish
 ./locus-cli/build.sh --publish
 
-git tag locus-core-rs/v0.4.1
-git tag locus-sdk/v0.2.1
-git tag locus-mcp/v0.2.1
-git tag locus-gateway/v0.3.1
-git tag locus-cli/v0.2.1
+git tag locus-core-rs/v0.4.2
+git tag locus-sdk/v0.2.2
+git tag locus-mcp/v0.2.2
+git tag locus-gateway/v0.3.2
+git tag locus-cli/v0.2.2
 git push origin \
-  locus-core-rs/v0.4.1 \
-  locus-sdk/v0.2.1 \
-  locus-mcp/v0.2.1 \
-  locus-gateway/v0.3.1 \
-  locus-cli/v0.2.1
+  locus-core-rs/v0.4.2 \
+  locus-sdk/v0.2.2 \
+  locus-mcp/v0.2.2 \
+  locus-gateway/v0.3.2 \
+  locus-cli/v0.2.2
 
-./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.2.1
-docker push ghcr.io/entasislabs/locus-mcp:0.2.1
+./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.2.2
+docker push ghcr.io/entasislabs/locus-mcp:0.2.2
 
-./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:0.3.1
-docker push ghcr.io/entasislabs/locus-gateway:0.3.1
+./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:0.3.2
+docker push ghcr.io/entasislabs/locus-gateway:0.3.2
 ```
 
 ## Operational Guardrails

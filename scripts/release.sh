@@ -21,11 +21,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Aligned release line (keep in sync with crate Cargo.toml versions).
-CORE_VERSION="0.4.1"
-SDK_VERSION="0.2.1"
-GATEWAY_VERSION="0.3.1"
-MCP_VERSION="0.2.1"
-CLI_VERSION="0.2.1"
+CORE_VERSION="0.4.2"
+SDK_VERSION="0.2.2"
+GATEWAY_VERSION="0.3.2"
+MCP_VERSION="0.2.2"
+CLI_VERSION="0.2.2"
 
 DO_BUILD=false
 DO_PUBLISH=false

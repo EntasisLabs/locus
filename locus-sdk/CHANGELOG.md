@@ -4,6 +4,16 @@ All notable changes specific to locus-sdk are documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [0.2.2] - 2026-06-23
+
+### Fixed
+
+- Aligned with `locus-core-rs` **0.4.2**: semantic tag/link null handling in parser and SurrealDB storage no longer fails ingest or node reads when `semantic_tags` / `semantic_links` are absent or explicitly `null`.
+
+### Changed
+
+- Dependency alignment: `locus-core-rs` 0.4.2.
+
 ## [0.2.1] - 2026-06-23
 
 ### Fixed

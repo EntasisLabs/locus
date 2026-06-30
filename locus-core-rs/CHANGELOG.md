@@ -3,6 +3,18 @@
 All notable changes specific to locus-core-rs are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [0.4.2] - 2026-06-23
+
+### Fixed
+
+- **Semantic null handling**: `semantic_tags` and `semantic_links` now treat JSON/`STTP` `null` as absent instead of failing strict parse validation or SurrealDB row deserialization.
+- SurrealDB create/update paths write `NONE` (not `NULL`) for absent semantic fields, matching existing optional-field semantics for embeddings and connector metadata.
+
+### Tests
+
+- Parser regression for `semantic_tags: null` and `semantic_links: null` in strict typed-IR profile.
+- SurrealDB model/store tests for null semantic fields on read and `NONE` writes on upsert.
+
 ## [0.4.1] - 2026-06-23
 
 ### Fixed
