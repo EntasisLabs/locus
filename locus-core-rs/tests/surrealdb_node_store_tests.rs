@@ -285,6 +285,58 @@ async fn query_nodes_maps_result_rows_to_domain_nodes() {
 }
 
 #[tokio::test(flavor = "current_thread")]
+async fn query_nodes_treats_null_semantic_fields_as_absent() {
+    let client = Arc::new(MockSurrealDbClient::default());
+    client
+        .queue_response(vec![json!({
+            "SessionId": "s1",
+            "Raw": "node raw",
+            "Tier": "raw",
+            "Timestamp": "2026-03-05T06:30:00Z",
+            "CompressionDepth": 1,
+            "ParentNodeId": null,
+            "SemanticTags": null,
+            "SemanticLinks": null,
+            "Psi": 2.6,
+            "Rho": 0.96,
+            "Kappa": 0.94,
+            "UserStability": 0.85,
+            "UserFriction": 0.25,
+            "UserLogic": 0.80,
+            "UserAutonomy": 0.70,
+            "UserPsi": 2.60,
+            "ModelStability": 0.85,
+            "ModelFriction": 0.25,
+            "ModelLogic": 0.80,
+            "ModelAutonomy": 0.70,
+            "ModelPsi": 2.60,
+            "CompStability": 0.85,
+            "CompFriction": 0.25,
+            "CompLogic": 0.80,
+            "CompAutonomy": 0.70,
+            "CompPsi": 2.60,
+            "ResonanceDelta": 0.0
+        })])
+        .await;
+
+    let store = SurrealDbNodeStore::new(client.clone());
+    let nodes = store
+        .query_nodes_async(NodeQuery {
+            limit: 5,
+            session_id: Some("s1".to_string()),
+            from_utc: None,
+            to_utc: None,
+            tiers: None,
+        })
+        .await
+        .expect("query should succeed");
+
+    assert_eq!(nodes.len(), 1);
+    assert_eq!(nodes[0].semantic_tags, None);
+    assert_eq!(nodes[0].semantic_links, None);
+}
+
+#[tokio::test(flavor = "current_thread")]
 async fn store_uses_model_avec_when_compression_avec_is_zero() {
     let client = Arc::new(MockSurrealDbClient::default());
     let store = SurrealDbNodeStore::new(client.clone());
@@ -375,6 +427,8 @@ async fn upsert_returns_duplicate_when_sync_identity_already_exists() {
     assert!(queries[0].contains("sync_key = $sync_key"));
     assert!(queries[1].contains("session_id = $session_id"));
     assert!(queries[2].contains("sync_key = $sync_key"));
+    assert!(queries[2].contains("semantic_tags = NONE"));
+    assert!(queries[2].contains("semantic_links = NONE"));
     assert!(queries[3].contains("sync_key = $sync_key"));
     assert!(queries[4].contains("sync_key = $sync_key"));
 }

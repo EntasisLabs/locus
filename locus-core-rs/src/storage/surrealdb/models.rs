@@ -1,6 +1,45 @@
 use crate::domain::models::{ConnectorMetadata, SemanticLink};
 use serde::Deserialize;
+use serde::de::{DeserializeOwned, Deserializer, Error as DeError};
 use serde_json::Value;
+
+fn deserialize_optional_string_vec<'de, D>(deserializer: D) -> Result<Option<Vec<String>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_optional_vec(deserializer)
+}
+
+fn deserialize_optional_semantic_links<'de, D>(
+    deserializer: D,
+) -> Result<Option<Vec<SemanticLink>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_optional_vec(deserializer)
+}
+
+fn deserialize_optional_vec<'de, T, D>(deserializer: D) -> Result<Option<Vec<T>>, D::Error>
+where
+    T: DeserializeOwned,
+    D: Deserializer<'de>,
+{
+    let value = Option::<Value>::deserialize(deserializer)?;
+    match value {
+        None => Ok(None),
+        Some(Value::Null) => Ok(None),
+        Some(Value::String(raw)) if raw.trim().eq_ignore_ascii_case("null") => Ok(None),
+        Some(Value::Array(items)) if items.is_empty() => Ok(None),
+        Some(other) => {
+            let items: Vec<T> = serde_json::from_value(other).map_err(DeError::custom)?;
+            if items.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(items))
+            }
+        }
+    }
+}
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SurrealNodeRecord {
@@ -24,9 +63,9 @@ pub struct SurrealNodeRecord {
     pub source_metadata: Option<ConnectorMetadata>,
     #[serde(rename = "ContextSummary", default)]
     pub context_summary: Option<String>,
-    #[serde(rename = "SemanticTags", default)]
+    #[serde(rename = "SemanticTags", default, deserialize_with = "deserialize_optional_string_vec")]
     pub semantic_tags: Option<Vec<String>>,
-    #[serde(rename = "SemanticLinks", default)]
+    #[serde(rename = "SemanticLinks", default, deserialize_with = "deserialize_optional_semantic_links")]
     pub semantic_links: Option<Vec<SemanticLink>>,
     #[serde(rename = "Embedding", default)]
     pub embedding: Option<Vec<f32>>,
@@ -165,4 +204,44 @@ pub struct SurrealCheckpointRecord {
     pub updated_at: String,
     #[serde(rename = "Metadata", default)]
     pub metadata: Option<ConnectorMetadata>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SurrealNodeRecord;
+    use serde_json::json;
+
+    #[test]
+    fn surreal_node_record_treats_null_semantic_fields_as_absent() {
+        let row = json!({
+            "SessionId": "s1",
+            "Raw": "raw",
+            "Tier": "raw",
+            "Timestamp": "2026-03-05T06:30:00Z",
+            "CompressionDepth": 1,
+            "SemanticTags": null,
+            "SemanticLinks": null,
+        });
+
+        let record: SurrealNodeRecord = serde_json::from_value(row).expect("should deserialize");
+        assert_eq!(record.semantic_tags, None);
+        assert_eq!(record.semantic_links, None);
+    }
+
+    #[test]
+    fn surreal_node_record_treats_string_null_semantic_fields_as_absent() {
+        let row = json!({
+            "SessionId": "s1",
+            "Raw": "raw",
+            "Tier": "raw",
+            "Timestamp": "2026-03-05T06:30:00Z",
+            "CompressionDepth": 1,
+            "SemanticTags": "null",
+            "SemanticLinks": "null",
+        });
+
+        let record: SurrealNodeRecord = serde_json::from_value(row).expect("should deserialize");
+        assert_eq!(record.semantic_tags, None);
+        assert_eq!(record.semantic_links, None);
+    }
 }

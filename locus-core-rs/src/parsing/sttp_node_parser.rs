@@ -1321,10 +1321,17 @@ fn parse_parent_node(raw: &str) -> Option<String> {
     Some(value)
 }
 
+fn is_null_literal(raw: &str) -> bool {
+    raw.trim().eq_ignore_ascii_case("null")
+}
+
 fn parse_semantic_tags(provenance: &str) -> Option<Vec<String>> {
     let provenance_object = extract_first_object(provenance)?;
     let prime = extract_named_object(provenance_object, NodeFieldKey::Prime.as_str())?;
     let raw = parse_key_value_in_object(prime, NodeFieldKey::SemanticTags.as_str())?;
+    if is_null_literal(&raw) {
+        return None;
+    }
     let tags = parse_string_array(raw)?;
     canonicalize_semantic_tags(tags)
 }
@@ -1332,6 +1339,9 @@ fn parse_semantic_tags(provenance: &str) -> Option<Vec<String>> {
 fn parse_semantic_links(provenance: &str) -> Option<Vec<SemanticLink>> {
     let provenance_object = extract_first_object(provenance)?;
     let raw = parse_key_value_in_object(provenance_object, NodeFieldKey::SemanticLinks.as_str())?;
+    if is_null_literal(&raw) {
+        return None;
+    }
     let links = parse_semantic_links_array(raw)?;
     if links.is_empty() {
         None
@@ -1382,6 +1392,7 @@ fn parse_link_object(raw: &str) -> Option<SemanticLink> {
     }
 
     let confidence = parse_key_value_in_object(inner, "confidence")
+        .filter(|value| !is_null_literal(value))
         .and_then(|value| value.parse::<f32>().ok());
 
     Some(SemanticLink {
@@ -1479,6 +1490,7 @@ fn validate_semantic_metadata(
 
     if let Some(raw_tags) = prime_object
         .and_then(|prime| parse_key_value_in_object(prime, NodeFieldKey::SemanticTags.as_str()))
+        .filter(|raw_tags| !is_null_literal(raw_tags))
     {
         let Some(tags) = parse_string_array(raw_tags) else {
             diagnostics.push(ParseDiagnostic {
@@ -1527,6 +1539,7 @@ fn validate_semantic_metadata(
 
     if let Some(raw_links) =
         parse_key_value_in_object(provenance_object, NodeFieldKey::SemanticLinks.as_str())
+            .filter(|raw_links| !is_null_literal(raw_links))
     {
         let Some(links) = parse_semantic_links_array(raw_links) else {
             diagnostics.push(ParseDiagnostic {
@@ -1848,6 +1861,24 @@ mod tests {
         assert_eq!(links[0].rel, "related_to");
         assert_eq!(links[0].target, "concept:grammar-update");
         assert_eq!(links[0].confidence, Some(0.88));
+    }
+
+    #[test]
+    fn should_treat_null_semantic_links_and_tags_as_absent() {
+        let parser = SttpNodeParser::new();
+        let raw = r#"
+⊕⟨ { trigger: manual, response_format: temporal_node, origin_session: "semantic-test", compression_depth: 1, parent_node: null, semantic_links: null, prime: { attractor_config: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7 }, context_summary: "null semantic fields", relevant_tier: raw, retrieval_budget: 3, semantic_tags: null } } ⟩
+⦿⟨ { timestamp: "2026-03-05T06:30:00Z", tier: raw, session_id: "semantic-test", user_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 }, model_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+◈⟨ { note(.99): "ok" } ⟩
+⍉⟨ { rho: 0.1, kappa: 0.2, psi: 2.6, compression_avec: { stability: 0.8, friction: 0.2, logic: 0.9, autonomy: 0.7, psi: 2.6 } } ⟩
+"#;
+
+        let parsed = parser.try_parse_strict_typed_ir(raw, "semantic-test");
+        assert!(parsed.success, "{:?}", parsed.error);
+
+        let node = parsed.node.expect("parsed node should exist");
+        assert_eq!(node.semantic_tags, None);
+        assert_eq!(node.semantic_links, None);
     }
 
     #[test]

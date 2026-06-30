@@ -141,6 +141,8 @@ pub fn create_temporal_node_query(
     include_embedding_model_assignment: bool,
     include_embedding_dimensions_assignment: bool,
     include_embedded_at_assignment: bool,
+    include_semantic_tags_assignment: bool,
+    include_semantic_links_assignment: bool,
 ) -> String {
     let parent_assignment = if include_parent_assignment {
         "\n                parent_node_id = $parent_node_id,"
@@ -188,6 +190,17 @@ pub fn create_temporal_node_query(
         "\n                context_summary = NONE,\n                embedding = NONE,\n                embedding_model = NONE,\n                embedding_dimensions = NONE,\n                embedded_at = NONE,".to_string()
     };
 
+    let semantic_tags_value = if include_semantic_tags_assignment {
+        "$semantic_tags"
+    } else {
+        "NONE"
+    };
+    let semantic_links_value = if include_semantic_links_assignment {
+        "$semantic_links"
+    } else {
+        "NONE"
+    };
+
     format!(
         r#"
             CREATE temporal_node:`{record_id}` SET
@@ -218,8 +231,8 @@ pub fn create_temporal_node_query(
                 comp_logic = $comp_logic,
                 comp_autonomy = $comp_autonomy,
                 comp_psi = $comp_psi,
-                semantic_tags = $semantic_tags,
-                semantic_links = $semantic_links;
+                semantic_tags = {semantic_tags_value},
+                semantic_links = {semantic_links_value};
             "#
     )
 }
@@ -494,6 +507,8 @@ pub fn update_temporal_node_query(
     include_embedding_model_assignment: bool,
     include_embedding_dimensions_assignment: bool,
     include_embedded_at_assignment: bool,
+    include_semantic_tags_assignment: bool,
+    include_semantic_links_assignment: bool,
 ) -> String {
     let parent_assignment = if include_parent_assignment {
         "\n                parent_node_id = $parent_node_id,"
@@ -542,6 +557,17 @@ pub fn update_temporal_node_query(
             .to_string()
     };
 
+    let semantic_tags_value = if include_semantic_tags_assignment {
+        "$semantic_tags"
+    } else {
+        "NONE"
+    };
+    let semantic_links_value = if include_semantic_links_assignment {
+        "$semantic_links"
+    } else {
+        "NONE"
+    };
+
     format!(
         r#"
             UPDATE temporal_node:`{record_id}` SET
@@ -572,8 +598,8 @@ pub fn update_temporal_node_query(
                 comp_logic = $comp_logic,
                 comp_autonomy = $comp_autonomy,
                 comp_psi = $comp_psi,
-                semantic_tags = $semantic_tags,
-                semantic_links = $semantic_links;
+                semantic_tags = {semantic_tags_value},
+                semantic_links = {semantic_links_value};
             "#
     )
 }
@@ -898,7 +924,7 @@ mod tests {
     #[test]
     fn create_temporal_node_query_uses_none_for_missing_embedded_at() {
         let query = create_temporal_node_query(
-            "abc123", false, false, true, true, false, false, false, false,
+            "abc123", false, false, true, true, false, false, false, false, false, false,
         );
 
         assert!(query.contains("embedded_at = NONE"));
@@ -906,12 +932,15 @@ mod tests {
         assert!(query.contains("embedding = NONE"));
         assert!(query.contains("embedding_model = NONE"));
         assert!(query.contains("embedding_dimensions = NONE"));
+        assert!(query.contains("semantic_tags = NONE"));
+        assert!(query.contains("semantic_links = NONE"));
     }
 
     #[test]
     fn create_temporal_node_query_uses_datetime_cast_when_embedded_at_present() {
-        let query =
-            create_temporal_node_query("abc123", false, false, true, true, true, true, true, true);
+        let query = create_temporal_node_query(
+            "abc123", false, false, true, true, true, true, true, true, false, false,
+        );
 
         assert!(query.contains("embedded_at = <datetime>$embedded_at"));
     }
