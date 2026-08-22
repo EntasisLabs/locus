@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build:wasm": "RUSTUP_TOOLCHAIN=stable wasm-pack build ../locus-wasm --target web --out-dir src/lib/locus-wasm/pkg -- --features surreal",
+		"build:wasm": "RUSTUP_TOOLCHAIN=stable wasm-pack build ../locus-wasm --target web --out-dir ../locus-web/src/lib/locus-wasm/pkg -- --features surreal",
 		"prebuild": "npm run build:wasm && npm run docs:rustdoc",
 		"build": "vite build",
 		"preview": "vite preview",

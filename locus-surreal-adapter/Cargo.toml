@@ -14,7 +14,7 @@ native = [
     "surrealdb/kv-mem",
     "dep:tracing",
 ]
-wasm = []
+wasm = ["surrealdb/kv-indxdb", "surrealdb/kv-mem"]
 
 [dependencies]
 anyhow = "1"

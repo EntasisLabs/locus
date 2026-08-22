@@ -45,6 +45,7 @@ jobs:
         run: |
           npm ci
           npm run build:wasm
+          test -f src/lib/locus-wasm/pkg/locus_wasm.js
 
       - name: Test locus-wasm bindings
         working-directory: locus-web

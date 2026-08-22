@@ -142,6 +142,42 @@ pub struct SurrealConnectConfig {
     pub password: Option<String>,
 }
 
+#[cfg(feature = "surreal")]
+impl SurrealConnectConfig {
+    pub fn indxdb(indexed_db_name: &str, namespace: &str, database: &str) -> Self {
+        Self {
+            endpoint: format!("indxdb://{indexed_db_name}"),
+            namespace: namespace.to_string(),
+            database: database.to_string(),
+            use_remote: false,
+            user: None,
+            password: None,
+        }
+    }
+
+    pub fn mem(namespace: &str, database: &str) -> Self {
+        Self {
+            endpoint: "mem://".to_string(),
+            namespace: namespace.to_string(),
+            database: database.to_string(),
+            use_remote: false,
+            user: None,
+            password: None,
+        }
+    }
+
+    pub fn websocket(endpoint: &str, namespace: &str, database: &str) -> Self {
+        Self {
+            endpoint: endpoint.to_string(),
+            namespace: namespace.to_string(),
+            database: database.to_string(),
+            use_remote: true,
+            user: None,
+            password: None,
+        }
+    }
+}
+
 #[wasm_bindgen]
 pub struct WasmLocusClient {
     inner: LocusClient,
@@ -174,6 +210,32 @@ impl WasmLocusClient {
 pub async fn connect_surreal_client(config: JsValue) -> Result<WasmLocusClient, JsValue> {
     let config: SurrealConnectConfig = json::from_value(config)?;
     let inner = LocusClient::connect_surreal(config).await?;
+    Ok(WasmLocusClient { inner })
+}
+
+#[cfg(feature = "surreal")]
+#[wasm_bindgen]
+pub async fn connect_indxdb_client(
+    indexed_db_name: &str,
+    namespace: &str,
+    database: &str,
+) -> Result<WasmLocusClient, JsValue> {
+    let inner = LocusClient::connect_surreal(SurrealConnectConfig::indxdb(
+        indexed_db_name,
+        namespace,
+        database,
+    ))
+    .await?;
+    Ok(WasmLocusClient { inner })
+}
+
+#[cfg(feature = "surreal")]
+#[wasm_bindgen]
+pub async fn connect_mem_surreal_client(
+    namespace: &str,
+    database: &str,
+) -> Result<WasmLocusClient, JsValue> {
+    let inner = LocusClient::connect_surreal(SurrealConnectConfig::mem(namespace, database)).await?;
     Ok(WasmLocusClient { inner })
 }
 

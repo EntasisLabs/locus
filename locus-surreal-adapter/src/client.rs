@@ -18,6 +18,8 @@ impl RuntimeSurrealDbClient {
         user: Option<&str>,
         password: Option<&str>,
     ) -> Result<Self> {
+        let use_remote = crate::endpoint::effective_use_remote(&runtime.endpoint, runtime.use_remote);
+
         let db = connect(runtime.endpoint.as_str()).await.with_context(|| {
             format!(
                 "failed to connect to SurrealDB endpoint '{}'",
@@ -25,7 +27,7 @@ impl RuntimeSurrealDbClient {
             )
         })?;
 
-        if runtime.use_remote {
+        if use_remote {
             let username = user.filter(|v| !v.trim().is_empty()).unwrap_or("root");
             let password = password.filter(|v| !v.trim().is_empty()).unwrap_or("root");
 
