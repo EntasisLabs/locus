@@ -19,13 +19,13 @@ use locus_core_rs::storage::{
 #[cfg(feature = "local-embedding")]
 use locus_sdk::infrastructure::embeddings::LocalEmbeddingProvider;
 use locus_sdk::infrastructure::embeddings::OllamaEmbeddingProvider;
+use locus_surreal_adapter::RuntimeSurrealDbClient;
 use tracing::{error, info};
 
 use crate::app_state::AppState;
 use crate::gateway_args::{EmbeddingsProviderKind, GatewayArgs, GatewayBackend};
 use crate::http_models::CorsAllowedOrigins;
 use crate::providers::{AvecScorer, OllamaAvecScorer};
-use crate::surreal_client::RuntimeSurrealDbClient;
 
 pub(crate) async fn build_state(args: &GatewayArgs) -> Result<AppState> {
     build_state_with_backend(&args.backend, Some(args)).await

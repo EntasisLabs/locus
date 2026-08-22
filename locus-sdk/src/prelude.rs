@@ -34,6 +34,7 @@ pub use crate::infrastructure::registry::InMemoryAiProviderRegistry;
 pub use crate::infrastructure::genai_adapter::provider::GenaiProviderAdapter;
 #[cfg(feature = "local-embedding")]
 pub use crate::infrastructure::embeddings::LocalEmbeddingProvider;
+#[cfg(feature = "http-providers")]
 pub use crate::infrastructure::embeddings::OllamaEmbeddingProvider;
 pub use crate::infrastructure::sttp_native::embedding_provider_adapter::SttpEmbeddingProviderAdapter;
 pub use crate::interface::dto::{
@@ -48,6 +49,7 @@ pub use crate::interface::dto::{
     MemoryTransformRequestDto, MemoryTransformResponseDto, MemoryTransformThenRecallRequestDto,
     MemoryTransformThenRecallResponseDto, NumericStatsDto, PsiRangeDto,
 };
+#[cfg(feature = "testing")]
 pub use crate::testing::faker::{
     FakerConfig, FakerOutputRecord, NoiseProfile, SttpFakerBuilder, TierWeights, WeightedTerm,
     records_to_jsonl, write_jsonl_fixture,

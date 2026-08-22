@@ -1,4 +1,6 @@
+#[cfg(all(feature = "surreal-runtime", not(target_arch = "wasm32")))]
 use std::env;
+#[cfg(all(feature = "surreal-runtime", not(target_arch = "wasm32")))]
 use std::path::{Path, PathBuf};
 
 use anyhow::{Result, anyhow};
@@ -78,6 +80,10 @@ pub struct SurrealDbRuntimeOptions {
 }
 
 impl SurrealDbRuntimeOptions {
+    /// Resolve runtime options from CLI args and filesystem-backed embedded paths.
+    ///
+    /// Requires the `surreal-runtime` feature and is unavailable on `wasm32` targets.
+    #[cfg(all(feature = "surreal-runtime", not(target_arch = "wasm32")))]
     pub fn from_args(
         args: &[String],
         settings: &SurrealDbSettings,
@@ -109,6 +115,7 @@ impl SurrealDbRuntimeOptions {
     }
 }
 
+#[cfg(all(feature = "surreal-runtime", not(target_arch = "wasm32")))]
 fn normalize_embedded_endpoint(
     endpoint: &str,
     root_dir: &Path,

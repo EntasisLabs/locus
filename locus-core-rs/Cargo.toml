@@ -13,6 +13,15 @@ categories = ["parser-implementations", "asynchronous"]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
+[features]
+default = []
+surreal-runtime = []
+
+[[test]]
+name = "surrealdb_runtime_tests"
+path = "tests/surrealdb_runtime_tests.rs"
+required-features = ["surreal-runtime"]
+
 [dependencies]
 anyhow = "1"
 async-trait = "0.1"
@@ -23,4 +32,4 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
 tokio = { version = "1", features = ["macros", "rt", "sync"] }
-uuid = { version = "1", features = ["v4"] }
+uuid = { version = "1", features = ["v4", "js"] }

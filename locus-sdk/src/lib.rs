@@ -9,4 +9,5 @@ pub mod domain;
 pub mod infrastructure;
 pub mod interface;
 pub mod prelude;
+#[cfg(feature = "testing")]
 pub mod testing;

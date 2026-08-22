@@ -9,8 +9,10 @@ keywords = ["sttp", "memory", "sdk", "ai", "embeddings"]
 categories = ["asynchronous"]
 
 [features]
-default = ["genai-provider"]
+default = ["genai-provider", "http-providers"]
 genai-provider = ["dep:genai"]
+http-providers = ["dep:reqwest"]
+testing = ["dep:fake", "dep:rand", "dep:rand_chacha"]
 local-embedding = [
 	"dep:candle-core",
 	"dep:candle-nn",
@@ -20,6 +22,10 @@ local-embedding = [
 	"dep:tokio",
 ]
 
+[[example]]
+name = "generate_faker_fixture"
+required-features = ["testing"]
+
 [dependencies]
 anyhow = "1"
 async-trait = "0.1"
@@ -27,18 +33,22 @@ candle-core = { version = "0.8", optional = true }
 candle-nn = { version = "0.8", optional = true }
 candle-transformers = { version = "0.8", optional = true }
 chrono = { version = "0.4", features = ["clock", "serde"] }
-fake = { version = "5", features = ["derive"] }
+fake = { version = "5", features = ["derive"], optional = true }
 genai = { version = "0.5.0", optional = true }
 hf-hub = { version = "0.4", optional = true }
-rand = "0.8"
-rand_chacha = "0.3"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+rand = { version = "0.8", optional = true }
+rand_chacha = { version = "0.3", optional = true }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 locus-core-rs = { version = "0.4.2", path = "../locus-core-rs" }
 thiserror = "2"
 tokenizers = { version = "0.21", optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "sync"], optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
+getrandom_04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }

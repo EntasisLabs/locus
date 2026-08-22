@@ -1,0 +1,43 @@
+name: WASM compatibility
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  wasm-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Check locus-core-rs
+        run: cargo check -p locus-core-rs --target wasm32-unknown-unknown
+
+      - name: Check locus-sdk (WASM profile)
+        run: cargo check -p locus-sdk --target wasm32-unknown-unknown --no-default-features
+
+      - name: Check locus-surreal-adapter (WASM profile)
+        run: cargo check -p locus-surreal-adapter --target wasm32-unknown-unknown --no-default-features --features wasm
+
+  native-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check workspace
+        run: cargo check --workspace
+
+      - name: Test locus-core-rs surreal runtime
+        run: cargo test -p locus-core-rs --features surreal-runtime surrealdb_runtime

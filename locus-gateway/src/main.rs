@@ -12,7 +12,6 @@ mod gateway_args;
 mod http_models;
 mod orchestration;
 mod providers;
-mod surreal_client;
 mod tenant;
 
 #[tokio::main]
