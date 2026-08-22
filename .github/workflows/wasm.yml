@@ -27,6 +27,30 @@ jobs:
       - name: Check locus-surreal-adapter (WASM profile)
         run: cargo check -p locus-surreal-adapter --target wasm32-unknown-unknown --no-default-features --features wasm
 
+      - name: Check locus-wasm
+        run: cargo check -p locus-wasm --target wasm32-unknown-unknown --features surreal
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: locus-web/package-lock.json
+
+      - name: Build locus-wasm package
+        working-directory: locus-web
+        run: |
+          npm ci
+          npm run build:wasm
+          test -f src/lib/locus-wasm/pkg/locus_wasm.js
+
+      - name: Test locus-wasm bindings
+        working-directory: locus-web
+        run: npm run test:unit -- --run src/lib/locus-wasm/locus-wasm.test.ts
+
   native-check:
     runs-on: ubuntu-latest
     steps:

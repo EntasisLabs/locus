@@ -27,3 +27,6 @@ test-results
 # Generated API docs (rebuilt by npm run docs:rustdoc during CI/build)
 static/docs/rustdoc/
 static/docs/technical/api/
+
+# Generated WASM bindings (rebuilt by npm run build:wasm)
+src/lib/locus-wasm/pkg/
