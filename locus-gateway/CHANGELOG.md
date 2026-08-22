@@ -3,6 +3,17 @@
 All notable changes specific to locus-gateway are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [0.4.0] - 2026-08-22
+
+### Added
+
+- Shared **`locus-surreal-adapter`** crate for SurrealDB client wiring (replaces in-crate `RuntimeSurrealDbClient`).
+
+### Changed
+
+- SurrealDB connection logic moved to `locus-surreal-adapter` with `native` feature profile.
+- Dependency alignment: `locus-core-rs` 0.5.0, `locus-sdk` 0.3.0, `locus-surreal-adapter` 0.1.0.
+
 ## [0.3.2] - 2026-06-23
 
 ### Fixed

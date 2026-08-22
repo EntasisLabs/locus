@@ -378,7 +378,9 @@ Locus uses Instrumenta-style namespaced component release lines.
 | Component | Artifact Type | Build Command | Publish Action |
 | --- | --- | --- | --- |
 | `locus-core-rs` | crates.io package | `./locus-core-rs/publish-crates.sh` | add `--publish` for actual crates.io publish |
-| `locus-sdk` | crates.io package | `cargo publish --manifest-path locus-sdk/Cargo.toml --dry-run` | rerun without `--dry-run` |
+| `locus-sdk` | crates.io package | `./locus-sdk/publish-crates.sh` | add `--publish` for actual crates.io publish |
+| `locus-surreal-adapter` | crates.io package | `./locus-surreal-adapter/publish-crates.sh` | publish after core, before sdk |
+| `locus-wasm` | browser WASM bundle | `cd locus-web && npm run build:wasm` | git tag only; not published to crates.io |
 | `locus-mcp` | multi-platform archives | `./locus-mcp/build.sh` | `./locus-mcp/build.sh --publish` |
 | `locus-gateway` | multi-platform archives | `./locus-gateway/build.sh` | `./locus-gateway/build.sh --publish` |
 | `locus-cli` | multi-platform archives | `./locus-cli/build.sh` | `./locus-cli/build.sh --publish` uploads assets to `locus-cli/vX.Y.Z` |
@@ -400,22 +402,22 @@ Or invoke `./build.sh` directly with explicit versions:
 ```bash
 ./build.sh --mode release \
   --targets core,mcp,gateway,cli \
-  --mcp-version 0.2.2 \
-  --gateway-version 0.3.2 \
-  --cli-version 0.2.2
+  --mcp-version 0.3.0 \
+  --gateway-version 0.4.0 \
+  --cli-version 0.3.0
 ```
 
 Common patterns:
 
 ```bash
 # Release artifacts/checks only
-./build.sh --mode release --mcp-version 0.2.2 --gateway-version 0.3.2 --cli-version 0.2.2
+./build.sh --mode release --mcp-version 0.3.0 --gateway-version 0.4.0 --cli-version 0.3.0
 
 # Release artifacts/checks and publish outputs to GitHub/crates.io targets
-./build.sh --mode release --mcp-version 0.2.2 --gateway-version 0.3.2 --cli-version 0.2.2 --publish
+./build.sh --mode release --mcp-version 0.3.0 --gateway-version 0.4.0 --cli-version 0.3.0 --publish
 
 # Build and tag only service images (mcp + gateway)
-./build.sh --mode images --stack services --mcp-version 0.2.2 --gateway-version 0.3.2
+./build.sh --mode images --stack services --mcp-version 0.3.0 --gateway-version 0.4.0
 ```
 
 ### Suggested Release Sequence
@@ -429,29 +431,36 @@ cargo check --workspace
 cargo test -p locus-core-rs -p locus-sdk -p locus-gateway -p locus-mcp -p locus-cli
 
 ./locus-core-rs/publish-crates.sh --publish
+./locus-surreal-adapter/publish-crates.sh --publish
 ./locus-sdk/publish-crates.sh --publish
 
 ./locus-mcp/build.sh --publish
 ./locus-gateway/build.sh --publish
 ./locus-cli/build.sh --publish
 
-git tag locus-core-rs/v0.4.2
-git tag locus-sdk/v0.2.2
-git tag locus-mcp/v0.2.2
-git tag locus-gateway/v0.3.2
-git tag locus-cli/v0.2.2
+cd locus-web && npm ci && npm run build:wasm
+
+git tag locus-core-rs/v0.5.0
+git tag locus-sdk/v0.3.0
+git tag locus-surreal-adapter/v0.1.0
+git tag locus-wasm/v0.1.0
+git tag locus-mcp/v0.3.0
+git tag locus-gateway/v0.4.0
+git tag locus-cli/v0.3.0
 git push origin \
-  locus-core-rs/v0.4.2 \
-  locus-sdk/v0.2.2 \
-  locus-mcp/v0.2.2 \
-  locus-gateway/v0.3.2 \
-  locus-cli/v0.2.2
+  locus-core-rs/v0.5.0 \
+  locus-sdk/v0.3.0 \
+  locus-surreal-adapter/v0.1.0 \
+  locus-wasm/v0.1.0 \
+  locus-mcp/v0.3.0 \
+  locus-gateway/v0.4.0 \
+  locus-cli/v0.3.0
 
-./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.2.2
-docker push ghcr.io/entasislabs/locus-mcp:0.2.2
+./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.3.0
+docker push ghcr.io/entasislabs/locus-mcp:0.3.0
 
-./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:0.3.2
-docker push ghcr.io/entasislabs/locus-gateway:0.3.2
+./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:0.4.0
+docker push ghcr.io/entasislabs/locus-gateway:0.4.0
 ```
 
 ## Operational Guardrails

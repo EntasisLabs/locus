@@ -1,6 +1,6 @@
 [package]
 name = "locus-cli"
-version = "0.2.2"
+version = "0.3.0"
 edition = "2024"
 description = "CLI for Locus gateway memory operations"
 license = "Apache-2.0"
@@ -13,8 +13,8 @@ local-embedding = ["locus-sdk/local-embedding"]
 anyhow = "1"
 chrono = { version = "0.4", features = ["clock", "serde"] }
 clap = { version = "4", features = ["derive", "env"] }
-locus-core-rs = { version = "0.4.2", path = "../locus-core-rs", features = ["surreal-runtime"] }
-locus-sdk = { version = "0.2.2", path = "../locus-sdk" }
+locus-core-rs = { version = "0.5.0", path = "../locus-core-rs", features = ["surreal-runtime"] }
+locus-sdk = { version = "0.3.0", path = "../locus-sdk" }
 locus-surreal-adapter = { version = "0.1.0", path = "../locus-surreal-adapter" }
 serde_json = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

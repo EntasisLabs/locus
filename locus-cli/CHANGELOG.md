@@ -2,6 +2,13 @@
 
 All notable changes specific to locus-cli are documented in this file.
 
+## [0.3.0] - 2026-08-22
+
+### Changed
+
+- SurrealDB client wiring moved to shared **`locus-surreal-adapter`** crate.
+- Dependency alignment: `locus-core-rs` 0.5.0, `locus-sdk` 0.3.0, `locus-surreal-adapter` 0.1.0.
+
 ## [0.2.2] - 2026-06-23
 
 ### Fixed
