@@ -2,6 +2,7 @@
 members = [
   "locus-core-rs",
   "locus-sdk",
+  "locus-surreal-adapter",
   "locus-mcp",
   "locus-gateway",
   "locus-cli",

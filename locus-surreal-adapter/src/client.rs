@@ -1,9 +1,11 @@
 use anyhow::{Context, Result};
-use serde_json::Value;
+use async_trait::async_trait;
 use locus_core_rs::storage::surrealdb::QueryParams;
 use locus_core_rs::storage::{SurrealDbClient, SurrealDbRuntimeOptions};
+use serde_json::Value;
 use surrealdb::engine::any::{Any, connect};
 use surrealdb::opt::auth::Root;
+#[cfg(feature = "native")]
 use tracing::{debug, error};
 
 pub struct RuntimeSurrealDbClient {
@@ -66,15 +68,17 @@ impl RuntimeSurrealDbClient {
     }
 }
 
-#[tonic::async_trait]
+#[async_trait]
 impl SurrealDbClient for RuntimeSurrealDbClient {
     async fn raw_query(&self, query: &str, parameters: QueryParams) -> Result<Vec<Value>> {
+        #[cfg(feature = "native")]
         let operation = query
             .split_whitespace()
             .next()
             .unwrap_or("UNKNOWN")
             .to_ascii_uppercase();
         let is_read_query = Self::is_read_query(query);
+        #[cfg(feature = "native")]
         let has_parameters = !parameters.is_empty();
 
         let response = if parameters.is_empty() {
@@ -86,6 +90,7 @@ impl SurrealDbClient for RuntimeSurrealDbClient {
         let mut response = match response.check() {
             Ok(value) => value,
             Err(err) => {
+                #[cfg(feature = "native")]
                 error!(
                     operation = %operation,
                     read_query = is_read_query,
@@ -97,6 +102,7 @@ impl SurrealDbClient for RuntimeSurrealDbClient {
             }
         };
 
+        #[cfg(feature = "native")]
         debug!(
             operation = %operation,
             read_query = is_read_query,
@@ -109,15 +115,18 @@ impl SurrealDbClient for RuntimeSurrealDbClient {
         }
 
         if let Ok(rows) = response.take::<Vec<Value>>(0) {
+            #[cfg(feature = "native")]
             debug!(operation = %operation, row_count = rows.len(), "Surreal read query returned rows");
             return Ok(rows);
         }
 
         if let Ok(Some(row)) = response.take::<Option<Value>>(0) {
+            #[cfg(feature = "native")]
             debug!(operation = %operation, row_count = 1, "Surreal read query returned a single row");
             return Ok(vec![row]);
         }
 
+        #[cfg(feature = "native")]
         debug!(operation = %operation, row_count = 0, "Surreal read query returned no rows");
 
         Ok(Vec::new())

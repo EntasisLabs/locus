@@ -1,22 +1,29 @@
 #[cfg(feature = "local-embedding")]
 use std::sync::Arc;
 
+#[cfg(any(feature = "http-providers", feature = "local-embedding"))]
 use anyhow::{Result, anyhow};
+#[cfg(any(feature = "http-providers", feature = "local-embedding"))]
 use async_trait::async_trait;
+#[cfg(any(feature = "http-providers", feature = "local-embedding"))]
 use locus_core_rs::domain::contracts::EmbeddingProvider;
+#[cfg(feature = "http-providers")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "http-providers")]
 #[derive(Debug, Serialize)]
 struct OllamaEmbeddingRequest<'a> {
     model: &'a str,
     prompt: &'a str,
 }
 
+#[cfg(feature = "http-providers")]
 #[derive(Debug, Deserialize)]
 struct OllamaEmbeddingResponse {
     embedding: Option<Vec<f32>>,
 }
 
+#[cfg(feature = "http-providers")]
 #[derive(Clone)]
 pub struct OllamaEmbeddingProvider {
     client: reqwest::Client,
@@ -24,6 +31,7 @@ pub struct OllamaEmbeddingProvider {
     model: String,
 }
 
+#[cfg(feature = "http-providers")]
 impl OllamaEmbeddingProvider {
     pub fn new(endpoint: String, model: String) -> Self {
         Self {
@@ -34,6 +42,7 @@ impl OllamaEmbeddingProvider {
     }
 }
 
+#[cfg(feature = "http-providers")]
 #[async_trait]
 impl EmbeddingProvider for OllamaEmbeddingProvider {
     fn model_name(&self) -> &str {

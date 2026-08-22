@@ -1,15 +1,14 @@
 use std::sync::Arc;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use locus_core_rs::domain::contracts::EmbeddingProvider;
-use locus_core_rs::{ParseProfile, SurrealDbClient, SurrealDbRuntimeOptions, SurrealDbSettings};
+use locus_core_rs::{ParseProfile, SurrealDbSettings};
 #[cfg(feature = "local-embedding")]
 use locus_sdk::infrastructure::embeddings::LocalEmbeddingProvider;
 use locus_sdk::infrastructure::embeddings::OllamaEmbeddingProvider;
-use serde_json::Value;
-use surrealdb::engine::any::{Any, connect};
-use surrealdb::opt::auth::Root;
-use tracing::{error, info};
+use tracing::info;
+
+pub(crate) use locus_surreal_adapter::RuntimeSurrealDbClient;
 
 #[derive(Debug, Clone)]
 enum EmbeddingsProviderKind {
@@ -26,104 +25,6 @@ impl EmbeddingsProviderKind {
             "local" | "local-embedding" | "candle" => Some(Self::Local),
             _ => None,
         }
-    }
-}
-
-pub(crate) struct RuntimeSurrealDbClient {
-    db: surrealdb::Surreal<Any>,
-}
-
-impl RuntimeSurrealDbClient {
-    pub(crate) async fn connect(
-        runtime: &SurrealDbRuntimeOptions,
-        user: Option<&str>,
-        password: Option<&str>,
-    ) -> Result<Self> {
-        let db = connect(runtime.endpoint.as_str()).await.with_context(|| {
-            format!(
-                "failed to connect to SurrealDB endpoint '{}'",
-                runtime.endpoint
-            )
-        })?;
-
-        if runtime.use_remote {
-            let username = user
-                .filter(|value| !value.trim().is_empty())
-                .unwrap_or("root");
-            let password = password
-                .filter(|value| !value.trim().is_empty())
-                .unwrap_or("root");
-
-            db.signin(Root {
-                username: username.to_string(),
-                password: password.to_string(),
-            })
-            .await
-            .context("failed to authenticate against remote SurrealDB")?;
-        }
-
-        db.use_ns(runtime.namespace.as_str())
-            .use_db(runtime.database.as_str())
-            .await
-            .with_context(|| {
-                format!(
-                    "failed to select namespace '{}' and database '{}'",
-                    runtime.namespace, runtime.database
-                )
-            })?;
-
-        Ok(Self { db })
-    }
-
-    fn is_read_query(query: &str) -> bool {
-        query
-            .trim_start()
-            .to_ascii_uppercase()
-            .starts_with("SELECT")
-    }
-}
-
-#[async_trait::async_trait]
-impl SurrealDbClient for RuntimeSurrealDbClient {
-    async fn raw_query(
-        &self,
-        query: &str,
-        parameters: locus_core_rs::QueryParams,
-    ) -> Result<Vec<Value>> {
-        let operation = query
-            .split_whitespace()
-            .next()
-            .unwrap_or("UNKNOWN")
-            .to_ascii_uppercase();
-        let is_read_query = Self::is_read_query(query);
-
-        let response = if parameters.is_empty() {
-            self.db.query(query).await?
-        } else {
-            self.db.query(query).bind(parameters).await?
-        };
-
-        let mut response = match response.check() {
-            Ok(value) => value,
-            Err(err) => {
-                error!(operation = %operation, error = %err, "Surreal query failed");
-                return Err(err.into());
-            }
-        };
-
-        if !is_read_query {
-            return Ok(Vec::new());
-        }
-
-        if let Ok(rows) = response.take::<Vec<Value>>(0) {
-            return Ok(rows);
-        }
-
-        if let Ok(Some(row)) = response.take::<Option<Value>>(0) {
-            return Ok(vec![row]);
-        }
-
-        Ok(Vec::new())
     }
 }
 

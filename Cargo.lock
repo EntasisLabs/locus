@@ -2280,11 +2280,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de51e6874e94e7bf76d726fc5d13ba782deca734ff60d5bb2fb2607c7406555"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "r-efi 6.0.0",
  "rand_core 0.10.1",
  "wasip2",
  "wasip3",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -3149,13 +3151,12 @@ name = "locus-cli"
 version = "0.2.2"
 dependencies = [
  "anyhow",
- "async-trait",
  "chrono",
  "clap",
  "locus-core-rs",
  "locus-sdk",
+ "locus-surreal-adapter",
  "serde_json",
- "surrealdb",
  "tokio",
 ]
 
@@ -3186,13 +3187,13 @@ dependencies = [
  "clap",
  "locus-core-rs",
  "locus-sdk",
+ "locus-surreal-adapter",
  "prost 0.13.5",
  "prost-types 0.13.5",
  "protoc-bin-vendored",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
- "surrealdb",
  "tokio",
  "tonic 0.12.3",
  "tonic-build",
@@ -3207,15 +3208,14 @@ name = "locus-mcp"
 version = "0.2.2"
 dependencies = [
  "anyhow",
- "async-trait",
  "chrono",
  "locus-core-rs",
  "locus-sdk",
+ "locus-surreal-adapter",
  "rmcp",
  "schemars 1.2.1",
  "serde",
  "serde_json",
- "surrealdb",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -3233,6 +3233,8 @@ dependencies = [
  "chrono",
  "fake",
  "genai",
+ "getrandom 0.2.17",
+ "getrandom 0.4.2",
  "hf-hub",
  "locus-core-rs",
  "rand 0.8.6",
@@ -3243,6 +3245,19 @@ dependencies = [
  "thiserror 2.0.18",
  "tokenizers",
  "tokio",
+]
+
+[[package]]
+name = "locus-surreal-adapter"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "getrandom 0.2.17",
+ "locus-core-rs",
+ "serde_json",
+ "surrealdb",
+ "tracing",
 ]
 
 [[package]]
