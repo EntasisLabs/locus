@@ -3,6 +3,18 @@
 All notable changes specific to locus-core-rs are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [0.5.0] - 2026-08-22
+
+### Added
+
+- **WASM compilation support** for `wasm32-unknown-unknown` (in-memory stores, parsing, and services compile in browser targets).
+- **`surreal-runtime` feature** gating filesystem-backed `SurrealDbRuntimeOptions::from_args()` (native hosts only).
+- UUID `js` feature for browser-compatible v4 randomness.
+
+### Changed
+
+- `SurrealDbRuntimeOptions::from_args` is unavailable on `wasm32` targets without `surreal-runtime`.
+
 ## [0.4.2] - 2026-06-23
 
 ### Fixed

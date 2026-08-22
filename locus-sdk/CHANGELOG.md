@@ -4,6 +4,20 @@ All notable changes specific to locus-sdk are documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [0.3.0] - 2026-08-22
+
+### Added
+
+- **WASM compilation profile**: build with `--no-default-features` for `wasm32-unknown-unknown`.
+- **`http-providers` feature** gating `reqwest` and `OllamaEmbeddingProvider`.
+- **`testing` feature** gating `faker` / `rand` test helpers and the `generate_faker_fixture` example.
+- Target-specific `getrandom` dependencies for WASM RNG (`js` / `wasm_js`).
+
+### Changed
+
+- Default features remain `genai-provider` + `http-providers` for native consumers.
+- Dependency alignment: `locus-core-rs` 0.5.0.
+
 ## [0.2.2] - 2026-06-23
 
 ### Fixed
