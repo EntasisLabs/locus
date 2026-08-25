@@ -2,6 +2,12 @@
 
 All notable changes specific to locus-cli are documented in this file.
 
+## [0.3.1] - 2026-08-25
+
+### Changed
+
+- Dependency alignment: `locus-core-rs` 0.5.1, `locus-sdk` 0.3.1, `locus-surreal-adapter` 0.1.1.
+
 ## [0.3.0] - 2026-08-22
 
 ### Changed

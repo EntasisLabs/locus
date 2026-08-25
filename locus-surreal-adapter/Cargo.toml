@@ -1,6 +1,6 @@
 [package]
 name = "locus-surreal-adapter"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "SurrealDB runtime client adapter for Locus hosts and WASM consumers"
 license = "Apache-2.0"
@@ -19,7 +19,7 @@ wasm = ["surrealdb/kv-indxdb", "surrealdb/kv-mem"]
 [dependencies]
 anyhow = "1"
 async-trait = "0.1"
-locus-core-rs = { version = "0.5.0", path = "../locus-core-rs" }
+locus-core-rs = { version = "0.5.1", path = "../locus-core-rs" }
 serde_json = "1"
 surrealdb = { version = "3", default-features = false, features = ["protocol-ws"] }
 tracing = { version = "0.1", optional = true }

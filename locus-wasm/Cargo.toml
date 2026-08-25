@@ -1,6 +1,6 @@
 [package]
 name = "locus-wasm"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "WebAssembly bindings for Locus STTP parsing and in-browser memory workflows"
 license = "Apache-2.0"
@@ -17,8 +17,8 @@ surreal = ["dep:locus-surreal-adapter"]
 anyhow = "1"
 console_error_panic_hook = "0.1"
 js-sys = "0.3"
-locus-core-rs = { version = "0.5.0", path = "../locus-core-rs" }
-locus-sdk = { version = "0.3.0", path = "../locus-sdk", default-features = false }
+locus-core-rs = { version = "0.5.1", path = "../locus-core-rs" }
+locus-sdk = { version = "0.3.1", path = "../locus-sdk", default-features = false }
 locus-surreal-adapter = { path = "../locus-surreal-adapter", default-features = false, features = ["wasm"], optional = true }
 serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6"

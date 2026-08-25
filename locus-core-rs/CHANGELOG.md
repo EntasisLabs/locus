@@ -5,6 +5,8 @@ For historical entries before this split, see ../CHANGELOG.md.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-08-25
+
 ### Added
 
 - **`SttpDocumentBuilder`** write path for strict canonical STTP nodes:

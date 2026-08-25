@@ -6,9 +6,12 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-08-25
+
 ### Changed
 
 - Recursive composite example and conformance test now assemble full nodes via `SttpDocumentBuilder` (shallow content merge + canonical render) instead of ad-hoc string templates.
+- Dependency alignment: `locus-core-rs` 0.5.1.
 
 ## [0.3.0] - 2026-08-22
 
