@@ -4,6 +4,12 @@ All notable changes specific to locus-sdk are documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [Unreleased]
+
+### Changed
+
+- Recursive composite example and conformance test now assemble full nodes via `SttpDocumentBuilder` (shallow content merge + canonical render) instead of ad-hoc string templates.
+
 ## [0.3.0] - 2026-08-22
 
 ### Added

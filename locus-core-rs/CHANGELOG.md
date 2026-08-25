@@ -3,6 +3,17 @@
 All notable changes specific to locus-core-rs are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [Unreleased]
+
+### Added
+
+- **`SttpDocumentBuilder`** write path for strict canonical STTP nodes:
+  - `SttpDocumentMetadata` seeds provenance + envelope
+  - `SttpContentSlice` merges **top-level content keys only** (duplicate field names rejected)
+  - `build()` finalizes metrics; `render_canonical()` emits four-layer wire text
+  - Round-trip coverage through `TreeSitterValidator` + `StrictTypedIr`
+- Design contract: [`docs/sttp_document_builder.md`](../docs/sttp_document_builder.md)
+
 ## [0.5.0] - 2026-08-22
 
 ### Added

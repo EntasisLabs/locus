@@ -506,6 +506,7 @@ Use docs by concern rather than reading in strict order:
 7. [docs/versioning.md](docs/versioning.md): SemVer and compatibility policy.
 8. [docs/security.md](docs/security.md): security posture and handling discipline.
 9. [docs/sttp_typed_ir_language_spec.md](docs/sttp_typed_ir_language_spec.md): typed IR protocol reference.
+10. [docs/sttp_document_builder.md](docs/sttp_document_builder.md): fluent canonical node construction (shallow content merge).
 
 ## Why The Repository Is Structured This Way
 

@@ -157,6 +157,6 @@ Reference tests: [locus-sdk/src/application/memory_composition.rs](locus-sdk/src
 
 ## 10. Integration Notes
 
-1. This workflow currently returns content-layer payload plus AVEC resolution stats.
-2. It does not replace typed IR grammar; it composes spec-safe content for insertion into full STTP node workflows.
-3. Recommended next step is a full store-ready recipe that assembles the complete four-layer node from this content payload.
+1. `build_content_from_text` returns a content-layer payload plus AVEC resolution stats.
+2. Assemble a full store-ready node with [`SttpDocumentBuilder`](sttp_document_builder.md): wrap the content map as an `SttpContentSlice`, then `build().render_canonical()`.
+3. Merge is shallow (top-level content keys only); see the document builder contract for collision rules.

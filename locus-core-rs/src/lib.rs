@@ -70,7 +70,10 @@ pub use domain::contracts::{
     SemanticIndexStoreInitializer, SyncChangeSource, SyncCoordinatorPolicy, TagEmbedding,
 };
 pub use domain::models::*;
-pub use parsing::SttpNodeParser;
+pub use parsing::{
+    SttpContentSlice, SttpDocument, SttpDocumentBuildError, SttpDocumentBuilder,
+    SttpDocumentMetadata, SttpNodeParser,
+};
 pub use storage::{
     InMemoryNodeStore, InMemorySemanticIndexStore, QueryParams, SurrealDbClient,
     SurrealDbEndpointsSettings, SurrealDbNodeStore, SurrealDbRuntimeOptions,
