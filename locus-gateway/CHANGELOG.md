@@ -3,6 +3,12 @@
 All notable changes specific to locus-gateway are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [0.4.1] - 2026-08-25
+
+### Changed
+
+- Dependency alignment: `locus-core-rs` 0.5.1, `locus-sdk` 0.3.1, `locus-surreal-adapter` 0.1.1.
+
 ## [0.4.0] - 2026-08-22
 
 ### Added

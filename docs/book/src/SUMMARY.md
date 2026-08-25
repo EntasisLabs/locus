@@ -6,6 +6,7 @@
 - [Core Database Schema](core-database-schema.md)
 - [SDK Architecture](sdk-architecture.md)
 - [SDK Recursive Composite Guide](locus_sdk_rs_recursive_composite_guide.md)
+- [STTP Document Builder](sttp_document_builder.md)
 - [Deployment](deployment.md)
 - [Operations](operations.md)
 - [Integration](integration.md)

@@ -1,6 +1,6 @@
 [package]
 name = "locus-gateway"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2024"
 build = "build.rs"
 
@@ -25,9 +25,9 @@ tonic-reflection = "0.12"
 tower-http = { version = "0.6", features = ["cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
-locus-core-rs = { version = "0.5.0", path = "../locus-core-rs", features = ["surreal-runtime"] }
-locus-sdk = { version = "0.3.0", path = "../locus-sdk" }
-locus-surreal-adapter = { version = "0.1.0", path = "../locus-surreal-adapter" }
+locus-core-rs = { version = "0.5.1", path = "../locus-core-rs", features = ["surreal-runtime"] }
+locus-sdk = { version = "0.3.1", path = "../locus-sdk" }
+locus-surreal-adapter = { version = "0.1.1", path = "../locus-surreal-adapter" }
 
 [build-dependencies]
 protoc-bin-vendored = "3"

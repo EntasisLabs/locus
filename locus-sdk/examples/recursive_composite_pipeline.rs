@@ -1,11 +1,14 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use serde_json::{Map, Value};
+use chrono::{TimeZone, Utc};
+use serde_json::Value;
 use locus_core_rs::application::validation::TreeSitterValidator;
 use locus_core_rs::domain::contracts::NodeValidator;
 use locus_core_rs::domain::models::AvecState;
-use locus_core_rs::parsing::SttpNodeParser;
+use locus_core_rs::parsing::{
+    SttpContentSlice, SttpDocumentBuilder, SttpDocumentMetadata, SttpNodeParser,
+};
 use locus_core_rs::{InMemoryNodeStore, NodeStore};
 use locus_sdk::prelude::{
     CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
@@ -71,7 +74,29 @@ fn main() -> Result<()> {
     println!("unresolved_avec_count={}", result.unresolved_avec_count);
     println!("requires_llm_avec={}", result.requires_llm_avec);
 
-    let raw_node = render_sttp_node("sdk-composite-example", &result.content);
+    let content = match result.content {
+        Value::Object(map) => map,
+        other => anyhow::bail!("expected object content, got {other}"),
+    };
+    let avec = AvecState {
+        stability: 0.80,
+        friction: 0.20,
+        logic: 0.85,
+        autonomy: 0.75,
+    };
+    let metadata = SttpDocumentMetadata::new("sdk-composite-example")
+        .with_timestamp(
+            Utc.with_ymd_and_hms(2026, 5, 3, 0, 0, 0)
+                .single()
+                .expect("valid timestamp"),
+        )
+        .with_context_summary("sdk recursive composite example")
+        .with_avec(avec, avec);
+
+    let raw_node = SttpDocumentBuilder::new(metadata)
+        .merge(SttpContentSlice::from_confidence_map(content)?)?
+        .build()?
+        .render_canonical();
 
     let validator = TreeSitterValidator::new();
     let validation = validator.validate(&raw_node);
@@ -81,50 +106,13 @@ fn main() -> Result<()> {
     }
 
     let parser = SttpNodeParser::new();
-    let parsed = parser.try_parse_strict(&raw_node, "sdk-composite-example");
-    println!("strict_parse_success={}", parsed.success);
+    let parsed = parser.try_parse_strict_typed_ir(&raw_node, "sdk-composite-example");
+    println!("strict_typed_ir_success={}", parsed.success);
     if let Some(err) = parsed.error {
-        println!("strict_parse_error={err}");
+        println!("strict_typed_ir_error={err}");
     }
 
     println!("\n--- sttp-node ---\n{raw_node}\n--- end ---");
 
     Ok(())
-}
-
-fn render_sttp_node(session_id: &str, content: &Value) -> String {
-    let content_text = render_sttp_value(content);
-    format!(
-        "⊕⟨ {{ trigger: manual, response_format: temporal_node, origin_session: \"{session_id}\", compression_depth: 1, parent_node: null, prime: {{ attractor_config: {{ stability: 0.80, friction: 0.20, logic: 0.85, autonomy: 0.75 }}, context_summary: \"sdk recursive composite example\", relevant_tier: raw, retrieval_budget: 5 }} }} ⟩\n\
-⦿⟨ {{ timestamp: \"2026-05-03T00:00:00Z\", tier: raw, session_id: \"{session_id}\", user_avec: {{ stability: 0.80, friction: 0.20, logic: 0.85, autonomy: 0.75, psi: 2.60 }}, model_avec: {{ stability: 0.82, friction: 0.18, logic: 0.84, autonomy: 0.74, psi: 2.58 }} }} ⟩\n\
-◈⟨ {content_text} ⟩\n\
-⍉⟨ {{ rho: 0.96, kappa: 0.94, psi: 2.60, compression_avec: {{ stability: 0.81, friction: 0.19, logic: 0.84, autonomy: 0.74, psi: 2.58 }} }} ⟩"
-    )
-}
-
-fn render_sttp_value(value: &Value) -> String {
-    match value {
-        Value::Null => "null".to_string(),
-        Value::Bool(v) => v.to_string(),
-        Value::Number(v) => v.to_string(),
-        Value::String(v) => format!("\"{}\"", v.replace('"', "\\\"")),
-        Value::Array(values) => {
-            let rendered = values
-                .iter()
-                .map(render_sttp_value)
-                .collect::<Vec<_>>()
-                .join(", ");
-            format!("[{rendered}]")
-        }
-        Value::Object(obj) => render_sttp_object(obj),
-    }
-}
-
-fn render_sttp_object(obj: &Map<String, Value>) -> String {
-    let rendered = obj
-        .iter()
-        .map(|(key, value)| format!("{key}: {}", render_sttp_value(value)))
-        .collect::<Vec<_>>()
-        .join(", ");
-    format!("{{ {rendered} }}")
 }
