@@ -405,7 +405,7 @@ async fn get_context_handler(
                     .clamp(0.0, 1.0),
                 beta: request.beta.unwrap_or(DEFAULT_HYBRID_BETA).clamp(0.0, 1.0),
                 gamma: request.gamma.unwrap_or(0.0).clamp(0.0, 1.0),
-                fallback_policy: FallbackPolicy::Never,
+                fallback_policy: FallbackPolicy::OnEmpty,
                 ..Default::default()
             },
             filter: memory_filter,
@@ -1338,7 +1338,7 @@ impl proto::sttp_gateway_service_server::SttpGatewayService for GrpcGatewayServi
                         .unwrap_or(DEFAULT_HYBRID_ALPHA)
                         .clamp(0.0, 1.0),
                     beta: request.beta.unwrap_or(DEFAULT_HYBRID_BETA).clamp(0.0, 1.0),
-                    fallback_policy: FallbackPolicy::Never,
+                    fallback_policy: FallbackPolicy::OnEmpty,
                     ..Default::default()
                 },
                 current_avec: Some(core_models::AvecState {

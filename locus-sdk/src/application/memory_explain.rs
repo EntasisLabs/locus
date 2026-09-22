@@ -4,15 +4,18 @@ use std::sync::Arc;
 use anyhow::Result;
 use locus_core_rs::ContextQueryService;
 use locus_core_rs::domain::contracts::NodeStore;
-use locus_core_rs::domain::models::{AvecState, SttpNode};
+use locus_core_rs::domain::models::{AvecState, NodeQuery, SttpNode};
 
 use crate::application::memory_filters::{build_session_filter, node_matches_common_filters};
+use crate::application::memory_lexical::{
+    self, LEXICAL_SCAN_LIMIT, LexicalActivation, LexicalFields,
+};
 use crate::domain::memory::{
-    FallbackPolicy, MemoryExplainRequest, MemoryExplainResult, MemoryExplainStage, RetrievalPath,
-    clamp_limit,
+    MemoryExplainRequest, MemoryExplainResult, MemoryExplainStage, RetrievalPath, clamp_limit,
 };
 
 pub struct MemoryExplainService {
+    store: Arc<dyn NodeStore>,
     context_query: ContextQueryService,
 }
 
@@ -20,7 +23,8 @@ impl MemoryExplainService {
     /// Create an explanation service for retrieval-stage introspection.
     pub fn new(store: Arc<dyn NodeStore>) -> Self {
         Self {
-            context_query: ContextQueryService::new(store),
+            context_query: ContextQueryService::new(store.clone()),
+            store,
         }
     }
 
@@ -96,56 +100,107 @@ impl MemoryExplainService {
         });
 
         if let Some(query_text) = recall.query_text.as_deref() {
-            let need_fallback = match recall.scoring.fallback_policy {
-                FallbackPolicy::Never => false,
-                FallbackPolicy::OnEmpty => filtered_primary.is_empty(),
-                FallbackPolicy::Always => true,
-            };
+            let primary_empty = filtered_primary.is_empty();
+            match memory_lexical::activation(
+                recall.scoring.fallback_policy,
+                query_text,
+                primary_empty,
+            ) {
+                LexicalActivation::Skip => {}
+                LexicalActivation::Legacy => {
+                    fallback_triggered = true;
+                    fallback_reason = Some(match recall.scoring.fallback_policy {
+                        crate::domain::memory::FallbackPolicy::Never => "never".to_string(),
+                        crate::domain::memory::FallbackPolicy::OnEmpty => {
+                            "fallback_policy=on_empty and primary result set is empty".to_string()
+                        }
+                        crate::domain::memory::FallbackPolicy::Always => {
+                            "fallback_policy=always".to_string()
+                        }
+                    });
 
-            if need_fallback {
-                fallback_triggered = true;
-                fallback_reason = Some(match recall.scoring.fallback_policy {
-                    FallbackPolicy::Never => "never".to_string(),
-                    FallbackPolicy::OnEmpty => {
-                        "fallback_policy=on_empty and primary result set is empty".to_string()
+                    let fallback = self
+                        .context_query
+                        .get_context_scoped_filtered_async(
+                            session_scope,
+                            current.stability,
+                            current.friction,
+                            current.logic,
+                            current.autonomy,
+                            recall.scope.from_utc,
+                            recall.scope.to_utc,
+                            recall.scope.tiers.as_deref(),
+                            expanded_limit,
+                        )
+                        .await;
+
+                    stages.push(MemoryExplainStage {
+                        stage: "fallback_retrieval".to_string(),
+                        count: fallback.nodes.len(),
+                    });
+
+                    let filtered_fallback =
+                        filter_nodes(fallback.nodes, recall, session_filter.as_ref());
+                    stages.push(MemoryExplainStage {
+                        stage: "fallback_after_common_filter".to_string(),
+                        count: filtered_fallback.len(),
+                    });
+
+                    let lexical =
+                        memory_lexical::legacy_phrase_filter(filtered_fallback, query_text);
+                    stages.push(MemoryExplainStage {
+                        stage: "lexical_filter".to_string(),
+                        count: lexical.len(),
+                    });
+
+                    path = RetrievalPath::LexicalFallback;
+                }
+                LexicalActivation::NaturalLanguage => {
+                    let scanned = self
+                        .store
+                        .query_nodes_async(NodeQuery {
+                            limit: LEXICAL_SCAN_LIMIT,
+                            session_id: session_scope.map(str::to_string),
+                            from_utc: recall.scope.from_utc,
+                            to_utc: recall.scope.to_utc,
+                            tiers: recall.scope.tiers.clone(),
+                        })
+                        .await?;
+                    stages.push(MemoryExplainStage {
+                        stage: "lexical_scan".to_string(),
+                        count: scanned.len(),
+                    });
+
+                    let lexical = memory_lexical::select_lexical_matches(
+                        filter_nodes(scanned, recall, session_filter.as_ref()),
+                        &memory_lexical::parse_lexical_query(query_text),
+                        recall.scoring.strictness,
+                        LexicalFields::RECALL,
+                    );
+                    stages.push(MemoryExplainStage {
+                        stage: "lexical_filter".to_string(),
+                        count: lexical.len(),
+                    });
+
+                    let (_, applied) = memory_lexical::apply_natural_language(
+                        filtered_primary,
+                        lexical,
+                        recall.query_embedding.is_some(),
+                    );
+                    if applied || primary_empty {
+                        fallback_triggered = true;
+                        fallback_reason = Some(if applied {
+                            "natural language query matched content terms in scoped nodes"
+                                .to_string()
+                        } else {
+                            "natural language query had no lexical match and primary result set is empty"
+                                .to_string()
+                        });
                     }
-                    FallbackPolicy::Always => "fallback_policy=always".to_string(),
-                });
-
-                let fallback = self
-                    .context_query
-                    .get_context_scoped_filtered_async(
-                        session_scope,
-                        current.stability,
-                        current.friction,
-                        current.logic,
-                        current.autonomy,
-                        recall.scope.from_utc,
-                        recall.scope.to_utc,
-                        recall.scope.tiers.as_deref(),
-                        expanded_limit,
-                    )
-                    .await;
-
-                stages.push(MemoryExplainStage {
-                    stage: "fallback_retrieval".to_string(),
-                    count: fallback.nodes.len(),
-                });
-
-                let filtered_fallback =
-                    filter_nodes(fallback.nodes, recall, session_filter.as_ref());
-                stages.push(MemoryExplainStage {
-                    stage: "fallback_after_common_filter".to_string(),
-                    count: filtered_fallback.len(),
-                });
-
-                let lexical = lexical_filter(filtered_fallback, query_text);
-                stages.push(MemoryExplainStage {
-                    stage: "lexical_filter".to_string(),
-                    count: lexical.len(),
-                });
-
-                path = RetrievalPath::LexicalFallback;
+                    if recall.query_embedding.is_none() && (applied || primary_empty) {
+                        path = RetrievalPath::LexicalFallback;
+                    }
+                }
             }
         }
 
@@ -164,52 +219,12 @@ fn filter_nodes(
     request: &crate::domain::memory::MemoryRecallRequest,
     session_filter: Option<&HashSet<String>>,
 ) -> Vec<SttpNode> {
-    nodes.into_iter()
+    nodes
+        .into_iter()
         .filter(|node| {
             node_matches_common_filters(node, &request.scope, &request.filter, session_filter)
         })
         .collect()
-}
-
-fn lexical_filter(nodes: Vec<SttpNode>, query_text: &str) -> Vec<SttpNode> {
-    let needle = query_text.trim().to_ascii_lowercase();
-    if needle.is_empty() {
-        return nodes;
-    }
-
-    let mut scored = nodes
-        .into_iter()
-        .filter_map(|node| {
-            let summary = node
-                .context_summary
-                .as_deref()
-                .unwrap_or_default()
-                .to_ascii_lowercase();
-            let session = node.session_id.to_ascii_lowercase();
-            let raw = node.raw.to_ascii_lowercase();
-
-            let mut score = 0usize;
-            if summary.contains(&needle) {
-                score += 3;
-            }
-            if session.contains(&needle) {
-                score += 2;
-            }
-            if raw.contains(&needle) {
-                score += 1;
-            }
-
-            if score > 0 {
-                Some((score, node.timestamp, node))
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
-
-    scored.sort_by(|left, right| right.0.cmp(&left.0).then_with(|| right.1.cmp(&left.1)));
-
-    scored.into_iter().map(|(_, _, node)| node).collect()
 }
 
 #[cfg(test)]
@@ -250,14 +265,22 @@ mod tests {
             },
         };
 
-        let result = service.execute(&request).await.expect("explain should succeed");
+        let result = service
+            .execute(&request)
+            .await
+            .expect("explain should succeed");
 
         assert!(result.fallback_triggered);
-        assert_eq!(result.retrieval_path, crate::domain::memory::RetrievalPath::LexicalFallback);
-        assert!(result
-            .stages
-            .iter()
-            .any(|stage| stage.stage == "fallback_retrieval"));
+        assert_eq!(
+            result.retrieval_path,
+            crate::domain::memory::RetrievalPath::LexicalFallback
+        );
+        assert!(
+            result
+                .stages
+                .iter()
+                .any(|stage| stage.stage == "fallback_retrieval")
+        );
     }
 
     fn test_node(session_id: &str, tier: &str, raw: &str) -> SttpNode {
@@ -276,7 +299,10 @@ mod tests {
             timestamp: now,
             compression_depth: 1,
             parent_node_id: None,
-            sync_key: format!("{session_id}:{tier}:{}", now.timestamp_nanos_opt().unwrap_or_default()),
+            sync_key: format!(
+                "{session_id}:{tier}:{}",
+                now.timestamp_nanos_opt().unwrap_or_default()
+            ),
             updated_at: now,
             source_metadata: None,
             context_summary: Some("summary".to_string()),

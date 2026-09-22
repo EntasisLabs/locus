@@ -4,17 +4,23 @@ use std::sync::Arc;
 use anyhow::Result;
 use locus_core_rs::ContextQueryService;
 use locus_core_rs::domain::contracts::{NodeStore, SemanticIndexStore};
-use locus_core_rs::domain::models::{AvecState, PsiRange, SemanticTagQueryFilter, SttpNode};
+use locus_core_rs::domain::models::{
+    AvecState, NodeQuery, PsiRange, SemanticTagQueryFilter, SttpNode,
+};
 use locus_core_rs::storage::derive_tenant_id_from_session;
 
 use crate::application::memory_filters::{
     build_session_filter, node_matches_common_filters, resolve_indexed_sync_keys,
+};
+use crate::application::memory_lexical::{
+    self, LEXICAL_SCAN_LIMIT, LexicalActivation, LexicalFields,
 };
 use crate::domain::memory::{
     FallbackPolicy, MemoryRecallRequest, MemoryRecallResult, RetrievalPath, clamp_limit,
 };
 
 pub struct MemoryRecallService {
+    store: Arc<dyn NodeStore>,
     context_query: ContextQueryService,
     semantic_index: Option<Arc<dyn SemanticIndexStore>>,
 }
@@ -23,15 +29,13 @@ impl MemoryRecallService {
     /// Create a recall service backed by the core resonance query pipeline.
     pub fn new(store: Arc<dyn NodeStore>) -> Self {
         Self {
-            context_query: ContextQueryService::new(store),
+            context_query: ContextQueryService::new(store.clone()),
+            store,
             semantic_index: None,
         }
     }
 
-    pub fn with_semantic_index(
-        mut self,
-        semantic_index: Arc<dyn SemanticIndexStore>,
-    ) -> Self {
+    pub fn with_semantic_index(mut self, semantic_index: Arc<dyn SemanticIndexStore>) -> Self {
         self.semantic_index = Some(semantic_index);
         self
     }
@@ -117,45 +121,81 @@ impl MemoryRecallService {
         );
 
         if let Some(query_text) = request.query_text.as_deref() {
-            let need_fallback = match request.scoring.fallback_policy {
-                FallbackPolicy::Never => false,
-                FallbackPolicy::OnEmpty => nodes.is_empty(),
-                FallbackPolicy::Always => true,
-            };
+            let primary_empty = nodes.is_empty();
+            match memory_lexical::activation(
+                request.scoring.fallback_policy,
+                query_text,
+                primary_empty,
+            ) {
+                LexicalActivation::Skip => {}
+                LexicalActivation::Legacy => {
+                    let fallback_result = self
+                        .context_query
+                        .get_context_scoped_filtered_async(
+                            session_scope,
+                            current.stability,
+                            current.friction,
+                            current.logic,
+                            current.autonomy,
+                            request.scope.from_utc,
+                            request.scope.to_utc,
+                            request.scope.tiers.as_deref(),
+                            expanded_limit,
+                        )
+                        .await;
 
-            if need_fallback {
-                let fallback_result = self
-                    .context_query
-                    .get_context_scoped_filtered_async(
-                        session_scope,
-                        current.stability,
-                        current.friction,
-                        current.logic,
-                        current.autonomy,
-                        request.scope.from_utc,
-                        request.scope.to_utc,
-                        request.scope.tiers.as_deref(),
-                        expanded_limit,
-                    )
-                    .await;
+                    let lexical = memory_lexical::legacy_phrase_filter(
+                        filter_nodes(
+                            fallback_result.nodes,
+                            request,
+                            session_filter.as_ref(),
+                            indexed_sync_keys.as_ref(),
+                        ),
+                        query_text,
+                    );
 
-                let lexical = lexical_filter(
-                    filter_nodes(
-                        fallback_result.nodes,
-                        request,
-                        session_filter.as_ref(),
-                        indexed_sync_keys.as_ref(),
-                    ),
-                    query_text,
-                );
+                    if request.scoring.fallback_policy == FallbackPolicy::Always
+                        && !nodes.is_empty()
+                    {
+                        nodes = memory_lexical::merge_unique(nodes, lexical);
+                    } else {
+                        nodes = lexical;
+                    }
 
-                if request.scoring.fallback_policy == FallbackPolicy::Always && !nodes.is_empty() {
-                    nodes = merge_unique(nodes, lexical);
-                } else {
-                    nodes = lexical;
+                    path = RetrievalPath::LexicalFallback;
                 }
-
-                path = RetrievalPath::LexicalFallback;
+                LexicalActivation::NaturalLanguage => {
+                    let scanned = self
+                        .store
+                        .query_nodes_async(NodeQuery {
+                            limit: LEXICAL_SCAN_LIMIT,
+                            session_id: session_scope.map(str::to_string),
+                            from_utc: request.scope.from_utc,
+                            to_utc: request.scope.to_utc,
+                            tiers: request.scope.tiers.clone(),
+                        })
+                        .await?;
+                    let lexical = memory_lexical::select_lexical_matches(
+                        filter_nodes(
+                            scanned,
+                            request,
+                            session_filter.as_ref(),
+                            indexed_sync_keys.as_ref(),
+                        ),
+                        &memory_lexical::parse_lexical_query(query_text),
+                        request.scoring.strictness,
+                        LexicalFields::RECALL,
+                    );
+                    let (ranked, applied) = memory_lexical::apply_natural_language(
+                        nodes,
+                        lexical,
+                        request.query_embedding.is_some(),
+                    );
+                    nodes = ranked;
+                    if request.query_embedding.is_none() && (applied || primary_empty) {
+                        path = RetrievalPath::LexicalFallback;
+                    }
+                }
             }
         }
 
@@ -231,7 +271,12 @@ async fn rerank_by_tag_similarity(
         })
         .collect();
 
-    scores.sort_by(|left, right| right.1.partial_cmp(&left.1).unwrap_or(std::cmp::Ordering::Equal));
+    scores.sort_by(|left, right| {
+        right
+            .1
+            .partial_cmp(&left.1)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     let mut reranked = Vec::with_capacity(nodes.len());
     let mut used = HashSet::new();
@@ -281,7 +326,8 @@ fn filter_nodes(
     session_filter: Option<&HashSet<String>>,
     indexed_sync_keys: Option<&HashSet<String>>,
 ) -> Vec<SttpNode> {
-    nodes.into_iter()
+    nodes
+        .into_iter()
         .filter(|node| {
             if let Some(keys) = indexed_sync_keys
                 && !keys.contains(&node.sync_key)
@@ -292,60 +338,6 @@ fn filter_nodes(
             node_matches_common_filters(node, &request.scope, &request.filter, session_filter)
         })
         .collect()
-}
-
-fn lexical_filter(nodes: Vec<SttpNode>, query_text: &str) -> Vec<SttpNode> {
-    let needle = query_text.trim().to_ascii_lowercase();
-    if needle.is_empty() {
-        return nodes;
-    }
-
-    let mut scored = nodes
-        .into_iter()
-        .filter_map(|node| {
-            let summary = node
-                .context_summary
-                .as_deref()
-                .unwrap_or_default()
-                .to_ascii_lowercase();
-            let session = node.session_id.to_ascii_lowercase();
-            let raw = node.raw.to_ascii_lowercase();
-
-            let mut score = 0usize;
-            if summary.contains(&needle) {
-                score += 3;
-            }
-            if session.contains(&needle) {
-                score += 2;
-            }
-            if raw.contains(&needle) {
-                score += 1;
-            }
-
-            if score > 0 {
-                Some((score, node.timestamp, node))
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
-
-    scored.sort_by(|left, right| right.0.cmp(&left.0).then_with(|| right.1.cmp(&left.1)));
-
-    scored.into_iter().map(|(_, _, node)| node).collect()
-}
-
-fn merge_unique(primary: Vec<SttpNode>, secondary: Vec<SttpNode>) -> Vec<SttpNode> {
-    let mut merged = Vec::with_capacity(primary.len() + secondary.len());
-    let mut seen = HashSet::new();
-
-    for node in primary.into_iter().chain(secondary.into_iter()) {
-        if seen.insert(node.sync_key.clone()) {
-            merged.push(node);
-        }
-    }
-
-    merged
 }
 
 fn psi_range_from_nodes(nodes: &[SttpNode]) -> PsiRange {
@@ -363,5 +355,146 @@ fn psi_range_from_nodes(nodes: &[SttpNode]) -> PsiRange {
         min,
         max,
         average: sum / nodes.len() as f32,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use chrono::Utc;
+    use locus_core_rs::domain::models::{AvecState, SttpNode};
+    use locus_core_rs::{InMemoryNodeStore, NodeStore};
+
+    use super::MemoryRecallService;
+    use crate::domain::memory::{
+        FallbackPolicy, MemoryPage, MemoryRecallRequest, MemoryScoring, RetrievalPath,
+    };
+
+    #[tokio::test]
+    async fn natural_language_question_returns_the_matching_memory() {
+        let store: Arc<dyn NodeStore> = Arc::new(InMemoryNodeStore::new());
+        store
+            .upsert_node_async(sample(
+                "near",
+                AvecState::zero(),
+                "weekend hiking plan",
+                "unrelated notes",
+            ))
+            .await
+            .expect("upsert near node");
+        store
+            .upsert_node_async(sample(
+                "far",
+                AvecState {
+                    stability: 1.0,
+                    friction: 1.0,
+                    logic: 0.0,
+                    autonomy: 0.0,
+                },
+                "decided to harden the parser grammar",
+                "decision notes",
+            ))
+            .await
+            .expect("upsert far node");
+
+        let service = MemoryRecallService::new(store);
+        let result = service
+            .execute(&MemoryRecallRequest {
+                page: MemoryPage {
+                    limit: 1,
+                    cursor: None,
+                },
+                scoring: MemoryScoring {
+                    fallback_policy: FallbackPolicy::OnEmpty,
+                    ..Default::default()
+                },
+                current_avec: Some(AvecState::zero()),
+                query_text: Some("what did we decide about the parser grammar?".to_string()),
+                ..Default::default()
+            })
+            .await
+            .expect("recall should succeed");
+
+        assert_eq!(result.retrieval_path, RetrievalPath::LexicalFallback);
+        assert_eq!(result.nodes.len(), 1);
+        assert_eq!(result.nodes[0].sync_key, "far");
+    }
+
+    #[tokio::test]
+    async fn single_token_does_not_override_resonance_when_primary_is_non_empty() {
+        let store: Arc<dyn NodeStore> = Arc::new(InMemoryNodeStore::new());
+        store
+            .upsert_node_async(sample(
+                "near",
+                AvecState::zero(),
+                "weekend plans",
+                "alpha notes",
+            ))
+            .await
+            .expect("upsert near node");
+        store
+            .upsert_node_async(sample(
+                "far",
+                AvecState {
+                    stability: 1.0,
+                    friction: 1.0,
+                    logic: 0.0,
+                    autonomy: 0.0,
+                },
+                "hiking notes",
+                "bring boots",
+            ))
+            .await
+            .expect("upsert far node");
+
+        let service = MemoryRecallService::new(store);
+        let result = service
+            .execute(&MemoryRecallRequest {
+                page: MemoryPage {
+                    limit: 1,
+                    cursor: None,
+                },
+                scoring: MemoryScoring {
+                    fallback_policy: FallbackPolicy::OnEmpty,
+                    ..Default::default()
+                },
+                current_avec: Some(AvecState::zero()),
+                query_text: Some("hiking".to_string()),
+                ..Default::default()
+            })
+            .await
+            .expect("recall should succeed");
+
+        assert_eq!(result.retrieval_path, RetrievalPath::ResonanceOnly);
+        assert_eq!(result.nodes[0].sync_key, "near");
+    }
+
+    fn sample(sync_key: &str, avec: AvecState, summary: &str, raw: &str) -> SttpNode {
+        let now = Utc::now();
+        SttpNode {
+            raw: raw.to_string(),
+            session_id: "session".to_string(),
+            tier: "raw".to_string(),
+            timestamp: now,
+            compression_depth: 1,
+            parent_node_id: None,
+            sync_key: sync_key.to_string(),
+            updated_at: now,
+            source_metadata: None,
+            context_summary: Some(summary.to_string()),
+            semantic_tags: None,
+            semantic_links: None,
+            embedding_dimensions: None,
+            embedding_model: None,
+            embedding: None,
+            embedded_at: None,
+            user_avec: avec,
+            model_avec: avec,
+            compression_avec: Some(avec),
+            rho: 0.5,
+            kappa: 0.5,
+            psi: 1.0,
+        }
     }
 }

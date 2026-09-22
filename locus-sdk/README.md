@@ -494,7 +494,7 @@ println!("content={}", result.content);
 
 ## Behavior Notes
 
-1. Memory recall supports policy-controlled lexical fallback behavior.
+1. Memory recall supports policy-controlled lexical fallback. Multi-word `query_text` is treated as a natural-language question: content terms are matched against summary, tags, and raw text, and those hits outrank pure AVEC resonance. A single token still matches only as an exact phrase, and only when the primary set is empty or fallback is `always`.
 2. Explain returns stage-level visibility into retrieval pipeline behavior.
 3. Schema exposes discoverable primitive capabilities for dynamic clients.
 4. Transform supports dry-run and batch controls for safer bulk operations.

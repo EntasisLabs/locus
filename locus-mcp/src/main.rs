@@ -121,7 +121,7 @@ impl SttpMcpServer {
 
     #[tool(
         name = "get_context",
-        description = "Primary memory retrieval tool. MUST USE ANYTIME USER ASKS SOMETHING ABOUT REMEMBERING OR MEMORY RELATED INQUIERIES. Returns top resonant memory nodes for the provided AVEC state. Optional context_keywords enables server-side semantic retrieval (with internal embedding generation); keyword fallback is only used when semantic retrieval returns no nodes (or embeddings are unavailable). If session_id is omitted, retrieval is global across sessions. Use list_nodes for inventory when no results comeback after user prompts for memory retrieval."
+        description = "Primary memory retrieval tool. MUST USE ANYTIME USER ASKS SOMETHING ABOUT REMEMBERING OR MEMORY RELATED INQUIERIES. Returns top resonant memory nodes for the provided AVEC state. Optional context_keywords accepts keywords or a natural-language question. Questions are matched by content terms against context summaries, semantic tags, and node text, and those matches are preferred over pure AVEC resonance. Embeddings are still used when a provider is configured. A single keyword only falls back when resonance returns nothing. If session_id is omitted, retrieval is global across sessions. Use list_nodes for inventory when no results come back after user prompts for memory retrieval."
     )]
     async fn get_context(&self, Parameters(request): Parameters<GetContextRequest>) -> String {
         tools::get_context::execute(self, request).await
@@ -129,7 +129,7 @@ impl SttpMcpServer {
 
     #[tool(
         name = "list_nodes",
-        description = "Memory inventory tool. Lists stored nodes newest-first (global when session_id is omitted). Optional context_keywords performs fuzzy and semantic filtering against context_summary for fast discovery. Unlike get_context, list_nodes does not perform AVEC resonance ranking."
+        description = "Memory inventory tool. Lists stored nodes newest-first (global when session_id is omitted). Optional context_keywords accepts keywords or a natural-language question and ranks nodes by content-term overlap against semantic tags, context_summary, and session id. Unlike get_context, list_nodes does not perform AVEC resonance ranking."
     )]
     async fn list_nodes(&self, Parameters(request): Parameters<ListNodesRequest>) -> String {
         tools::list_nodes::execute(self, request).await

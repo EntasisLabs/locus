@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use chrono::{DateTime, Utc};
 use locus_core_rs::EmbeddingMigrationMode;
 use serde_json::{Value, json};
@@ -85,67 +83,29 @@ pub(crate) fn normalize_context_keywords(keywords: Option<&[String]>) -> Vec<Str
         .collect::<Vec<_>>()
 }
 
-fn context_keyword_score(node: &locus_core_rs::SttpNode, keywords: &[String]) -> usize {
-    let node_tags = node
-        .semantic_tags
-        .as_deref()
-        .unwrap_or_default()
-        .iter()
-        .map(|tag| tag.to_ascii_lowercase())
-        .collect::<HashSet<_>>();
-
-    let tag_matches = keywords
-        .iter()
-        .filter(|keyword| {
-            let needle = keyword.as_str();
-            node_tags.contains(needle)
-        })
-        .count();
-
-    if tag_matches > 0 {
-        return tag_matches.saturating_mul(10);
-    }
-
-    let summary = node
-        .context_summary
-        .as_deref()
-        .map(|value| value.to_ascii_lowercase())
-        .unwrap_or_default();
-    let session_id = node.session_id.to_ascii_lowercase();
-
-    keywords
-        .iter()
-        .filter(|keyword| {
-            let needle = keyword.as_str();
-            summary.contains(needle) || session_id.contains(needle)
-        })
-        .count()
-}
-
 pub(crate) fn filter_nodes_by_context_keywords(
     nodes: &[locus_core_rs::SttpNode],
     keywords: &[String],
     limit: usize,
 ) -> Vec<locus_core_rs::SttpNode> {
-    let mut scored = nodes
-        .iter()
-        .filter_map(|node| {
-            let score = context_keyword_score(node, keywords);
-            if score == 0 {
-                None
-            } else {
-                Some((score, node.timestamp, node.clone()))
-            }
-        })
-        .collect::<Vec<_>>();
+    use locus_sdk::application::memory_lexical::{
+        LexicalFields, legacy_phrase_filter, parse_lexical_query, select_lexical_matches,
+    };
+    use locus_sdk::domain::memory::StrictnessMode;
 
-    scored.sort_by(|left, right| right.0.cmp(&left.0).then_with(|| right.1.cmp(&left.1)));
+    let query = parse_lexical_query(&keywords.join(" "));
+    let ranked = if query.term_count() == 0 {
+        legacy_phrase_filter(nodes.to_vec(), &keywords.join(" "))
+    } else {
+        select_lexical_matches(
+            nodes.to_vec(),
+            &query,
+            StrictnessMode::Recall,
+            LexicalFields::INVENTORY,
+        )
+    };
 
-    scored
-        .into_iter()
-        .take(limit)
-        .map(|(_, _, node)| node)
-        .collect::<Vec<_>>()
+    ranked.into_iter().take(limit).collect()
 }
 
 pub(crate) fn to_json_string(value: Value) -> String {
