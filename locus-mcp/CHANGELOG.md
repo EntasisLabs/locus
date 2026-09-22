@@ -6,10 +6,13 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-22
+
 ### Changed
 
 - `get_context` context keywords that form a question or multi-word phrase now use natural-language term overlap instead of requiring the whole string to appear verbatim.
 - `list_nodes` context keywords accept a natural-language question and rank by the same content-term overlap against tags, summary, and session id.
+- Dependency alignment: `locus-core-rs` 0.5.1, `locus-sdk` 0.4.0, `locus-surreal-adapter` 0.1.1.
 
 ## [0.3.1] - 2026-08-25
 

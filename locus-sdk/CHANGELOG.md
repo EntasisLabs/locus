@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-22
+
 ### Added
 
 - Natural-language `query_text` on recall and explain. A multi-word question is matched by content-term overlap (with light inflection) against `context_summary`, semantic tags, and raw node text, over a scoped scan of the newest 2000 nodes. Hits replace pure resonance ranking. When a query embedding is present, hits are prepended to the hybrid ranking instead of discarding it.
@@ -14,6 +16,15 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Changed
 
 - Single-token `query_text` is unchanged: exact phrase fallback still runs only for `on_empty` when the primary set is empty, or for `always`.
+- Still depends on `locus-core-rs` 0.5.1. Core and `locus-surreal-adapter` are not part of this release.
+
+### Parity
+
+- `fallback_policy=never` does not run the natural-language scan. Ranking stays resonance or hybrid.
+- Single-token `query_text` with `on_empty` still exact-matches only when the primary set is empty. `always` still merges that exact match into a non-empty primary set.
+- Multi-word `query_text` with `on_empty` or `always` ranks content-term hits ahead of pure AVEC resonance. Previously the full question had to appear as one substring, and only when fallback ran.
+- When `query_embedding` is set, term hits are prepended and the hybrid tail is kept.
+- Validation: `cargo test -p locus-sdk --lib` covers question ranking against resonance, single-token non-override, explain fallback, and strictness.
 
 ## [0.3.1] - 2026-08-25
 

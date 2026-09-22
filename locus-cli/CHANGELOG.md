@@ -2,6 +2,15 @@
 
 All notable changes specific to locus-cli are documented in this file.
 
+## [Unreleased]
+
+## [0.4.0] - 2026-09-22
+
+### Changed
+
+- `context --query-text` with two or more content words uses the SDK natural-language term overlap from `locus-sdk` 0.4.0. A single token still matches only as an exact phrase when fallback runs.
+- Dependency alignment: `locus-core-rs` 0.5.1, `locus-sdk` 0.4.0, `locus-surreal-adapter` 0.1.1.
+
 ## [0.3.1] - 2026-08-25
 
 ### Changed
