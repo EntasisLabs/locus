@@ -87,7 +87,7 @@ pub struct StoreResponseDto {
 pub fn version_dto() -> VersionDto {
     VersionDto {
         core: "0.5.1",
-        sdk: "0.3.1",
+        sdk: "0.4.0",
         wasm: env!("CARGO_PKG_VERSION"),
     }
 }

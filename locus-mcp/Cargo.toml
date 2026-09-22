@@ -1,6 +1,6 @@
 [package]
 name = "locus-mcp"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2024"
 
 [features]
@@ -19,4 +19,4 @@ locus-surreal-adapter = { version = "0.1.1", path = "../locus-surreal-adapter" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
-locus-sdk = { version = "0.3.1", path = "../locus-sdk" }
+locus-sdk = { version = "0.4.0", path = "../locus-sdk" }

@@ -1,6 +1,6 @@
 [package]
 name = "locus-sdk"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2024"
 description = "SDK-first STTP memory primitives and AI provider abstraction"
 license = "Apache-2.0"
