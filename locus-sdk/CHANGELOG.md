@@ -6,6 +6,15 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+### Added
+
+- Natural-language `query_text` on recall and explain. A multi-word question is matched by content-term overlap (with light inflection) against `context_summary`, semantic tags, and raw node text, over a scoped scan of the newest 2000 nodes. Hits replace pure resonance ranking. When a query embedding is present, hits are prepended to the hybrid ranking instead of discarding it.
+- `strictness` now controls how many content terms must hit: precision requires all of them, balanced requires half, recall requires one.
+
+### Changed
+
+- Single-token `query_text` is unchanged: exact phrase fallback still runs only for `on_empty` when the primary set is empty, or for `always`.
+
 ## [0.3.1] - 2026-08-25
 
 ### Changed

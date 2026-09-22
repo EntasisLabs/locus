@@ -3,6 +3,12 @@
 All notable changes specific to locus-gateway are documented in this file.
 For historical entries before this split, see ../CHANGELOG.md.
 
+## [Unreleased]
+
+### Changed
+
+- HTTP and gRPC `get_context` use `fallback_policy=on_empty` so a natural-language `query_text` can outrank pure AVEC resonance. Single-token text still does not replace a non-empty resonance or hybrid result.
+
 ## [0.4.1] - 2026-08-25
 
 ### Changed

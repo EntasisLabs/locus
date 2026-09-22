@@ -186,12 +186,13 @@ flowchart TD
     B -- no --> D[Resonance retrieval]
     C --> E[Apply common filters]
     D --> E
-    E --> F{Fallback policy allows lexical fallback?}
-    F -- no --> J[Return recall result]
-    F -- yes --> G[Expanded retrieval]
-    G --> H[Lexical scoring over summary/session/raw]
-    H --> I[Merge or replace depending on policy]
-    I --> J[Return recall result with retrieval_path]
+    E --> F{Multi-word query_text and policy is not never?}
+    F -- yes --> G[Scan scoped nodes and rank by content-term overlap]
+    F -- no --> H{Single-token fallback allowed?}
+    H -- no --> J[Return recall result]
+    H -- yes --> I[Exact phrase match on the resonance window]
+    G --> J[Return recall result with retrieval_path]
+    I --> J
 ```
 
 ### 5.3 Transform Path
@@ -231,7 +232,8 @@ Provider selection (`AiProviderRegistry.resolve`):
 Memory contract characteristics:
 - Scope controls: tenant/session/tier/time.
 - Filter controls: embedding presence/model, metric ranges, lexical contains.
-- Scoring controls: alpha/beta and fallback policy.
+- Scoring controls: alpha/beta, strictness, and fallback policy.
+- Natural-language `query_text` (two or more content terms) is matched by term overlap against summary, tags, and raw text inside the scoped node window. Single-token text still uses exact phrase fallback only when the primary set is empty or the policy is `always`. `fallback_policy=never` leaves ranking on resonance or hybrid.
 
 Clamp guardrails:
 - `clamp_limit`: 1..200.
