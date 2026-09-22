@@ -4,6 +4,15 @@ All notable changes to `locus-wasm` are documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [Unreleased]
+
+## [0.1.2] - 2026-09-22
+
+### Changed
+
+- `version()` DTO now reports `core` 0.5.1 and `sdk` 0.4.0.
+- Dependency alignment: `locus-sdk` 0.4.0. `locus-core-rs` 0.5.1 and `locus-surreal-adapter` 0.1.1 are unchanged. In-browser `recall` picks up the SDK natural-language `query_text` behavior.
+
 ## [0.1.1] - 2026-08-25
 
 ### Changed

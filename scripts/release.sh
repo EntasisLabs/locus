@@ -22,12 +22,12 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Aligned release line (keep in sync with crate Cargo.toml versions).
 CORE_VERSION="0.5.1"
-SDK_VERSION="0.3.1"
+SDK_VERSION="0.4.0"
 ADAPTER_VERSION="0.1.1"
-WASM_VERSION="0.1.1"
-GATEWAY_VERSION="0.4.1"
-MCP_VERSION="0.3.1"
-CLI_VERSION="0.3.1"
+WASM_VERSION="0.1.2"
+GATEWAY_VERSION="0.5.0"
+MCP_VERSION="0.4.0"
+CLI_VERSION="0.4.0"
 
 DO_BUILD=false
 DO_PUBLISH=false

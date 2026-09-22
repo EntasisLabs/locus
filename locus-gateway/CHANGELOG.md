@@ -5,9 +5,17 @@ For historical entries before this split, see ../CHANGELOG.md.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-22
+
 ### Changed
 
-- HTTP and gRPC `get_context` use `fallback_policy=on_empty` so a natural-language `query_text` can outrank pure AVEC resonance. Single-token text still does not replace a non-empty resonance or hybrid result.
+- HTTP and gRPC `get_context` use `fallback_policy=on_empty` so a natural-language `query_text` can outrank pure AVEC resonance. Single-token text still does not replace a non-empty resonance or hybrid result. This replaces the previous host default of `never`.
+- Dependency alignment: `locus-core-rs` 0.5.1, `locus-sdk` 0.4.0, `locus-surreal-adapter` 0.1.1.
+
+### Parity
+
+- A single-token `query_text` still does not replace a non-empty resonance or hybrid result.
+- Multi-word `query_text` follows `locus-sdk` 0.4.0 term overlap. Callers who depended on `never` (question text ignored unless an embedding was supplied) should expect term hits to lead the result list.
 
 ## [0.4.1] - 2026-08-25
 

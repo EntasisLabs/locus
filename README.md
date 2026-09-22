@@ -174,13 +174,13 @@ cargo check --examples -p locus-sdk
 MCP server:
 
 ```bash
-docker run --rm -i -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-mcp:0.1.0
+docker run --rm -i -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-mcp:0.4.0
 ```
 
 Gateway:
 
 ```bash
-docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-gateway:2.0.0
+docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-gateway:0.5.0
 ```
 
 Notes:
@@ -402,22 +402,22 @@ Or invoke `./build.sh` directly with explicit versions:
 ```bash
 ./build.sh --mode release \
   --targets core,mcp,gateway,cli \
-  --mcp-version 0.3.1 \
-  --gateway-version 0.4.1 \
-  --cli-version 0.3.1
+  --mcp-version 0.4.0 \
+  --gateway-version 0.5.0 \
+  --cli-version 0.4.0
 ```
 
 Common patterns:
 
 ```bash
 # Release artifacts/checks only
-./build.sh --mode release --mcp-version 0.3.1 --gateway-version 0.4.1 --cli-version 0.3.1
+./build.sh --mode release --mcp-version 0.4.0 --gateway-version 0.5.0 --cli-version 0.4.0
 
 # Release artifacts/checks and publish outputs to GitHub/crates.io targets
-./build.sh --mode release --mcp-version 0.3.1 --gateway-version 0.4.1 --cli-version 0.3.1 --publish
+./build.sh --mode release --mcp-version 0.4.0 --gateway-version 0.5.0 --cli-version 0.4.0 --publish
 
 # Build and tag only service images (mcp + gateway)
-./build.sh --mode images --stack services --mcp-version 0.3.1 --gateway-version 0.4.1
+./build.sh --mode images --stack services --mcp-version 0.4.0 --gateway-version 0.5.0
 ```
 
 ### Suggested Release Sequence
@@ -441,26 +441,26 @@ cargo test -p locus-core-rs -p locus-sdk -p locus-gateway -p locus-mcp -p locus-
 cd locus-web && npm ci && npm run build:wasm
 
 git tag locus-core-rs/v0.5.1
-git tag locus-sdk/v0.3.1
+git tag locus-sdk/v0.4.0
 git tag locus-surreal-adapter/v0.1.1
-git tag locus-wasm/v0.1.1
-git tag locus-mcp/v0.3.1
-git tag locus-gateway/v0.4.1
-git tag locus-cli/v0.3.1
+git tag locus-wasm/v0.1.2
+git tag locus-mcp/v0.4.0
+git tag locus-gateway/v0.5.0
+git tag locus-cli/v0.4.0
 git push origin \
   locus-core-rs/v0.5.1 \
-  locus-sdk/v0.3.1 \
+  locus-sdk/v0.4.0 \
   locus-surreal-adapter/v0.1.1 \
-  locus-wasm/v0.1.1 \
-  locus-mcp/v0.3.1 \
-  locus-gateway/v0.4.1 \
-  locus-cli/v0.3.1
+  locus-wasm/v0.1.2 \
+  locus-mcp/v0.4.0 \
+  locus-gateway/v0.5.0 \
+  locus-cli/v0.4.0
 
-./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.3.1
-docker push ghcr.io/entasislabs/locus-mcp:0.3.1
+./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.4.0
+docker push ghcr.io/entasislabs/locus-mcp:0.4.0
 
-./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:0.4.1
-docker push ghcr.io/entasislabs/locus-gateway:0.4.1
+./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:0.5.0
+docker push ghcr.io/entasislabs/locus-gateway:0.5.0
 ```
 
 ## Operational Guardrails
