@@ -75,8 +75,6 @@
 				<div class="tag">Compatibility</div>
 				<h3>Versioning Policy</h3>
 				<p>What a version change means, and how long an old contract stays available.</p>
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href="/docs/versioning.md">Versioning guide</a>
 				<ul class="summary-list">
 					<li>SemVer across core and SDK.</li>
 					<li>
@@ -85,29 +83,31 @@
 					</li>
 					<li>Behavior changes are validated before release through repeatable checks.</li>
 				</ul>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/docs/versioning.md">Versioning guide</a>
 			</article>
 			<article class="card">
 				<div class="tag">Security</div>
 				<h3>Data Handling and Safety</h3>
 				<p>Secrets, redaction, transport, and who can reach the database.</p>
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href="/docs/security.md">Security guide</a>
 				<ul class="summary-list">
 					<li>No secrets in source control; rotate on incident or role change.</li>
 					<li>Minimize and redact sensitive payloads before storage when possible.</li>
 					<li>Use TLS transports and least-privilege DB access.</li>
 				</ul>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/docs/security.md">Security guide</a>
 			</article>
 			<article class="card">
 				<div class="tag">Deployment</div>
 				<h3>Runtime and Release Readiness</h3>
 				<p>Local, CI, staging, and production, and what has to pass before a release.</p>
-				<a href={resolve('/deployment-operations')}>Deployment and operations</a>
 				<ul class="summary-list">
 					<li>Local, CI, staging, and production runtime matrix is explicit.</li>
 					<li>Workspace compile/tests and integration parity are release gates.</li>
 					<li>Scope and provider settings stay explicit per environment.</li>
 				</ul>
+				<a href={resolve('/deployment-operations')}>Deployment and operations</a>
 			</article>
 		</div>
 	</section>
