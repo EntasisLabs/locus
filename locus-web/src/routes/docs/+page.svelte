@@ -4,10 +4,10 @@
 </script>
 
 <svelte:head>
-	<title>Locus Docs Hub | Locus</title>
+	<title>Documentation | Locus</title>
 	<meta
 		name="description"
-		content="Locus docs hub: quickstart, deployment, integration, architecture, operations, and protocol references."
+		content="Locus documentation: how memory is stored, how the SDK is layered, and the guides for deploy, security, and STTP."
 	/>
 </svelte:head>
 
@@ -16,42 +16,42 @@
 
 <main class="wrap">
 	<section class="hero">
-		<div class="kicker">Consolidated Specifications</div>
-		<h1>One page. Full signal.</h1>
+		<div class="kicker">Documentation</div>
+		<h1>Find the page you need.</h1>
 		<p class="lead">
-			Explore architecture, operations, and policy in one clean experience designed for fast
-			understanding and confident decisions.
+			Start with a picture of how memory is stored, or how an SDK call moves through the stack. The
+			guides below are the written versions of the same system.
 		</p>
 	</section>
 
 	<section class="section">
-		<h2>Spec Experiences</h2>
+		<h2>Visual guides</h2>
 		<div class="feature-grid">
 			<article class="card">
-				<div class="tag">Architecture Experience</div>
-				<h3>Core Data Atlas</h3>
+				<div class="tag">Data model</div>
+				<h3>How Locus stores memory</h3>
 				<p>
-					A visual walkthrough of data relationships, reliability rules, synchronization behavior,
-					and how it all stays stable at scale.
+					The records, the rules that keep a replay from writing duplicates, and how sync picks up
+					where it left off.
 				</p>
 				<span class="pill">schema</span><span class="pill">idempotency</span><span class="pill"
-					>sync semantics</span
+					>sync</span
 				>
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href="/docs/core-data-atlas.html">Open data atlas</a>
+				<a href="/docs/core-data-atlas.html">Open the data model</a>
 			</article>
 			<article class="card">
-				<div class="tag">Architecture Experience</div>
-				<h3>SDK Systems Map</h3>
+				<div class="tag">SDK</div>
+				<h3>How a call moves</h3>
 				<p>
-					An interactive map of the SDK: service flow, provider routing, fallback behavior, and
-					operational guardrails.
+					The SDK layers, how a provider is chosen, what the fallback does, and which limits stay on
+					in production.
 				</p>
-				<span class="pill">service topology</span><span class="pill">routing policy</span><span
-					class="pill">guardrails</span
+				<span class="pill">layers</span><span class="pill">routing</span><span class="pill"
+					>fallbacks</span
 				>
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href="/docs/sdk-systems-map.html">Open systems map</a>
+				<a href="/docs/sdk-systems-map.html">Open the SDK map</a>
 			</article>
 		</div>
 	</section>
@@ -60,12 +60,9 @@
 		<article class="card">
 			<div class="tag">Technical Documentation</div>
 			<h3>Guides + API Reference</h3>
-			<p>
-				Open the generated technical docs site with mdBook guides and rustdoc API reference in one
-				place.
-			</p>
-			<span class="pill">mdBook</span><span class="pill">rustdoc</span><span class="pill"
-				>source-of-truth docs</span
+			<p>Guides and the Rust API reference, generated from the repo.</p>
+			<span class="pill">guides</span><span class="pill">rustdoc</span><span class="pill"
+				>API reference</span
 			>
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href="/docs/technical/index.html">Open technical docs site</a>
@@ -77,9 +74,9 @@
 			<article class="card">
 				<div class="tag">Compatibility</div>
 				<h3>Versioning Policy</h3>
-				<p>
-					Versioning stays predictable, with clear migration guidance whenever behavior changes.
-				</p>
+				<p>What a version change means, and how long an old contract stays available.</p>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/docs/versioning.md">Versioning guide</a>
 				<ul class="summary-list">
 					<li>SemVer across core and SDK.</li>
 					<li>
@@ -92,9 +89,9 @@
 			<article class="card">
 				<div class="tag">Security</div>
 				<h3>Data Handling and Safety</h3>
-				<p>
-					Security is default-first: sensitive data, scoped access, and clean operational hygiene.
-				</p>
+				<p>Secrets, redaction, transport, and who can reach the database.</p>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/docs/security.md">Security guide</a>
 				<ul class="summary-list">
 					<li>No secrets in source control; rotate on incident or role change.</li>
 					<li>Minimize and redact sensitive payloads before storage when possible.</li>
@@ -104,9 +101,8 @@
 			<article class="card">
 				<div class="tag">Deployment</div>
 				<h3>Runtime and Release Readiness</h3>
-				<p>
-					Deploy with clear environment profiles and strict release gates before production rollout.
-				</p>
+				<p>Local, CI, staging, and production, and what has to pass before a release.</p>
+				<a href={resolve('/deployment-operations')}>Deployment and operations</a>
 				<ul class="summary-list">
 					<li>Local, CI, staging, and production runtime matrix is explicit.</li>
 					<li>Workspace compile/tests and integration parity are release gates.</li>
@@ -120,34 +116,42 @@
 		<div class="register">
 			<article class="card">
 				<div class="tag">Protocol</div>
-				<h3>STTP and Structure</h3>
+				<h3>STTP record format</h3>
 				<p>
-					Layer order, typed fields, and confidence signals create a reliable memory contract across
-					systems.
+					The four parts of a memory, the order they appear in, and the scores stored with each one.
 				</p>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/docs/sttp_typed_ir_language_spec.md">STTP language spec</a>
 			</article>
 			<article class="card">
 				<div class="tag">Integration</div>
-				<h3>Host Contracts</h3>
-				<p>Host-facing contracts stay stable while internals evolve safely and incrementally.</p>
+				<h3>Host contracts</h3>
+				<p>What stays stable for the systems that call Locus while the internals change.</p>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/docs/integration.md">Integration guide</a>
 			</article>
 			<article class="card">
 				<div class="tag">Operations</div>
-				<h3>Runbook Baseline</h3>
+				<h3>What to watch</h3>
 				<p>
-					Track ingestion health, retrieval latency, transform outcomes, and sync continuity to keep
-					operations steady.
+					Ingestion health, retrieval latency, transform results, and whether sync is still moving.
 				</p>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/docs/operations.md">Operations guide</a>
 			</article>
 			<article class="card">
 				<div class="tag">Troubleshooting</div>
-				<h3>Failure Discipline</h3>
-				<p>Contain quickly, isolate scope, verify behavior, and ship fixes with confidence.</p>
+				<h3>When something fails</h3>
+				<p>Contain it, isolate the scope, check the behavior, then ship the fix.</p>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/docs/troubleshooting.md">Troubleshooting guide</a>
 			</article>
 			<article class="card">
 				<div class="tag">Examples</div>
-				<h3>Implementation Patterns</h3>
-				<p>Reference workflows make advanced usage repeatable across teams and environments.</p>
+				<h3>Worked examples</h3>
+				<p>Reference workflows you can copy for common memory tasks.</p>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href="/docs/examples.md">Examples</a>
 			</article>
 		</div>
 	</section>

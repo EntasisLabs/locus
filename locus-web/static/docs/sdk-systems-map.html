@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Locus SDK Systems Map: an interactive architecture narrative for services, routing, and transform flows.">
+<meta name="description" content="How an SDK call moves through Locus: layers, provider choice, and fallbacks.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#04030d">
 <meta name="author" content="Entasis Labs">
@@ -11,21 +11,21 @@
 <meta property="og:site_name" content="Locus">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="Locus SDK Systems Map">
-<meta property="og:description" content="Trace Locus SDK service layers, routing policy, fallback behavior, and provider resolution through an interactive systems map.">
+<meta property="og:description" content="How an SDK call moves through Locus: layers, provider choice, and fallbacks.">
 <meta property="og:url" content="https://entasislabs.github.io/locus/sdk-systems-map.html">
 <meta property="og:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Locus SDK Systems Map">
-<meta name="twitter:description" content="Trace Locus SDK service layers, routing policy, fallback behavior, and provider resolution through an interactive systems map.">
+<meta name="twitter:description" content="How an SDK call moves through Locus: layers, provider choice, and fallbacks.">
 <meta name="twitter:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
 <link rel="canonical" href="https://entasislabs.github.io/locus/sdk-systems-map.html">
-<title>Locus SDK Systems Map | Locus</title>
+<title>How a call moves through the SDK | Locus</title>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "TechArticle",
-  "headline": "Locus SDK Systems Map",
-  "description": "Trace Locus SDK service layers, routing policy, fallback behavior, and provider resolution through an interactive systems map.",
+  "headline": "How a call moves through the SDK",
+  "description": "How an SDK call moves through Locus: layers, provider choice, and fallbacks.",
   "url": "https://entasislabs.github.io/locus/sdk-systems-map.html",
   "author": {
     "@type": "Organization",
@@ -175,32 +175,32 @@ footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);fon
 <main class="wrap">
   <section class="hero fade">
     <div class="kicker">SDK Systems Map</div>
-    <h1>Every call has a motive.<br><em>Every layer has an alibi.</em></h1>
-    <p class="lead">This is the systems map behind Locus integration: clear layers, predictable routing, safe fallbacks, and controls that keep behavior stable in production.</p>
+    <h1>How a call moves through the SDK.</h1>
+    <p class="lead">Five layers. A call enters at the top, the middle decides which provider can do the job, and the bottom turns the result into a payload other systems can read.</p>
     <div class="cast fade delay1">
-      <article class="c"><div class="tag">Lead</div><div class="name">Application Services</div></article>
-      <article class="c"><div class="tag">Co-star</div><div class="name">Domain Contracts</div></article>
-      <article class="c"><div class="tag">Wildcard</div><div class="name">Provider Registry</div></article>
-      <article class="c"><div class="tag">Witness</div><div class="name">DTO Boundary</div></article>
+      <article class="c"><div class="tag">Calls</div><div class="name">Application services</div></article>
+      <article class="c"><div class="tag">Types</div><div class="name">Domain contracts</div></article>
+      <article class="c"><div class="tag">Backends</div><div class="name">Provider registry</div></article>
+      <article class="c"><div class="tag">Payloads</div><div class="name">DTO boundary</div></article>
     </div>
   </section>
 
   <section class="section card fade delay1">
     <div class="sec-head">
-      <h2>Layer drama board</h2>
-      <p>Click any layer to see what it owns and why it matters.</p>
+      <h2>The five layers</h2>
+      <p>Click a layer to see what it owns.</p>
     </div>
     <div class="layer-map">
       <div class="stack" id="layerStack">
-        <article class="layer active" data-layer="prelude"><div class="ltag">Layer 1</div><h3>Prelude</h3><p>Ergonomic import surface for hosts.</p></article>
+        <article class="layer active" data-layer="prelude"><div class="ltag">Layer 1</div><h3>Entry</h3><p>The import surface hosts start from.</p></article>
         <article class="layer" data-layer="application"><div class="ltag">Layer 2</div><h3>Application</h3><p>Orchestrates find, recall, explain, aggregate, transform.</p></article>
         <article class="layer" data-layer="domain"><div class="ltag">Layer 3</div><h3>Domain</h3><p>Neutral contracts and request/result types.</p></article>
         <article class="layer" data-layer="infrastructure"><div class="ltag">Layer 4</div><h3>Infrastructure</h3><p>Provider adapters, registries, embedding backends.</p></article>
         <article class="layer" data-layer="interface"><div class="ltag">Layer 5</div><h3>Interface DTO</h3><p>Transport-safe shape conversion boundary.</p></article>
       </div>
       <aside class="detail" id="layerDetail">
-        <h3>Prelude</h3>
-        <p>A clean entry point that helps teams integrate quickly and confidently.</p>
+        <h3>Entry</h3>
+        <p>The import surface hosts start from.</p>
         <ul>
           <li>Central entrypoint for memory APIs and adapter types.</li>
           <li>Improves adoption speed while preserving architecture boundaries.</li>
@@ -310,13 +310,13 @@ footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);fon
   </section>
 </main>
 
-<footer class="wrap">Locus SDK Systems Map · clear by design · <a href="docs.html">Docs hub</a></footer>
+<footer class="wrap">How a call moves through the SDK · Apache-2.0 · <a href="docs.html">Docs hub</a></footer>
 
 <script>
 const layerContent = {
   prelude: {
-    title: 'Prelude',
-    text: 'A clean entry point for teams integrating Locus quickly.',
+    title: 'Entry',
+    text: 'The import surface hosts start from.',
     bullets: [
       'One import surface for core memory capabilities.',
       'Consistent onboarding across services and apps.',
@@ -375,7 +375,7 @@ const pathContent = {
   recall: {
     title: 'Recall + fallback path',
     steps: [
-      'Choose best retrieval path for the available signal.',
+      'Choose the best retrieval path for the request.',
       'Filter the primary result set.',
       'Evaluate fallback strategy policy.',
       'Run lexical fallback when policy and context require it.',

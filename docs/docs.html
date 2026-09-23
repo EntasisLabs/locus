@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Locus docs hub: quickstart, deployment, integration, architecture, operations, and protocol references.">
+<meta name="description" content="Locus documentation: how memory is stored, how the SDK is layered, and the guides for deploy, security, and STTP.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#04030d">
 <meta name="author" content="Entasis Labs">
@@ -11,7 +11,7 @@
 <meta property="og:site_name" content="Locus">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="Locus Docs Hub">
-<meta property="og:description" content="Explore quickstart, deployment, architecture, operations, and protocol references in one Locus docs experience.">
+<meta property="og:description" content="Locus documentation: how memory is stored, how the SDK is layered, and the guides for deploy, security, and STTP.">
 <meta property="og:url" content="https://entasislabs.github.io/locus/docs.html">
 <meta property="og:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -19,7 +19,7 @@
 <meta name="twitter:description" content="Explore quickstart, deployment, architecture, operations, and protocol references in one Locus docs experience.">
 <meta name="twitter:image" content="https://entasislabs.github.io/locus/locus_final_transparent.png">
 <link rel="canonical" href="https://entasislabs.github.io/locus/docs.html">
-<title>Locus Docs Hub | Locus</title>
+<title>Documentation | Locus</title>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -109,27 +109,27 @@ footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);fon
 
 <main class="wrap">
   <section class="hero">
-    <div class="kicker">Consolidated Specifications</div>
-    <h1>One page. Full signal.</h1>
-    <p class="lead">Explore architecture, operations, and policy in one clean experience designed for fast understanding and confident decisions.</p>
+    <div class="kicker">Documentation</div>
+    <h1>Find the page you need.</h1>
+    <p class="lead">Start with a picture of how memory is stored, or how an SDK call moves through the stack. The guides below are the written versions of the same system.</p>
   </section>
 
   <section class="section">
-    <h2>Spec Experiences</h2>
+    <h2>Visual guides</h2>
     <div class="feature-grid">
       <article class="card">
-        <div class="tag">Architecture Experience</div>
-        <h3>Core Data Atlas</h3>
-        <p>A visual walkthrough of data relationships, reliability rules, synchronization behavior, and how it all stays stable at scale.</p>
-        <span class="pill">schema</span><span class="pill">idempotency</span><span class="pill">sync semantics</span>
-        <a href="core-data-atlas.html">Open data atlas</a>
+        <div class="tag">Data model</div>
+        <h3>How Locus stores memory</h3>
+        <p>The records, the rules that keep a replay from writing duplicates, and how sync picks up where it left off.</p>
+        <span class="pill">schema</span><span class="pill">idempotency</span><span class="pill">sync</span>
+        <a href="core-data-atlas.html">Open the data model</a>
       </article>
       <article class="card">
-        <div class="tag">Architecture Experience</div>
-        <h3>SDK Systems Map</h3>
-        <p>An interactive map of the SDK: service flow, provider routing, fallback behavior, and operational guardrails.</p>
-        <span class="pill">service topology</span><span class="pill">routing policy</span><span class="pill">guardrails</span>
-        <a href="sdk-systems-map.html">Open systems map</a>
+        <div class="tag">SDK</div>
+        <h3>How a call moves</h3>
+        <p>The SDK layers, how a provider is chosen, what the fallback does, and which limits stay on in production.</p>
+        <span class="pill">layers</span><span class="pill">routing</span><span class="pill">fallbacks</span>
+        <a href="sdk-systems-map.html">Open the SDK map</a>
       </article>
     </div>
   </section>
@@ -138,8 +138,8 @@ footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);fon
     <article class="card">
       <div class="tag">Technical Documentation</div>
       <h3>Guides + API Reference</h3>
-      <p>Open the generated technical docs site with mdBook guides and rustdoc API reference in one place.</p>
-      <span class="pill">mdBook</span><span class="pill">rustdoc</span><span class="pill">source-of-truth docs</span>
+      <p>Guides and the Rust API reference, generated from the repo.</p>
+      <span class="pill">guides</span><span class="pill">rustdoc</span><span class="pill">API reference</span>
       <a href="technical/index.html">Open technical docs site</a>
     </article>
   </section>
@@ -149,7 +149,8 @@ footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);fon
       <article class="card">
         <div class="tag">Compatibility</div>
         <h3>Versioning Policy</h3>
-        <p>Versioning stays predictable, with clear migration guidance whenever behavior changes.</p>
+        <p>What a version change means, and how long an old contract stays available.</p>
+        <a href="versioning.md">Versioning guide</a>
         <ul class="summary-list">
           <li>SemVer across core and SDK.</li>
           <li>Deprecated contracts remain for at least one release cycle unless safety requires immediate removal.</li>
@@ -159,7 +160,8 @@ footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);fon
       <article class="card">
         <div class="tag">Security</div>
         <h3>Data Handling and Safety</h3>
-        <p>Security is default-first: sensitive data, scoped access, and clean operational hygiene.</p>
+        <p>Secrets, redaction, transport, and who can reach the database.</p>
+        <a href="security.md">Security guide</a>
         <ul class="summary-list">
           <li>No secrets in source control; rotate on incident or role change.</li>
           <li>Minimize and redact sensitive payloads before storage when possible.</li>
@@ -169,7 +171,8 @@ footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);fon
       <article class="card">
         <div class="tag">Deployment</div>
         <h3>Runtime and Release Readiness</h3>
-        <p>Deploy with clear environment profiles and strict release gates before production rollout.</p>
+        <p>Local, CI, staging, and production, and what has to pass before a release.</p>
+        <a href="deployment-operations.html">Deployment and operations</a>
         <ul class="summary-list">
           <li>Local, CI, staging, and production runtime matrix is explicit.</li>
           <li>Workspace compile/tests and integration parity are release gates.</li>
@@ -183,28 +186,33 @@ footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);fon
     <div class="register">
       <article class="card">
         <div class="tag">Protocol</div>
-        <h3>STTP and Structure</h3>
-        <p>Layer order, typed fields, and confidence signals create a reliable memory contract across systems.</p>
+        <h3>STTP record format</h3>
+        <p>The four parts of a memory, the order they appear in, and the scores stored with each one.</p>
+        <a href="sttp_typed_ir_language_spec.md">STTP language spec</a>
       </article>
       <article class="card">
         <div class="tag">Integration</div>
-        <h3>Host Contracts</h3>
-        <p>Host-facing contracts stay stable while internals evolve safely and incrementally.</p>
+        <h3>Host contracts</h3>
+        <p>What stays stable for the systems that call Locus while the internals change.</p>
+        <a href="integration.md">Integration guide</a>
       </article>
       <article class="card">
         <div class="tag">Operations</div>
-        <h3>Runbook Baseline</h3>
-        <p>Track ingestion health, retrieval latency, transform outcomes, and sync continuity to keep operations steady.</p>
+        <h3>What to watch</h3>
+        <p>Ingestion health, retrieval latency, transform results, and whether sync is still moving.</p>
+        <a href="operations.md">Operations guide</a>
       </article>
       <article class="card">
         <div class="tag">Troubleshooting</div>
-        <h3>Failure Discipline</h3>
-        <p>Contain quickly, isolate scope, verify behavior, and ship fixes with confidence.</p>
+        <h3>When something fails</h3>
+        <p>Contain it, isolate the scope, check the behavior, then ship the fix.</p>
+        <a href="troubleshooting.md">Troubleshooting guide</a>
       </article>
       <article class="card">
         <div class="tag">Examples</div>
-        <h3>Implementation Patterns</h3>
-        <p>Reference workflows make advanced usage repeatable across teams and environments.</p>
+        <h3>Worked examples</h3>
+        <p>Reference workflows you can copy for common memory tasks.</p>
+        <a href="examples.md">Examples</a>
       </article>
     </div>
   </section>

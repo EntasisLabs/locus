@@ -120,24 +120,24 @@
 </script>
 
 <svelte:head>
-	<title>Locus — The memory layer for STTP agents</title>
+	<title>Locus — Contextual memory for AI</title>
 	<meta
 		name="description"
-		content="Locus is the memory layer for STTP agents: typed, persistent, and verifiable context across sessions, models, and transports."
+		content="Locus is a contextual memory layer for AI. STTP is the structure underneath: a time-aware format for experiences, relationships, and confidence."
 	/>
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="Locus" />
-	<meta property="og:title" content="Locus — The memory layer for STTP agents" />
+	<meta property="og:title" content="Locus — Contextual memory for AI" />
 	<meta
 		property="og:description"
-		content="Typed, persistent, and verifiable memory infrastructure for STTP agents."
+		content="Locus keeps useful context across time. STTP is the format that organizes it."
 	/>
 	<meta property="og:image" content="/locus_final_transparent.png" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Locus — The memory layer for STTP agents" />
+	<meta name="twitter:title" content="Locus — Contextual memory for AI" />
 	<meta
 		name="twitter:description"
-		content="Typed, persistent, and verifiable memory infrastructure for STTP agents."
+		content="Locus keeps useful context across time. STTP is the format that organizes it."
 	/>
 	<meta name="twitter:image" content="/locus_final_transparent.png" />
 	<link rel="icon" type="image/png" href="/locus_final_transparent.png" />
@@ -169,20 +169,20 @@
 				style="width:480px;height:480px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 0 60px rgba(139,110,196,.35)) drop-shadow(0 0 120px rgba(77,191,160,.15))"
 			/>
 		</div>
-		<span class="hl" style="animation-delay:.3s">STTP memory infrastructure · Apache-2.0</span>
+		<span class="hl" style="animation-delay:.3s">Contextual memory for AI · Apache-2.0</span>
 		<h1 class="ht" style="animation-delay:.5s">
-			The ground<br />beneath<br /><em>the signal.</em>
+			Memory that<br />stays useful.
 		</h1>
 		<p class="hs" style="animation-delay:.75s">
-			Agents are stateless. Context evaporates. Locus gives cognitive state a coordinate - typed,
-			persistent, and verifiable across every session, model, and transport.
+			Locus helps an AI remember what matters, connect it to the present, and avoid starting from
+			zero. It keeps continuity across conversations and projects by holding the right context, not
+			by saving every chat.
 		</p>
 		<div class="ha" style="animation-delay:1s">
-			<a href="#protocol" class="btn bp">See the architecture</a>
+			<a href={resolve('/quickstart')} class="btn bp">Get started</a>
+			<a href="#how" class="btn bg">How it works</a>
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={technicalDocsHref} class="btn bg">Technical docs</a>
-			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={rustdocHref} class="btn bg">Rust API docs</a>
 			<a href={githubHref} class="btn bg" target="_blank" rel="noopener noreferrer">GitHub</a>
 		</div>
 	</section>
@@ -192,39 +192,40 @@
 			<div class="tc">
 				<div class="sr">
 					<span class="ml">What Locus is</span>
-					<h2 class="dh">Not a product.<br />Infrastructure.</h2>
+					<h2 class="dh">A memory system,<br />not a chat log.</h2>
 					<p class="bp2" style="margin-bottom:22px">
-						Locus is the standalone memory layer for the STTP protocol. It handles storage,
-						retrieval, validation, and transport - so everything built on top can treat memory as a
-						solved problem.
+						Locus is the memory system that uses STTP. It can hold preferences, ongoing projects,
+						decisions, recurring patterns, and the relationships between ideas. It also tracks what
+						is recent, reliable, or relevant right now.
 					</p>
 					<p class="bp2">
-						MCP server for assistants. HTTP/gRPC gateway for services. Rust SDK for in-process
-						embedding. CLI for operators. One contract, every surface.
+						MCP for assistants. HTTP and gRPC for services. A Rust SDK to embed it. A CLI for
+						operators. Same memory, every surface.
 					</p>
 				</div>
 				<div class="sr" style="transition-delay:.15s">
 					<div style="display:flex;flex-direction:column;gap:1px">
 						<div class="stack-row">
 							<span class="stack-key mcp">locus-mcp</span>
-							<span class="stack-value">stdio · MCP tools for assistants + agents</span>
+							<span class="stack-value">stdio · memory tools for assistants and agents</span>
 						</div>
 						<div class="stack-row">
 							<span class="stack-key gateway">locus-gateway</span>
-							<span class="stack-value">HTTP + gRPC · deployable host for services</span>
+							<span class="stack-value">HTTP + gRPC · a host other services can call</span>
 						</div>
 						<div class="stack-row">
 							<span class="stack-key sdk">locus-sdk</span>
-							<span class="stack-value">Rust · transport-agnostic in-process memory</span>
+							<span class="stack-value">Rust · memory inside your own process</span>
 						</div>
 						<div class="stack-row">
 							<span class="stack-key cli">locus-cli</span>
-							<span class="stack-value">terminal · operator workflows, no service code</span>
+							<span class="stack-value">terminal · the same workflows, no service to write</span>
 						</div>
 					</div>
 					<div style="margin-top:14px;text-align:center">
 						<span class="stack-footer"
-							>all backed by → locus-core-rs · parser · validator · retrieval</span
+							>shared core → locus-core-rs · parse · validate · retrieve</span
+						>
 						>
 					</div>
 				</div>
@@ -232,14 +233,53 @@
 		</div>
 	</section>
 
+	<section class="ss" id="how" style="padding:120px 0 140px">
+		<div class="wrap">
+			<div class="sr center-copy" style="margin-bottom:48px">
+				<span class="ml" style="display:block">STTP and Locus</span>
+				<h2 class="dh">STTP organizes memory.<br />Locus makes it useful.</h2>
+				<p class="bp2">
+					STTP is a structured way to record context over time. It gives information a shape: what
+					happened, when it happened, where it came from, how important it is, and how certain we
+					are. Instead of one pile of text, it breaks experience into pieces that can be found,
+					connected, updated, and understood later.
+				</p>
+			</div>
+			<div class="pg sr" style="transition-delay:.1s">
+				<div class="pc">
+					<div class="pname">A timeline</div>
+					<p class="pdesc">
+						When it happened, and whether you are looking at the raw session or a later summary.
+					</p>
+				</div>
+				<div class="pc">
+					<div class="pname">Linked notes</div>
+					<p class="pdesc">
+						Experiences, ideas, and context that point at each other, instead of a single
+						transcript.
+					</p>
+				</div>
+				<div class="pc">
+					<div class="pname">A confidence record</div>
+					<p class="pdesc">
+						How sure we are, and whether a memory is still reliable, uncertain, or out of date.
+					</p>
+				</div>
+			</div>
+			<p class="sr filing" style="transition-delay:.15s">
+				STTP is the filing system. Locus is the library. The AI is the reader.
+			</p>
+		</div>
+	</section>
+
 	<section class="ss" id="protocol" style="padding:120px 0 140px">
 		<div class="wrap">
 			<div class="sr center-copy" style="margin-bottom:72px">
-				<span class="ml" style="display:block">The protocol</span>
-				<h2 class="dh">Every node is self-sufficient.</h2>
+				<span class="ml" style="display:block">A memory record</span>
+				<h2 class="dh">Each memory has a shape.</h2>
 				<p class="bp2">
-					Four ordered layers. Layer order is semantic - reordering alters meaning. Every field
-					typed. Every confidence annotated. A stateless receiver needs nothing else.
+					Four parts, in this order. The order is part of the meaning. One record can be read on its
+					own: where it came from, when it happened, what it says, and how solid it is.
 				</p>
 			</div>
 			<div class="dc sr diagram-xl desktop-geom" style="transition-delay:.1s">
@@ -562,7 +602,8 @@
 						letter-spacing=".1em">⍉⟨ METRICS</text
 					>
 					<text x="763" y="80" font-family="'Syne'" font-size="11" fill="rgba(255,255,255,.3)"
-						>signal quality</text
+						>quality scores</text
+					>
 					>
 					<text
 						x="763"
@@ -621,32 +662,28 @@
 					<div class="stack-node" style="border-color:rgba(77,191,160,.35)">
 						<div class="k" style="color:rgba(77,191,160,.8)">⊕ PROVENANCE</div>
 						<div class="t">
-							Trigger, response contract, lineage, and attractor baseline. Defines orientation for
-							everything that follows.
+							Where it came from: what triggered it, which session, and what it links to.
 						</div>
 					</div>
 					<div class="stack-arrow">↓</div>
 					<div class="stack-node" style="border-color:rgba(80,144,208,.35)">
 						<div class="k" style="color:rgba(80,144,208,.85)">⦿ ENVELOPE</div>
 						<div class="t">
-							Timestamp, tier, session identity, and dual AVEC state. Anchors the node in time and
-							actor context.
+							When it happened, which timeline it belongs to, and the scores recorded with it.
 						</div>
 					</div>
 					<div class="stack-arrow">↓</div>
 					<div class="stack-node" style="border-color:rgba(196,96,128,.35)">
 						<div class="k" style="color:rgba(196,96,128,.85)">◈ CONTENT</div>
 						<div class="t">
-							Confidence-annotated meaning payload. Typed fields preserve semantic structure across
-							transport and time.
+							The notes themselves. Each field can carry a confidence from 0 to 1.
 						</div>
 					</div>
 					<div class="stack-arrow">↓</div>
 					<div class="stack-node" style="border-color:rgba(212,148,58,.35)">
 						<div class="k" style="color:rgba(212,148,58,.85)">⍉ METRICS</div>
 						<div class="t">
-							Signal quality and compression profile (ρ, κ, ψ). Enables verification and drift-aware
-							recall behavior.
+							Quality scores for the record, including how compressed it is. Used to check it later.
 						</div>
 					</div>
 				</div>
@@ -655,52 +692,121 @@
 				class="sr"
 				style="margin-top:22px;font-family:var(--fm);font-size:11px;color:var(--text-faint);letter-spacing:.06em;transition-delay:.2s"
 			>
-				strict profile fails closed · tolerant profile recovers with diagnostics · additive
-				evolution - old nodes always survive
+				strict mode rejects a bad record · tolerant mode keeps it and reports what was wrong · older
+				records stay readable
 			</p>
+			<ul class="key-list sr" style="transition-delay:.2s">
+				<li>
+					<span>Provenance</span> Where it came from, and what it links to.
+				</li>
+				<li>
+					<span>Envelope</span> When it happened, and whether this is the raw session or a daily, weekly,
+					or monthly summary.
+				</li>
+				<li>
+					<span>Content</span> What it says. Confidence on each field is how sure that part is.
+				</li>
+				<li>
+					<span>Metrics</span> Rho and kappa are quality scores. Psi (ψ) is a coherence number computed
+					from the other scores. You do not author psi by hand.
+				</li>
+				<li>
+					<span>AVEC</span> Four scores stored with the memory: stability, friction, logic, and autonomy,
+					each from 0 to 1. Recall can rank memories by how close those scores are to the current situation.
+				</li>
+			</ul>
 		</div>
 	</section>
 
 	<section class="ss" id="primitives" style="padding:120px 0 140px">
 		<div class="wrap">
 			<div class="center-copy sr" style="margin-bottom:48px">
-				<span class="ml" style="display:block">Six primitives</span>
-				<h2 class="dh">Like NAND gates - compose into anything.</h2>
+				<span class="ml" style="display:block">The API</span>
+				<h2 class="dh">Six operations.</h2>
 				<p class="bp2">
-					Each primitive is deterministic, transport-neutral, and policy-explicit. Combine them into
-					any memory workflow.
+					These are the ways Locus reads and writes memory. Combine them. The same six exist on MCP,
+					HTTP, gRPC, the SDK, and the CLI.
 				</p>
 			</div>
 			<div class="pg sr" style="transition-delay:.2s">
 				<div class="pc">
-					<div class="pn" style="color:rgba(77,191,160,.65)">01 · deterministic</div>
+					<div class="pn" style="color:rgba(77,191,160,.65)">01 · lookup</div>
 					<div class="pname">find</div>
-					<p class="pdesc">Filter, sort, and paginate nodes with explicit scope.</p>
+					<p class="pdesc">
+						Filter, sort, and page through memories. No ranking. You name the scope.
+					</p>
 				</div>
 				<div class="pc">
-					<div class="pn" style="color:rgba(139,110,196,.7)">02 · resonant</div>
+					<div class="pn" style="color:rgba(139,110,196,.7)">02 · rank</div>
 					<div class="pname">recall</div>
-					<p class="pdesc">AVEC-driven ranked retrieval by current cognitive state.</p>
+					<p class="pdesc">
+						Rank memories by how well they fit the current situation, not only by keyword.
+					</p>
 				</div>
 				<div class="pc">
-					<div class="pn" style="color:rgba(80,144,208,.7)">03 · temporal</div>
+					<div class="pn" style="color:rgba(80,144,208,.7)">03 · summarize</div>
 					<div class="pname">aggregate</div>
-					<p class="pdesc">Grouped statistics and rollups across timeline windows.</p>
+					<p class="pdesc">Group memories across a time window and roll them into summaries.</p>
 				</div>
 				<div class="pc">
-					<div class="pn" style="color:rgba(196,96,128,.7)">04 · controlled</div>
+					<div class="pn" style="color:rgba(196,96,128,.7)">04 · update</div>
 					<div class="pname">transform</div>
-					<p class="pdesc">Bulk mutation with dry-run support and explicit boundaries.</p>
+					<p class="pdesc">Change many memories at once. Dry-run first when you want a preview.</p>
 				</div>
 				<div class="pc">
-					<div class="pn" style="color:rgba(212,148,58,.7)">05 · transparent</div>
+					<div class="pn" style="color:rgba(212,148,58,.7)">05 · audit</div>
 					<div class="pname">explain</div>
-					<p class="pdesc">Stage-level visibility into retrieval decisions.</p>
+					<p class="pdesc">Show why a memory was returned, or why it was not.</p>
 				</div>
 				<div class="pc">
-					<div class="pn" style="color:rgba(255,255,255,.28)">06 · introspective</div>
+					<div class="pn" style="color:rgba(255,255,255,.28)">06 · discover</div>
 					<div class="pname">schema</div>
-					<p class="pdesc">Runtime capability discovery for dynamic planners and UIs.</p>
+					<p class="pdesc">
+						Ask the running system what it supports, so tools do not hardcode assumptions.
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="ss" id="examples" style="padding:120px 0 140px">
+		<div class="wrap">
+			<div class="sr center-copy" style="margin-bottom:48px">
+				<span class="ml" style="display:block">In practice</span>
+				<h2 class="dh">A question in.<br />One operation out.</h2>
+				<p class="bp2">
+					Locus does not invent a personality for the AI. It maps a request onto one of the six
+					operations, and it keeps the difference between a recent fact, a weak guess, and something
+					that has gone out of date.
+				</p>
+			</div>
+			<div class="sr ask-list" style="transition-delay:.1s">
+				<div class="stack-row">
+					<span class="stack-key mcp">find</span>
+					<span class="stack-value">"What did we work on last Tuesday?" Filter to that day.</span>
+				</div>
+				<div class="stack-row">
+					<span class="stack-key sdk">recall</span>
+					<span class="stack-value"
+						>"What is relevant to what I am doing right now?" Rank by fit, not just keywords.</span
+					>
+				</div>
+				<div class="stack-row">
+					<span class="stack-key gateway">aggregate</span>
+					<span class="stack-value">"Summarize last month." Roll the sessions into one digest.</span
+					>
+				</div>
+				<div class="stack-row">
+					<span class="stack-key cli">explain</span>
+					<span class="stack-value"
+						>"Why that memory, and not the one from Thursday?" Show the decision.</span
+					>
+				</div>
+				<div class="stack-row">
+					<span class="stack-key mcp">transform</span>
+					<span class="stack-value"
+						>"Preview an embedding backfill before writing." Dry-run first.</span
+					>
 				</div>
 			</div>
 		</div>
@@ -709,14 +815,15 @@
 	<section class="ss" id="flow" style="padding:120px 0 140px">
 		<div class="wrap">
 			<div class="sr center-copy" style="margin-bottom:72px">
-				<span class="ml" style="display:block">Memory in motion</span>
+				<span class="ml" style="display:block">Over time</span>
 				<h2 class="dh">
-					Context doesn't disappear.<br />It
-					<em style="font-style:italic;color:rgba(255,255,255,.4)">compresses.</em>
+					Old sessions get summarized.<br />The summaries stay
+					<em style="font-style:italic;color:rgba(255,255,255,.4)">searchable.</em>
 				</h2>
 				<p class="bp2">
-					Raw sessions accumulate. Locus aggregates them into daily rollups, weekly summaries,
-					monthly signals - each tier retaining the attractor fingerprint of what came before.
+					Raw sessions pile up. Locus rolls them into daily, weekly, and monthly summaries. The
+					writeup gets shorter. Time, links, and the scores on the record stay, so later recall can
+					still use them.
 				</p>
 			</div>
 			<div class="dc sr diagram-xl desktop-geom" style="transition-delay:.1s;padding:48px 40px">
@@ -810,7 +917,8 @@
 						text-anchor="middle"
 						font-family="'Syne'"
 						font-size="9"
-						fill="rgba(255,255,255,.2)">signal only</text
+						fill="rgba(255,255,255,.2)">summary</text
+					>
 					>
 
 					<line
@@ -1122,7 +1230,8 @@
 						>protocol + infra work</text
 					>
 					<text x="816" y="210" font-family="'Syne'" font-size="9" fill="rgba(255,255,255,.22)"
-						>signal: high logic · low friction</text
+						>kept: high logic · low friction</text
+					>
 					>
 					<text x="816" y="231" font-family="'Syne'" font-size="9" fill="rgba(255,255,255,.35)"
 						>ψ̄ 2.88 · compressed</text
@@ -1174,7 +1283,8 @@
 						font-family="'DM Serif Display'"
 						font-style="italic"
 						font-size="13"
-						fill="rgba(255,255,255,.1)">information compresses · attractor state persists</text
+						fill="rgba(255,255,255,.1)">the writeup gets shorter · links and scores stay</text
+					>
 					>
 				</svg>
 			</div>
@@ -1184,7 +1294,7 @@
 						<div class="th">
 							<span style="color:rgba(77,191,160,.85)">Raw</span><span>sessions</span>
 						</div>
-						<div class="td">Individual session nodes retain full detail and highest variance.</div>
+						<div class="td">Each session is stored in full. This is the most detailed layer.</div>
 						<div class="flow-meter">
 							<div style="width:94%;background:rgba(77,191,160,.5)"></div>
 						</div>
@@ -1195,7 +1305,7 @@
 							<span style="color:rgba(80,144,208,.85)">Daily</span><span>merged</span>
 						</div>
 						<div class="td">
-							Nearby sessions compress into daily summaries while preserving attractor signature.
+							Nearby sessions roll into a daily summary. The scores and links stay.
 						</div>
 						<div class="flow-meter">
 							<div style="width:80%;background:rgba(80,144,208,.5)"></div>
@@ -1206,9 +1316,7 @@
 						<div class="th">
 							<span style="color:rgba(139,110,196,.85)">Weekly</span><span>condensed</span>
 						</div>
-						<div class="td">
-							Pattern-level memory remains: sustained work streams and strategic pivots.
-						</div>
+						<div class="td">A week of work becomes the threads that actually continued.</div>
 						<div class="flow-meter">
 							<div style="width:64%;background:rgba(139,110,196,.5)"></div>
 						</div>
@@ -1216,11 +1324,9 @@
 					<div class="stack-arrow">↓ distill</div>
 					<div class="flow-tier" style="border-color:rgba(212,148,58,.35)">
 						<div class="th">
-							<span style="color:rgba(212,148,58,.85)">Monthly</span><span>signal</span>
+							<span style="color:rgba(212,148,58,.85)">Monthly</span><span>summary</span>
 						</div>
-						<div class="td">
-							Only durable trend survives with lower noise and long-horizon recall readiness.
-						</div>
+						<div class="td">A short record of what lasted. Still searchable, with less detail.</div>
 						<div class="flow-meter">
 							<div style="width:48%;background:rgba(212,148,58,.55)"></div>
 						</div>
@@ -1234,11 +1340,12 @@
 		<div class="wrap">
 			<div class="tc">
 				<div class="sr">
-					<span class="ml">Cognitive state</span>
-					<h2 class="dh">The attractor<br />vector.</h2>
+					<span class="ml">Confidence</span>
+					<h2 class="dh">Remembered is not<br />the same as true.</h2>
 					<p class="bp2" style="margin-bottom:28px">
-						Every node carries an AVEC - a four-dimensional fingerprint of cognitive state at the
-						moment of encoding.
+						Locus does not make an AI human. It gives an AI a deliberate way to keep context. A
+						memory can be recent or old, strongly or weakly supported, useful or irrelevant,
+						confirmed, uncertain, or outdated.
 					</p>
 					<div style="font-family:var(--fm);font-size:12px;color:var(--text-faint)">
 						<div class="ab">
@@ -1274,8 +1381,9 @@
 				<div class="sr" style="transition-delay:.15s">
 					<div class="dc">
 						<p class="bp2" style="margin:0">
-							ψ coherence is derived - not stored. A receiving agent computes it independently,
-							verifying drift without shared history.
+							The bars are an AVEC: four scores from 0 to 1 stored with the memory. Recall ranks by
+							how close they are to the current situation. Psi (ψ) is computed from them, so another
+							system can check coherence without the original history.
 						</p>
 					</div>
 				</div>
@@ -1285,19 +1393,14 @@
 
 	<section class="ss" style="padding:100px 0 100px">
 		<div class="wrap sr center-copy">
-			<span class="ml" style="display:block">Part of the ecosystem</span>
+			<span class="ml" style="display:block">How the pieces fit</span>
 			<h2 class="dh">
-				Built on <em style="font-style:italic;color:rgba(255,255,255,.3)">STTP</em>. Powers
-				<a
-					href={resonantiaHref}
-					target="_blank"
-					rel="noopener noreferrer"
-					style="color:var(--teal);text-decoration:none;font-style:normal">Resonantia</a
-				>.
+				STTP is the format.<br />Locus is the memory.
 			</h2>
 			<p class="bp2" style="margin:0 auto 48px">
-				Locus is the infrastructure STTP agents stand on. Any agent, tool, or service that speaks
-				STTP can use Locus as its memory layer.
+				Any agent, tool, or service that speaks STTP can use Locus as its memory.
+				<a href={resonantiaHref} target="_blank" rel="noopener noreferrer">Resonantia</a> is one product
+				built on that stack.
 			</p>
 			<div
 				class="eco-stack"
@@ -1306,26 +1409,26 @@
 				<div
 					style="padding:12px 28px;background:var(--nebula);border:1px solid var(--mist2);border-radius:2px 2px 0 0;color:rgba(77,191,160,.6);text-align:center"
 				>
-					resonantia · your app · any STTP agent
+					your app · Resonantia · any STTP agent
 				</div>
 				<div
 					style="padding:12px 28px;background:var(--surface);border:1px solid var(--mist2);text-align:center;color:rgba(139,110,196,.7)"
 				>
-					locus - memory layer
+					Locus · the memory
 				</div>
 				<div
 					style="padding:12px 28px;background:var(--nebula);border:1px solid var(--mist2);border-radius:0 0 2px 2px;text-align:center;color:rgba(255,255,255,.25)"
 				>
-					⏣ STTP · typed IR · cognitive state
+					STTP · the record format
 				</div>
 			</div>
-			<div class="cta-row" style="display:flex;gap:14px;justify-content:center">
-				<a href={githubHref} class="btn bp" target="_blank" rel="noopener noreferrer"
+			<div class="cta-row" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+				<a href={resolve('/quickstart')} class="btn bp">Get started</a>
+				<a href={githubHref} class="btn bg" target="_blank" rel="noopener noreferrer"
 					>View on GitHub</a
 				>
-				<a href={resonantiaHref} class="btn bg" target="_blank" rel="noopener noreferrer"
-					>See Resonantia</a
-				>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href={rustdocHref} class="btn bg">Rust API docs</a>
 			</div>
 		</div>
 	</section>
@@ -1670,6 +1773,52 @@
 		line-height: 1.74;
 	}
 
+	.filing {
+		margin: 36px auto 0;
+		max-width: 36rem;
+		text-align: center;
+		font-family: var(--fd);
+		font-size: clamp(22px, 3vw, 32px);
+		line-height: 1.35;
+		color: var(--star);
+	}
+
+	.key-list {
+		list-style: none;
+		margin: 28px auto 0;
+		display: grid;
+		gap: 14px;
+		max-width: 760px;
+	}
+
+	.key-list li {
+		color: var(--text-dim);
+		font-size: 15px;
+		line-height: 1.65;
+	}
+
+	.key-list span {
+		display: inline-block;
+		min-width: 118px;
+		margin-right: 8px;
+		font-family: var(--fm);
+		font-size: 11px;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--teal);
+	}
+
+	.ask-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+	}
+
+	.bp2 a {
+		color: var(--teal);
+		text-decoration: none;
+	}
+
 	.flow-stack {
 		display: flex;
 		flex-direction: column;
@@ -1842,6 +1991,12 @@
 	@media (max-width: 760px) {
 		section[id] {
 			scroll-margin-top: 80px;
+		}
+
+		.key-list span {
+			display: block;
+			min-width: 0;
+			margin: 0 0 4px;
 		}
 
 		.hero {
