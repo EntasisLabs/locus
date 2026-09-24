@@ -56,8 +56,8 @@
 		align-items: center;
 		justify-content: space-between;
 		backdrop-filter: blur(24px);
-		background: rgba(4, 3, 13, 0.55);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+		background: rgba(4, 3, 13, 0.72);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
 	.nl {
@@ -85,10 +85,10 @@
 	}
 
 	.na a {
-		font-size: 12px;
+		font-size: 14px;
 		font-weight: 500;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
+		letter-spacing: 0.02em;
+		text-transform: none;
 		color: rgba(255, 255, 255, 0.62);
 		text-decoration: none;
 		transition: all 0.2s;
@@ -98,9 +98,9 @@
 	}
 
 	.na a.active {
-		color: rgba(255, 255, 255, 0.9);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-		padding-bottom: 2px;
+		color: rgba(255, 255, 255, 0.95);
+		background: rgba(255, 255, 255, 0.08);
+		border-color: transparent;
 	}
 
 	.na a:hover {
@@ -138,9 +138,9 @@
 		}
 
 		.na a {
-			font-size: 12px;
+			font-size: 13px;
 			white-space: nowrap;
-			letter-spacing: 0.08em;
+			letter-spacing: 0.02em;
 		}
 	}
 
@@ -161,8 +161,8 @@
 		}
 
 		.na a {
-			font-size: 9px;
-			letter-spacing: 0.07em;
+			font-size: 13px;
+			letter-spacing: 0.01em;
 		}
 	}
 </style>

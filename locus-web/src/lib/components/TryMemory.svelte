@@ -396,9 +396,7 @@
 		<div class="sr center-copy">
 			<span class="ml">Try it</span>
 			<h2 class="dh">Save a note. Ask for it back.</h2>
-			<p class="try-intro">
-				Type a note, save it, then ask for it back.
-			</p>
+			<p class="try-intro">Type a note, save it, then ask for it back.</p>
 			<p class="try-privacy">In this browser only. Refreshing the page clears it.</p>
 			{#if status}
 				<p class="try-status" role="status">{status}</p>
@@ -581,8 +579,8 @@
 	.try-status,
 	.try-empty,
 	.try-error {
-		font-family: var(--fm);
-		font-size: 13px;
+		font-family: var(--fu);
+		font-size: 14px;
 		line-height: 1.6;
 	}
 
@@ -612,9 +610,10 @@
 
 	.try-panel,
 	.try-record {
-		background: rgba(255, 255, 255, 0.03);
-		border: 1px solid var(--mist2);
-		border-radius: 4px;
+		background: #12101f;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 16px;
+		box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
 		padding: 28px;
 		min-width: 0;
 	}
@@ -627,10 +626,11 @@
 	h3,
 	.layer-label {
 		display: block;
-		font-family: var(--fm);
-		font-size: 11px;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
+		font-family: var(--fu);
+		font-size: 13px;
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		text-transform: none;
 		color: var(--teal);
 		margin: 22px 0 10px;
 	}
@@ -647,7 +647,7 @@
 		background: rgba(0, 0, 0, 0.28);
 		color: var(--star);
 		border: 1px solid rgba(255, 255, 255, 0.14);
-		border-radius: 2px;
+		border-radius: 12px;
 		padding: 14px 16px;
 		font-family: var(--fu);
 		font-size: 16px;
@@ -672,7 +672,7 @@
 		background: transparent;
 		color: var(--text-dim);
 		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: 2px;
+		border-radius: 12px;
 		padding: 10px 12px;
 		font-family: var(--fu);
 		font-size: 14px;
@@ -706,25 +706,25 @@
 
 	.btn {
 		font-family: var(--fu);
-		font-size: 12px;
-		font-weight: 600;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		padding: 16px 30px;
-		border-radius: 2px;
+		font-size: 14px;
+		font-weight: 500;
+		letter-spacing: 0;
+		text-transform: none;
+		padding: 12px 22px;
+		border-radius: 999px;
 		cursor: pointer;
 	}
 
 	.bp {
-		background: var(--purple);
-		color: #fff;
+		background: #fff;
+		color: #0a0814;
 		border: none;
 	}
 
 	.bg {
-		background: transparent;
-		color: var(--text-dim);
-		border: 1px solid rgba(255, 255, 255, 0.18);
+		background: rgba(255, 255, 255, 0.03);
+		color: rgba(255, 255, 255, 0.78);
+		border: 1px solid rgba(255, 255, 255, 0.16);
 	}
 
 	.text-btn {

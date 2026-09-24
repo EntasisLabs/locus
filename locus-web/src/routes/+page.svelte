@@ -4,92 +4,12 @@
 	import AppNav from '$lib/components/AppNav.svelte';
 	import TryMemory from '$lib/components/TryMemory.svelte';
 
-	type Star = {
-		x: number;
-		y: number;
-		r: number;
-		a: number;
-		tw: number;
-		ts: number;
-	};
-
 	const technicalDocsHref = '/docs/technical/index.html';
 	const githubHref = 'https://github.com/entasislabs/locus';
 	const resonantiaHref = 'https://resonantia.me';
 
-	let starfieldCanvas: HTMLCanvasElement;
-
 	onMount(() => {
-		const canvas = starfieldCanvas;
-		const ctx = canvas?.getContext('2d');
-		if (!ctx) return;
-
-		let width = 0;
-		let height = 0;
-		let stars: Star[] = [];
-		let frameId: number | null = null;
 		const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-		const resize = () => {
-			width = canvas.width = window.innerWidth;
-			height = canvas.height = window.innerHeight;
-		};
-
-		const makeStars = () => {
-			stars = Array.from({ length: 180 }, () => ({
-				x: Math.random() * width,
-				y: Math.random() * height,
-				r: Math.random() * 1.1,
-				a: Math.random() * 0.55 + 0.08,
-				tw: Math.random() * Math.PI * 2,
-				ts: Math.random() * 0.008 + 0.003
-			}));
-		};
-
-		const draw = () => {
-			ctx.clearRect(0, 0, width, height);
-			for (const star of stars) {
-				star.tw += star.ts;
-				const alpha = star.a * (0.55 + 0.45 * Math.sin(star.tw));
-				ctx.beginPath();
-				ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-				ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-				ctx.fill();
-			}
-			frameId = requestAnimationFrame(draw);
-		};
-
-		const startStarfield = () => {
-			if (reducedMotionQuery.matches) return;
-			resize();
-			makeStars();
-			if (frameId === null) draw();
-		};
-
-		const stopStarfield = () => {
-			if (frameId !== null) {
-				cancelAnimationFrame(frameId);
-				frameId = null;
-			}
-			ctx.clearRect(0, 0, width, height);
-		};
-
-		const handleResize = () => {
-			resize();
-			if (!reducedMotionQuery.matches) makeStars();
-		};
-
-		const handleReducedMotionChange = (event: MediaQueryListEvent) => {
-			if (event.matches) {
-				stopStarfield();
-			} else {
-				startStarfield();
-			}
-		};
-
-		startStarfield();
-		window.addEventListener('resize', handleResize);
-		reducedMotionQuery.addEventListener('change', handleReducedMotionChange);
 
 		const revealNodes = document.querySelectorAll('.sr');
 		let observer: IntersectionObserver | null = null;
@@ -111,10 +31,7 @@
 		}
 
 		return () => {
-			window.removeEventListener('resize', handleResize);
-			reducedMotionQuery.removeEventListener('change', handleReducedMotionChange);
 			observer?.disconnect();
-			stopStarfield();
 		};
 	});
 </script>
@@ -149,25 +66,14 @@
 	/>
 </svelte:head>
 
-<canvas id="sf" bind:this={starfieldCanvas}></canvas>
 <div class="nb"></div>
 <AppNav active="home" />
 
 <main>
 	<section class="hero">
-		<div
-			class="hero-logo-wrap"
-			style="opacity:1;animation:fu 1s .1s ease forwards;position:relative;display:inline-block;margin-bottom:8px"
-		>
-			<div
-				style="position:absolute;inset:0;margin:auto;border-radius:50%;background:radial-gradient(ellipse,rgba(139,110,196,.28) 0%,rgba(77,191,160,.1) 50%,transparent 70%);filter:blur(48px);pointer-events:none"
-			></div>
-			<img
-				src="/locus_final_transparent.png"
-				alt="Locus"
-				class="hero-logo"
-				style="width:480px;height:480px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 0 60px rgba(139,110,196,.35)) drop-shadow(0 0 120px rgba(77,191,160,.15))"
-			/>
+		<div class="hero-logo-wrap">
+			<div class="hero-glow"></div>
+			<img src="/locus_final_transparent.png" alt="Locus" class="hero-logo" />
 		</div>
 		<h1 class="ht" style="animation-delay:.5s">
 			Typed, compiled,<br />and testable<br />AI memory.
@@ -179,7 +85,7 @@
 		</p>
 		<div class="ha" style="animation-delay:1s">
 			<a href={resolve('/quickstart')} class="btn bp">Get started</a>
-			<a href="#try" class="btn bp">Try it</a>
+			<a href="#try" class="btn bg">Try it</a>
 			<a href="#how" class="btn bg">How it works</a>
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={technicalDocsHref} class="btn bg">Technical docs</a>
@@ -608,28 +514,28 @@
 			</div>
 			<div class="dc sr mobile-geom" style="transition-delay:.1s">
 				<div class="stack-diagram">
-					<div class="stack-node" style="border-color:rgba(77,191,160,.35)">
+					<div class="stack-node">
 						<div class="k" style="color:rgba(77,191,160,.8)">⊕ PROVENANCE</div>
 						<div class="t">
 							Where it came from: what triggered it, which session, and what it links to.
 						</div>
 					</div>
 					<div class="stack-arrow">↓</div>
-					<div class="stack-node" style="border-color:rgba(80,144,208,.35)">
+					<div class="stack-node">
 						<div class="k" style="color:rgba(80,144,208,.85)">⦿ ENVELOPE</div>
 						<div class="t">
 							When it happened, which timeline it belongs to, and the scores recorded with it.
 						</div>
 					</div>
 					<div class="stack-arrow">↓</div>
-					<div class="stack-node" style="border-color:rgba(196,96,128,.35)">
+					<div class="stack-node">
 						<div class="k" style="color:rgba(196,96,128,.85)">◈ CONTENT</div>
 						<div class="t">
 							The notes themselves. Each field can carry a confidence from 0 to 1.
 						</div>
 					</div>
 					<div class="stack-arrow">↓</div>
-					<div class="stack-node" style="border-color:rgba(212,148,58,.35)">
+					<div class="stack-node">
 						<div class="k" style="color:rgba(212,148,58,.85)">⍉ METRICS</div>
 						<div class="t">
 							Quality scores for the record, including how compressed it is. Used to check it later.
@@ -1117,17 +1023,17 @@
 			</div>
 			<div class="dc sr mobile-geom" style="transition-delay:.1s;padding:22px 18px">
 				<div class="flow-stack">
-					<div class="flow-tier" style="border-color:rgba(77,191,160,.35)">
+					<div class="flow-tier">
 						<div class="th">
 							<span style="color:rgba(77,191,160,.85)">Raw</span><span>sessions</span>
 						</div>
 						<div class="td">Each session is stored in full. This is the most detailed layer.</div>
 						<div class="flow-meter">
-							<div style="width:94%;background:rgba(77,191,160,.5)"></div>
+							<div style="width:94%;background:rgba(94,207,176,.55)"></div>
 						</div>
 					</div>
 					<div class="stack-arrow">↓ roll up</div>
-					<div class="flow-tier" style="border-color:rgba(80,144,208,.35)">
+					<div class="flow-tier">
 						<div class="th">
 							<span style="color:rgba(80,144,208,.85)">Daily</span><span>merged</span>
 						</div>
@@ -1135,27 +1041,27 @@
 							Nearby sessions roll into a daily summary. The scores and links stay.
 						</div>
 						<div class="flow-meter">
-							<div style="width:80%;background:rgba(80,144,208,.5)"></div>
+							<div style="width:80%;background:rgba(94,207,176,.55)"></div>
 						</div>
 					</div>
 					<div class="stack-arrow">↓ compress</div>
-					<div class="flow-tier" style="border-color:rgba(139,110,196,.35)">
+					<div class="flow-tier">
 						<div class="th">
 							<span style="color:rgba(139,110,196,.85)">Weekly</span><span>condensed</span>
 						</div>
 						<div class="td">A week of work becomes the threads that actually continued.</div>
 						<div class="flow-meter">
-							<div style="width:64%;background:rgba(139,110,196,.5)"></div>
+							<div style="width:64%;background:rgba(94,207,176,.55)"></div>
 						</div>
 					</div>
 					<div class="stack-arrow">↓ distill</div>
-					<div class="flow-tier" style="border-color:rgba(212,148,58,.35)">
+					<div class="flow-tier">
 						<div class="th">
 							<span style="color:rgba(212,148,58,.85)">Monthly</span><span>summary</span>
 						</div>
 						<div class="td">A short record of what lasted. Still searchable, with less detail.</div>
 						<div class="flow-meter">
-							<div style="width:48%;background:rgba(212,148,58,.55)"></div>
+							<div style="width:48%;background:rgba(94,207,176,.55)"></div>
 						</div>
 					</div>
 				</div>
@@ -1195,8 +1101,8 @@
 		--mist2: rgba(255, 255, 255, 0.09);
 		--star: rgba(255, 255, 255, 0.88);
 		--text: rgba(255, 255, 255, 0.82);
-		--text-dim: rgba(255, 255, 255, 0.56);
-		--text-faint: rgba(255, 255, 255, 0.32);
+		--text-dim: rgba(255, 255, 255, 0.7);
+		--text-faint: rgba(255, 255, 255, 0.46);
 		--teal: #4dbfa0;
 		--purple: #8b6ec4;
 		--fd: 'DM Serif Display', Georgia, serif;
@@ -1208,16 +1114,9 @@
 		background: var(--void);
 		color: var(--text);
 		font-family: var(--fu);
-		font-size: 16px;
-		line-height: 1.72;
+		font-size: 17px;
+		line-height: 1.6;
 		overflow-x: hidden;
-	}
-
-	#sf {
-		position: fixed;
-		inset: 0;
-		z-index: 0;
-		pointer-events: none;
 	}
 
 	.nb {
@@ -1231,23 +1130,13 @@
 	.nb::before {
 		content: '';
 		position: absolute;
-		width: 1000px;
-		height: 800px;
-		top: -300px;
-		left: -250px;
-		background: radial-gradient(ellipse, rgba(139, 110, 196, 0.15) 0%, transparent 65%);
-		animation: nd1 32s ease-in-out infinite alternate;
-	}
-
-	.nb::after {
-		content: '';
-		position: absolute;
-		width: 800px;
+		width: 900px;
 		height: 700px;
-		bottom: -100px;
-		right: -200px;
-		background: radial-gradient(ellipse, rgba(77, 191, 160, 0.1) 0%, transparent 60%);
-		animation: nd2 24s ease-in-out infinite alternate;
+		top: -220px;
+		left: 50%;
+		transform: translateX(-50%);
+		background: radial-gradient(ellipse, rgba(139, 110, 196, 0.07) 0%, transparent 70%);
+		filter: blur(40px);
 	}
 
 	main {
@@ -1262,15 +1151,47 @@
 		align-items: center;
 		justify-content: center;
 		text-align: center;
-		padding: 130px 48px 100px;
+		padding: 72px 48px 28px;
+	}
+
+	.hero-logo-wrap {
+		position: relative;
+		display: inline-block;
+		margin-bottom: 4px;
+	}
+
+	.hero-glow {
+		position: absolute;
+		left: 50%;
+		bottom: 6%;
+		width: 58%;
+		height: 28%;
+		transform: translateX(-50%);
+		background: radial-gradient(
+			ellipse,
+			rgba(255, 255, 255, 0.2) 0%,
+			rgba(139, 110, 196, 0.14) 42%,
+			transparent 72%
+		);
+		filter: blur(16px);
+		pointer-events: none;
+	}
+
+	.hero-logo {
+		width: 300px;
+		height: auto;
+		object-fit: contain;
+		position: relative;
+		z-index: 1;
+		filter: drop-shadow(0 0 40px rgba(139, 110, 196, 0.18));
 	}
 
 	.hl {
-		font-family: var(--fm);
-		font-size: 12px;
-		font-weight: 300;
-		letter-spacing: 0.22em;
-		text-transform: uppercase;
+		font-family: var(--fu);
+		font-size: 13px;
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		text-transform: none;
 		color: var(--teal);
 		margin-bottom: 32px;
 		opacity: 0;
@@ -1279,11 +1200,11 @@
 
 	.ht {
 		font-family: var(--fd);
-		font-size: clamp(44px, 6.2vw, 84px);
-		line-height: 0.95;
-		letter-spacing: -0.02em;
+		font-size: clamp(40px, 4.6vw, 68px);
+		line-height: 0.98;
+		letter-spacing: -0.03em;
 		color: var(--star);
-		margin-bottom: 24px;
+		margin-bottom: 12px;
 		opacity: 0;
 		animation: fu 1s 0.4s ease forwards;
 	}
@@ -1295,11 +1216,11 @@
 	}
 
 	.hs {
-		font-size: clamp(17px, 2.1vw, 21px);
+		font-size: 17px;
 		color: var(--text-dim);
-		max-width: 560px;
-		line-height: 1.82;
-		margin-bottom: 52px;
+		max-width: 540px;
+		line-height: 1.6;
+		margin-bottom: 20px;
 		opacity: 0;
 		animation: fu 1s 0.65s ease forwards;
 	}
@@ -1339,10 +1260,11 @@
 	}
 
 	:global(.ml) {
-		font-family: var(--fm);
-		font-size: 11px;
-		letter-spacing: 0.22em;
-		text-transform: uppercase;
+		font-family: var(--fu);
+		font-size: 13px;
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		text-transform: none;
 		color: var(--teal);
 		display: block;
 		margin-bottom: 14px;
@@ -1359,7 +1281,7 @@
 	.bp2 {
 		font-size: 17px;
 		color: var(--text-dim);
-		line-height: 1.82;
+		line-height: 1.6;
 		max-width: 640px;
 	}
 
@@ -1381,8 +1303,10 @@
 		align-items: center;
 		gap: 14px;
 		padding: 20px 24px;
-		background: var(--nebula);
-		border: 1px solid var(--mist2);
+		background: #12101f;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 14px;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
 	}
 
 	.stack-key {
@@ -1421,9 +1345,10 @@
 	}
 
 	.dc {
-		background: var(--nebula);
-		border: 1px solid var(--mist2);
-		border-radius: 3px;
+		background: #12101f;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 16px;
+		box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
 		padding: 36px;
 	}
 
@@ -1434,9 +1359,11 @@
 	}
 
 	.stack-node {
-		background: var(--nebula);
-		border: 1px solid var(--mist2);
-		border-radius: 3px;
+		background: #12101f;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-left: 2px solid rgba(94, 207, 176, 0.55);
+		border-radius: 14px;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
 		padding: 14px 14px 12px;
 	}
 
@@ -1475,15 +1402,22 @@
 	.pg {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
-		gap: 1px;
-		background: var(--mist);
-		border: 1px solid var(--mist2);
-		border-radius: 3px;
+		gap: 0;
+		background: #12101f;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 16px;
+		overflow: hidden;
+		box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
 	}
 
 	.pc {
-		background: var(--nebula);
+		background: #0e0c1a;
 		padding: 34px 30px;
+		border-right: 1px solid rgba(255, 255, 255, 0.06);
+	}
+
+	.pc:last-child {
+		border-right: none;
 	}
 
 	.pn {
@@ -1559,9 +1493,11 @@
 	}
 
 	.flow-tier {
-		background: var(--nebula);
-		border: 1px solid var(--mist2);
-		border-radius: 3px;
+		background: #12101f;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-left: 2px solid rgba(94, 207, 176, 0.55);
+		border-radius: 14px;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
 		padding: 14px;
 	}
 
@@ -1640,38 +1576,47 @@
 
 	.btn {
 		font-family: var(--fu);
-		font-size: 12px;
-		font-weight: 600;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
+		font-size: 14px;
+		font-weight: 500;
+		letter-spacing: 0;
+		text-transform: none;
 		text-decoration: none;
-		padding: 16px 30px;
-		border-radius: 2px;
+		padding: 12px 22px;
+		border-radius: 999px;
 		transition: all 0.2s;
 		cursor: pointer;
 		border: none;
 	}
 
 	.bp {
-		background: var(--purple);
-		color: #fff;
+		background: #fff;
+		color: #0a0814;
 	}
 
 	.bp:hover {
-		background: #a080d8;
+		background: #f0edf8;
 		transform: translateY(-1px);
-		box-shadow: 0 8px 28px rgba(139, 110, 196, 0.45);
+		box-shadow: 0 8px 24px rgba(255, 255, 255, 0.12);
 	}
 
 	.bg {
-		background: transparent;
-		color: var(--text-dim);
-		border: 1px solid rgba(255, 255, 255, 0.18);
+		background: rgba(255, 255, 255, 0.03);
+		color: rgba(255, 255, 255, 0.78);
+		border: 1px solid rgba(255, 255, 255, 0.16);
 	}
 
 	.bg:hover {
 		color: var(--star);
-		border-color: rgba(255, 255, 255, 0.45);
+		border-color: rgba(255, 255, 255, 0.35);
+		background: rgba(255, 255, 255, 0.06);
+	}
+
+	.desktop-geom :is(path, line, rect, circle, ellipse) {
+		stroke: rgba(94, 207, 176, 0.28);
+	}
+
+	.desktop-geom stop {
+		stop-color: rgba(139, 110, 196, 0.38);
 	}
 
 	footer {
@@ -1738,8 +1683,8 @@
 		}
 
 		.hero-logo {
-			width: min(84vw, 340px) !important;
-			height: auto !important;
+			width: min(70vw, 260px);
+			height: auto;
 		}
 
 		.ht {
@@ -1765,8 +1710,8 @@
 		.btn {
 			width: auto;
 			text-align: center;
-			font-size: 11px;
-			padding: 11px 16px;
+			font-size: 14px;
+			padding: 12px 22px;
 			min-width: 180px;
 		}
 
@@ -1804,18 +1749,6 @@
 		footer {
 			align-items: center;
 			text-align: center;
-		}
-	}
-
-	@keyframes nd1 {
-		to {
-			transform: translate(80px, 50px) scale(1.1);
-		}
-	}
-
-	@keyframes nd2 {
-		to {
-			transform: translate(-50px, -70px) scale(1.15);
 		}
 	}
 
