@@ -1328,17 +1328,17 @@
 		scroll-margin-top: 92px;
 	}
 
-	.wrap {
+	:global(.wrap) {
 		max-width: 1100px;
 		margin: 0 auto;
 		padding: 0 52px;
 	}
 
-	.ss {
+	:global(.ss) {
 		border-top: 1px solid var(--mist);
 	}
 
-	.ml {
+	:global(.ml) {
 		font-family: var(--fm);
 		font-size: 11px;
 		letter-spacing: 0.22em;
@@ -1348,7 +1348,7 @@
 		margin-bottom: 14px;
 	}
 
-	.dh {
+	:global(.dh) {
 		font-family: var(--fd);
 		font-size: clamp(38px, 5vw, 62px);
 		line-height: 1.08;
@@ -1363,7 +1363,7 @@
 		max-width: 640px;
 	}
 
-	.center-copy {
+	:global(.center-copy) {
 		max-width: 760px;
 		margin: 0 auto;
 		text-align: center;
@@ -1700,7 +1700,7 @@
 			padding: 116px 24px 84px;
 		}
 
-		.wrap {
+		:global(.wrap) {
 			padding: 0 24px;
 		}
 
@@ -1770,7 +1770,7 @@
 			min-width: 180px;
 		}
 
-		.wrap {
+		:global(.wrap) {
 			padding: 0 16px;
 		}
 
