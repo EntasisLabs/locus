@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import AppNav from '$lib/components/AppNav.svelte';
+	import TryMemory from '$lib/components/TryMemory.svelte';
 
 	type Star = {
 		x: number;
@@ -178,6 +179,7 @@
 		</p>
 		<div class="ha" style="animation-delay:1s">
 			<a href={resolve('/quickstart')} class="btn bp">Get started</a>
+			<a href="#try" class="btn bp">Try it</a>
 			<a href="#how" class="btn bg">How it works</a>
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={technicalDocsHref} class="btn bg">Technical docs</a>
@@ -1160,6 +1162,8 @@
 			</div>
 		</div>
 	</section>
+
+	<TryMemory />
 </main>
 
 <footer>
