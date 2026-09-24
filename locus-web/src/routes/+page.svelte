@@ -189,11 +189,14 @@
 		<div class="wrap">
 			<div class="sr center-copy" style="margin-bottom:48px">
 				<span class="ml" style="display:block">STTP and Locus</span>
-				<h2 class="dh">STTP organizes memory.<br />Locus makes it useful.</h2>
+				<h2 class="dh">AI memory you can work with.</h2>
+				<p class="bp2" style="margin-bottom:16px">
+					Locus turns conversation history into structured, searchable context.
+				</p>
 				<p class="bp2">
-					STTP is the format for context over time. Locus is the memory system that stores it.
-					Experience is broken into pieces that can be found, connected, and updated later, instead
-					of one pile of text.
+					It uses STTP, a typed format that captures what happened, when it happened, where it came
+					from, and how it connects to other information. That means memories can be inspected,
+					updated, tested, and retrieved when they actually matter.
 				</p>
 			</div>
 			<div class="pg sr" style="transition-delay:.1s">
