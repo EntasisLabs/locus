@@ -119,21 +119,21 @@
 </script>
 
 <svelte:head>
-	<title>Locus — Contextual memory for AI</title>
+	<title>Locus — Typed, compiled, and testable AI memory</title>
 	<meta
 		name="description"
 		content="Locus is a contextual memory layer for AI. STTP is the structure underneath: a time-aware format for experiences, relationships, and confidence."
 	/>
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="Locus" />
-	<meta property="og:title" content="Locus — Contextual memory for AI" />
+	<meta property="og:title" content="Locus — Typed, compiled, and testable AI memory" />
 	<meta
 		property="og:description"
 		content="Locus keeps useful context across time. STTP is the format that organizes it."
 	/>
 	<meta property="og:image" content="/locus_final_transparent.png" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Locus — Contextual memory for AI" />
+	<meta name="twitter:title" content="Locus — Typed, compiled, and testable AI memory" />
 	<meta
 		name="twitter:description"
 		content="Locus keeps useful context across time. STTP is the format that organizes it."
@@ -168,9 +168,8 @@
 				style="width:480px;height:480px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 0 60px rgba(139,110,196,.35)) drop-shadow(0 0 120px rgba(77,191,160,.15))"
 			/>
 		</div>
-		<span class="hl" style="animation-delay:.3s">Contextual memory for AI · Apache-2.0</span>
 		<h1 class="ht" style="animation-delay:.5s">
-			Memory that<br />stays useful.
+			Typed, compiled,<br />and testable<br />AI memory.
 		</h1>
 		<p class="hs" style="animation-delay:.75s">
 			Locus helps an AI remember what matters, connect it to the present, and avoid starting from
@@ -218,21 +217,14 @@
 					</p>
 				</div>
 			</div>
-			<p class="sr filing" style="transition-delay:.15s">
-				STTP is the filing system. Locus is the library. The AI is the reader.
-			</p>
 		</div>
 	</section>
 
 	<section class="ss" id="protocol" style="padding:120px 0 140px">
 		<div class="wrap">
-			<div class="sr center-copy" style="margin-bottom:72px">
+			<div class="sr center-copy" style="margin-bottom:48px">
 				<span class="ml" style="display:block">A memory record</span>
 				<h2 class="dh">Each memory has a shape.</h2>
-				<p class="bp2">
-					Four parts, in this order. The order is part of the meaning. One record can be read on its
-					own: where it came from, when it happened, what it says, and how solid it is.
-				</p>
 			</div>
 			<div class="dc sr diagram-xl desktop-geom" style="transition-delay:.1s">
 				<svg width="100%" viewBox="0 0 1020 290" style="display:block">
@@ -640,33 +632,6 @@
 					</div>
 				</div>
 			</div>
-			<p
-				class="sr"
-				style="margin-top:22px;font-family:var(--fm);font-size:11px;color:var(--text-faint);letter-spacing:.06em;transition-delay:.2s"
-			>
-				strict mode rejects a bad record · tolerant mode keeps it and reports what was wrong · older
-				records stay readable
-			</p>
-			<ul class="key-list sr" style="transition-delay:.2s">
-				<li>
-					<span>Provenance</span> Where it came from, and what it links to.
-				</li>
-				<li>
-					<span>Envelope</span> When it happened, and whether this is the raw session or a daily, weekly,
-					or monthly summary.
-				</li>
-				<li>
-					<span>Content</span> What it says. Confidence on each field is how sure that part is.
-				</li>
-				<li>
-					<span>Metrics</span> Rho and kappa are quality scores. Psi (ψ) is a coherence number computed
-					from the other scores. You do not author psi by hand.
-				</li>
-				<li>
-					<span>AVEC</span> Four scores stored with the memory: stability, friction, logic, and autonomy,
-					each from 0 to 1. Recall can rank memories by how close those scores are to the current situation.
-				</li>
-			</ul>
 		</div>
 	</section>
 
@@ -1307,7 +1272,7 @@
 
 	.ht {
 		font-family: var(--fd);
-		font-size: clamp(58px, 9vw, 118px);
+		font-size: clamp(44px, 6.2vw, 84px);
 		line-height: 0.95;
 		letter-spacing: -0.02em;
 		color: var(--star);
@@ -1771,7 +1736,7 @@
 		}
 
 		.ht {
-			font-size: clamp(48px, 15.5vw, 70px);
+			font-size: clamp(36px, 11vw, 52px);
 			line-height: 1;
 			margin-bottom: 16px;
 		}
