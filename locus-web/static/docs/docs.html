@@ -114,6 +114,41 @@ footer{padding:26px 0 40px;border-top:1px solid var(--line);color:var(--dim);fon
     <p class="lead">Start with a picture of how memory is stored, or how an SDK call moves through the stack. The guides below are the written versions of the same system.</p>
   </section>
 
+  <section class="section" id="using-memory">
+    <h2>Six operations</h2>
+    <p class="lead">These are the ways Locus reads and writes memory. The same six exist on MCP, HTTP, gRPC, the SDK, and the CLI.</p>
+    <div class="register">
+      <article class="card"><h3>find</h3><p>Filter, sort, and page through memories. No ranking. You name the scope.</p></article>
+      <article class="card"><h3>recall</h3><p>Rank memories by how well they fit the current situation, not only by keyword.</p></article>
+      <article class="card"><h3>aggregate</h3><p>Group memories across a time window and roll them into summaries.</p></article>
+      <article class="card"><h3>transform</h3><p>Change many memories at once. Dry-run first when you want a preview.</p></article>
+      <article class="card"><h3>explain</h3><p>Show why a memory was returned, or why it was not.</p></article>
+      <article class="card"><h3>schema</h3><p>Ask the running system what it supports, so tools do not hardcode assumptions.</p></article>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>A question in, one operation out</h2>
+    <div class="register">
+      <article class="card"><h3>find</h3><p>"What did we work on last Tuesday?" Filter to that day.</p></article>
+      <article class="card"><h3>recall</h3><p>"What is relevant to what I am doing right now?" Rank by fit, not just keywords.</p></article>
+      <article class="card"><h3>aggregate</h3><p>"Summarize last month." Roll the sessions into one digest.</p></article>
+      <article class="card"><h3>explain</h3><p>"Why that memory, and not the one from Thursday?" Show the decision.</p></article>
+      <article class="card"><h3>transform</h3><p>"Preview an embedding backfill before writing." Dry-run first.</p></article>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Remembered is not the same as true</h2>
+    <p class="lead">Locus does not make an AI human. A memory can be recent or old, strongly or weakly supported, useful or irrelevant, confirmed, uncertain, or outdated.</p>
+    <article class="card"><p>Each memory stores four scores from 0 to 1: stability, friction, logic, and autonomy. Together they are an AVEC. Recall ranks by how close they are to the current situation. Psi is computed from them, so another system can check coherence without the original history.</p></article>
+  </section>
+
+  <section class="section">
+    <h2>Where it sits</h2>
+    <p class="lead">Your app, Resonantia, or any STTP agent talks to Locus. Locus stores the memory. STTP is the record format underneath.</p>
+  </section>
+
   <section class="section">
     <h2>Visual guides</h2>
     <div class="feature-grid">

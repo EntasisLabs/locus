@@ -13,7 +13,6 @@
 	};
 
 	const technicalDocsHref = '/docs/technical/index.html';
-	const rustdocHref = '/docs/rustdoc/index.html';
 	const githubHref = 'https://github.com/entasislabs/locus';
 	const resonantiaHref = 'https://resonantia.me';
 
@@ -187,62 +186,15 @@
 		</div>
 	</section>
 
-	<section class="ss" style="padding:120px 0 130px">
-		<div class="wrap">
-			<div class="tc">
-				<div class="sr">
-					<span class="ml">What Locus is</span>
-					<h2 class="dh">A memory system,<br />not a chat log.</h2>
-					<p class="bp2" style="margin-bottom:22px">
-						Locus is the memory system that uses STTP. It can hold preferences, ongoing projects,
-						decisions, recurring patterns, and the relationships between ideas. It also tracks what
-						is recent, reliable, or relevant right now.
-					</p>
-					<p class="bp2">
-						MCP for assistants. HTTP and gRPC for services. A Rust SDK to embed it. A CLI for
-						operators. Same memory, every surface.
-					</p>
-				</div>
-				<div class="sr" style="transition-delay:.15s">
-					<div style="display:flex;flex-direction:column;gap:1px">
-						<div class="stack-row">
-							<span class="stack-key mcp">locus-mcp</span>
-							<span class="stack-value">stdio · memory tools for assistants and agents</span>
-						</div>
-						<div class="stack-row">
-							<span class="stack-key gateway">locus-gateway</span>
-							<span class="stack-value">HTTP + gRPC · a host other services can call</span>
-						</div>
-						<div class="stack-row">
-							<span class="stack-key sdk">locus-sdk</span>
-							<span class="stack-value">Rust · memory inside your own process</span>
-						</div>
-						<div class="stack-row">
-							<span class="stack-key cli">locus-cli</span>
-							<span class="stack-value">terminal · the same workflows, no service to write</span>
-						</div>
-					</div>
-					<div style="margin-top:14px;text-align:center">
-						<span class="stack-footer"
-							>shared core → locus-core-rs · parse · validate · retrieve</span
-						>
-						>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-
 	<section class="ss" id="how" style="padding:120px 0 140px">
 		<div class="wrap">
 			<div class="sr center-copy" style="margin-bottom:48px">
 				<span class="ml" style="display:block">STTP and Locus</span>
 				<h2 class="dh">STTP organizes memory.<br />Locus makes it useful.</h2>
 				<p class="bp2">
-					STTP is a structured way to record context over time. It gives information a shape: what
-					happened, when it happened, where it came from, how important it is, and how certain we
-					are. Instead of one pile of text, it breaks experience into pieces that can be found,
-					connected, updated, and understood later.
+					STTP is the format for context over time. Locus is the memory system that stores it.
+					Experience is broken into pieces that can be found, connected, and updated later, instead
+					of one pile of text.
 				</p>
 			</div>
 			<div class="pg sr" style="transition-delay:.1s">
@@ -715,100 +667,6 @@
 					each from 0 to 1. Recall can rank memories by how close those scores are to the current situation.
 				</li>
 			</ul>
-		</div>
-	</section>
-
-	<section class="ss" id="primitives" style="padding:120px 0 140px">
-		<div class="wrap">
-			<div class="center-copy sr" style="margin-bottom:48px">
-				<span class="ml" style="display:block">The API</span>
-				<h2 class="dh">Six operations.</h2>
-				<p class="bp2">
-					These are the ways Locus reads and writes memory. Combine them. The same six exist on MCP,
-					HTTP, gRPC, the SDK, and the CLI.
-				</p>
-			</div>
-			<div class="pg sr" style="transition-delay:.2s">
-				<div class="pc">
-					<div class="pn" style="color:rgba(77,191,160,.65)">01 · lookup</div>
-					<div class="pname">find</div>
-					<p class="pdesc">
-						Filter, sort, and page through memories. No ranking. You name the scope.
-					</p>
-				</div>
-				<div class="pc">
-					<div class="pn" style="color:rgba(139,110,196,.7)">02 · rank</div>
-					<div class="pname">recall</div>
-					<p class="pdesc">
-						Rank memories by how well they fit the current situation, not only by keyword.
-					</p>
-				</div>
-				<div class="pc">
-					<div class="pn" style="color:rgba(80,144,208,.7)">03 · summarize</div>
-					<div class="pname">aggregate</div>
-					<p class="pdesc">Group memories across a time window and roll them into summaries.</p>
-				</div>
-				<div class="pc">
-					<div class="pn" style="color:rgba(196,96,128,.7)">04 · update</div>
-					<div class="pname">transform</div>
-					<p class="pdesc">Change many memories at once. Dry-run first when you want a preview.</p>
-				</div>
-				<div class="pc">
-					<div class="pn" style="color:rgba(212,148,58,.7)">05 · audit</div>
-					<div class="pname">explain</div>
-					<p class="pdesc">Show why a memory was returned, or why it was not.</p>
-				</div>
-				<div class="pc">
-					<div class="pn" style="color:rgba(255,255,255,.28)">06 · discover</div>
-					<div class="pname">schema</div>
-					<p class="pdesc">
-						Ask the running system what it supports, so tools do not hardcode assumptions.
-					</p>
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<section class="ss" id="examples" style="padding:120px 0 140px">
-		<div class="wrap">
-			<div class="sr center-copy" style="margin-bottom:48px">
-				<span class="ml" style="display:block">In practice</span>
-				<h2 class="dh">A question in.<br />One operation out.</h2>
-				<p class="bp2">
-					Locus does not invent a personality for the AI. It maps a request onto one of the six
-					operations, and it keeps the difference between a recent fact, a weak guess, and something
-					that has gone out of date.
-				</p>
-			</div>
-			<div class="sr ask-list" style="transition-delay:.1s">
-				<div class="stack-row">
-					<span class="stack-key mcp">find</span>
-					<span class="stack-value">"What did we work on last Tuesday?" Filter to that day.</span>
-				</div>
-				<div class="stack-row">
-					<span class="stack-key sdk">recall</span>
-					<span class="stack-value"
-						>"What is relevant to what I am doing right now?" Rank by fit, not just keywords.</span
-					>
-				</div>
-				<div class="stack-row">
-					<span class="stack-key gateway">aggregate</span>
-					<span class="stack-value">"Summarize last month." Roll the sessions into one digest.</span
-					>
-				</div>
-				<div class="stack-row">
-					<span class="stack-key cli">explain</span>
-					<span class="stack-value"
-						>"Why that memory, and not the one from Thursday?" Show the decision.</span
-					>
-				</div>
-				<div class="stack-row">
-					<span class="stack-key mcp">transform</span>
-					<span class="stack-value"
-						>"Preview an embedding backfill before writing." Dry-run first.</span
-					>
-				</div>
-			</div>
 		</div>
 	</section>
 
@@ -1285,7 +1143,6 @@
 						font-size="13"
 						fill="rgba(255,255,255,.1)">the writeup gets shorter · links and scores stay</text
 					>
-					>
 				</svg>
 			</div>
 			<div class="dc sr mobile-geom" style="transition-delay:.1s;padding:22px 18px">
@@ -1335,103 +1192,6 @@
 			</div>
 		</div>
 	</section>
-
-	<section class="ss" id="avec" style="padding:120px 0 140px">
-		<div class="wrap">
-			<div class="tc">
-				<div class="sr">
-					<span class="ml">Confidence</span>
-					<h2 class="dh">Remembered is not<br />the same as true.</h2>
-					<p class="bp2" style="margin-bottom:28px">
-						Locus does not make an AI human. It gives an AI a deliberate way to keep context. A
-						memory can be recent or old, strongly or weakly supported, useful or irrelevant,
-						confirmed, uncertain, or outdated.
-					</p>
-					<div style="font-family:var(--fm);font-size:12px;color:var(--text-faint)">
-						<div class="ab">
-							<span style="color:rgba(77,191,160,.7)">stability</span>
-							<div class="at">
-								<div class="af" style="width:90%;background:rgba(77,191,160,.4)"></div>
-							</div>
-							<span>0.90</span>
-						</div>
-						<div class="ab">
-							<span style="color:rgba(196,96,128,.7)">friction</span>
-							<div class="at">
-								<div class="af" style="width:20%;background:rgba(196,96,128,.4)"></div>
-							</div>
-							<span>0.20</span>
-						</div>
-						<div class="ab">
-							<span style="color:rgba(80,144,208,.7)">logic</span>
-							<div class="at">
-								<div class="af" style="width:98%;background:rgba(80,144,208,.4)"></div>
-							</div>
-							<span>0.98</span>
-						</div>
-						<div class="ab">
-							<span style="color:rgba(139,110,196,.7)">autonomy</span>
-							<div class="at">
-								<div class="af" style="width:85%;background:rgba(139,110,196,.4)"></div>
-							</div>
-							<span>0.85</span>
-						</div>
-					</div>
-				</div>
-				<div class="sr" style="transition-delay:.15s">
-					<div class="dc">
-						<p class="bp2" style="margin:0">
-							The bars are an AVEC: four scores from 0 to 1 stored with the memory. Recall ranks by
-							how close they are to the current situation. Psi (ψ) is computed from them, so another
-							system can check coherence without the original history.
-						</p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<section class="ss" style="padding:100px 0 100px">
-		<div class="wrap sr center-copy">
-			<span class="ml" style="display:block">How the pieces fit</span>
-			<h2 class="dh">
-				STTP is the format.<br />Locus is the memory.
-			</h2>
-			<p class="bp2" style="margin:0 auto 48px">
-				Any agent, tool, or service that speaks STTP can use Locus as its memory.
-				<a href={resonantiaHref} target="_blank" rel="noopener noreferrer">Resonantia</a> is one product
-				built on that stack.
-			</p>
-			<div
-				class="eco-stack"
-				style="display:inline-flex;flex-direction:column;align-items:stretch;gap:1px;font-family:var(--fm);font-size:11px;color:var(--text-faint);margin-bottom:56px;min-width:360px"
-			>
-				<div
-					style="padding:12px 28px;background:var(--nebula);border:1px solid var(--mist2);border-radius:2px 2px 0 0;color:rgba(77,191,160,.6);text-align:center"
-				>
-					your app · Resonantia · any STTP agent
-				</div>
-				<div
-					style="padding:12px 28px;background:var(--surface);border:1px solid var(--mist2);text-align:center;color:rgba(139,110,196,.7)"
-				>
-					Locus · the memory
-				</div>
-				<div
-					style="padding:12px 28px;background:var(--nebula);border:1px solid var(--mist2);border-radius:0 0 2px 2px;text-align:center;color:rgba(255,255,255,.25)"
-				>
-					STTP · the record format
-				</div>
-			</div>
-			<div class="cta-row" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
-				<a href={resolve('/quickstart')} class="btn bp">Get started</a>
-				<a href={githubHref} class="btn bg" target="_blank" rel="noopener noreferrer"
-					>View on GitHub</a
-				>
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href={rustdocHref} class="btn bg">Rust API docs</a>
-			</div>
-		</div>
-	</section>
 </main>
 
 <footer>
@@ -1446,6 +1206,7 @@
 		<a href={resolve('/quickstart')}>Quickstart</a>
 		<a href={resolve('/deployment-operations')}>Deploy/Ops</a>
 		<a href={resolve('/docs')}>Docs</a>
+		<a href={resolve('/docs#using-memory')}>Using memory</a>
 		<a href={githubHref} target="_blank" rel="noopener noreferrer">GitHub</a>
 		<a href={resonantiaHref} target="_blank" rel="noopener noreferrer">Resonantia</a>
 	</div>

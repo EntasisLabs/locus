@@ -276,7 +276,7 @@ footer a:hover{color:var(--star)}
     <li><a href="index.html" class="active" aria-current="page">Home</a></li>
     <li><a href="quickstart.html">Quickstart</a></li>
     <li><a href="deployment-operations.html">Deploy/Ops</a></li>
-    <li><a href="docs.html">Docs</a></li>
+    <li><a href="docs.html">Docs</a><a href="docs.html#using-memory">Using memory</a></li>
     <li><a href="https://github.com/entasislabs/locus" target="_blank" rel="noopener noreferrer">GitHub</a></li>
   </ul>
 </nav>
@@ -303,42 +303,6 @@ footer a:hover{color:var(--star)}
   </div>
 </section>
 
-<!-- WHAT IT IS -->
-<section class="ss" style="padding:120px 0 130px">
-  <div class="wrap">
-    <div class="tc">
-      <div class="sr">
-        <span class="ml">What Locus is</span>
-        <h2 class="dh">A memory system,<br>not a chat log.</h2>
-        <p class="bp2" style="margin-bottom:22px">Locus is the memory system that uses STTP. It can hold preferences, ongoing projects, decisions, recurring patterns, and the relationships between ideas. It also tracks what is recent, reliable, or relevant right now.</p>
-        <p class="bp2">MCP for assistants. HTTP and gRPC for services. A Rust SDK to embed it. A CLI for operators. Same memory, every surface.</p>
-      </div>
-      <div class="sr" style="transition-delay:.15s">
-        <div style="display:flex;flex-direction:column;gap:1px">
-          <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:var(--nebula);border:1px solid var(--mist2);border-radius:3px 3px 0 0">
-            <span style="font-family:var(--fm);font-size:12px;color:rgba(77,191,160,.7);letter-spacing:.14em;min-width:108px">locus-mcp</span>
-            <span style="font-size:13px;color:var(--text-dim)">stdio · memory tools for assistants and agents</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:var(--nebula);border:1px solid var(--mist2)">
-            <span style="font-family:var(--fm);font-size:12px;color:rgba(80,144,208,.8);letter-spacing:.14em;min-width:108px">locus-gateway</span>
-            <span style="font-size:13px;color:var(--text-dim)">HTTP + gRPC · a host other services can call</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:var(--nebula);border:1px solid var(--mist2)">
-            <span style="font-family:var(--fm);font-size:12px;color:rgba(139,110,196,.8);letter-spacing:.14em;min-width:108px">locus-sdk</span>
-            <span style="font-size:13px;color:var(--text-dim)">Rust · memory inside your own process</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;background:var(--nebula);border:1px solid var(--mist2);border-radius:0 0 3px 3px">
-            <span style="font-family:var(--fm);font-size:12px;color:rgba(212,148,58,.7);letter-spacing:.14em;min-width:108px">locus-cli</span>
-            <span style="font-size:13px;color:var(--text-dim)">terminal · the same workflows, no service to write</span>
-          </div>
-        </div>
-        <div style="margin-top:14px;text-align:center">
-          <span style="font-family:var(--fm);font-size:12px;color:var(--text-faint);letter-spacing:.1em">shared core → locus-core-rs · parse · validate · retrieve</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- STTP AND LOCUS -->
 <section class="ss" id="how" style="padding:120px 0 140px">
@@ -346,7 +310,7 @@ footer a:hover{color:var(--star)}
     <div class="sr center-copy" style="margin-bottom:48px">
       <span class="ml" style="display:block">STTP and Locus</span>
       <h2 class="dh">STTP organizes memory.<br>Locus makes it useful.</h2>
-      <p class="bp2">STTP is a structured way to record context over time. It gives information a shape: what happened, when it happened, where it came from, how important it is, and how certain we are. Instead of one pile of text, it breaks experience into pieces that can be found, connected, updated, and understood later.</p>
+      <p class="bp2">STTP is the format for context over time. Locus is the memory system that stores it. Experience is broken into pieces that can be found, connected, and updated later, instead of one pile of text.</p>
     </div>
     <div class="pg sr">
       <div class="pc">
@@ -473,87 +437,6 @@ footer a:hover{color:var(--star)}
   </div>
 </section>
 
-<!-- PRIMITIVES -->
-<section class="ss" id="primitives" style="padding:120px 0 140px">
-  <div class="wrap">
-    <div class="tc" style="margin-bottom:72px">
-      <div class="sr">
-        <span class="ml">The API</span>
-        <h2 class="dh">Six operations.</h2>
-        <p class="bp2">These are the ways Locus reads and writes memory. Combine them. The same six exist on MCP, HTTP, gRPC, the SDK, and the CLI.</p>
-      </div>
-      <div class="sr" style="transition-delay:.15s">
-        <div class="dc diagram-md">
-          <svg width="100%" viewBox="0 0 400 260" style="display:block">
-            <defs>
-              <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-                <path d="M2 1L8 5L2 9" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5" stroke-linecap="round"/>
-              </marker>
-              <marker id="agp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-                <path d="M2 1L8 5L2 9" fill="none" stroke="rgba(139,110,196,.6)" stroke-width="1.5" stroke-linecap="round"/>
-              </marker>
-            </defs>
-            <text x="14" y="46"  font-family="'JetBrains Mono'" font-size="10" fill="rgba(77,191,160,.7)">find</text>
-            <text x="14" y="88"  font-family="'JetBrains Mono'" font-size="10" fill="rgba(139,110,196,.8)">recall</text>
-            <text x="14" y="130" font-family="'JetBrains Mono'" font-size="10" fill="rgba(80,144,208,.7)">aggregate</text>
-            <text x="14" y="172" font-family="'JetBrains Mono'" font-size="10" fill="rgba(196,96,128,.7)">transform</text>
-            <text x="14" y="214" font-family="'JetBrains Mono'" font-size="10" fill="rgba(212,148,58,.7)">explain</text>
-            <line x1="58"  y1="42"  x2="148" y2="80"  stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
-            <line x1="72"  y1="84"  x2="148" y2="96"  stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
-            <line x1="100" y1="126" x2="148" y2="112" stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
-            <line x1="90"  y1="168" x2="148" y2="140" stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
-            <line x1="74"  y1="210" x2="148" y2="164" stroke="rgba(255,255,255,.07)" stroke-width=".75" stroke-dasharray="3 3"/>
-            <rect x="150" y="60" width="120" height="120" rx="3" fill="rgba(139,110,196,.08)" stroke="rgba(139,110,196,.4)" stroke-width=".75"/>
-            <text x="210" y="112" text-anchor="middle" font-family="'DM Serif Display'" font-style="italic" font-size="14" fill="rgba(160,128,216,.7)">combine</text>
-            <text x="210" y="130" text-anchor="middle" font-family="'Syne'" font-size="9" fill="rgba(255,255,255,.2)">any workflow</text>
-            <line x1="162" y1="90"  x2="258" y2="90"  stroke="rgba(139,110,196,.18)" stroke-width="1" stroke-dasharray="4 4" style="animation:fl 1.6s linear infinite"/>
-            <line x1="162" y1="120" x2="258" y2="120" stroke="rgba(139,110,196,.18)" stroke-width="1" stroke-dasharray="4 4" style="animation:fl 2.1s linear infinite"/>
-            <line x1="162" y1="150" x2="258" y2="150" stroke="rgba(139,110,196,.18)" stroke-width="1" stroke-dasharray="4 4" style="animation:fl 1.8s linear infinite"/>
-            <line x1="271" y1="88"  x2="316" y2="68"  stroke="rgba(139,110,196,.35)" stroke-width=".75" marker-end="url(#agp)"/>
-            <line x1="271" y1="120" x2="316" y2="120" stroke="rgba(139,110,196,.35)" stroke-width=".75" marker-end="url(#agp)"/>
-            <line x1="271" y1="152" x2="316" y2="172" stroke="rgba(139,110,196,.35)" stroke-width=".75" marker-end="url(#agp)"/>
-            <text x="322" y="72"  font-family="'JetBrains Mono'" font-size="9" fill="rgba(255,255,255,.38)">recall_with_explain</text>
-            <text x="322" y="124" font-family="'JetBrains Mono'" font-size="9" fill="rgba(255,255,255,.38)">daily_rollup</text>
-            <text x="322" y="176" font-family="'JetBrains Mono'" font-size="9" fill="rgba(255,255,255,.38)">transform_verify</text>
-            <text x="322" y="240" font-family="'JetBrains Mono'" font-size="9" fill="rgba(255,255,255,.22)">+ any workflow</text>
-          </svg>
-        </div>
-      </div>
-    </div>
-    <div class="pg sr" style="transition-delay:.2s">
-      <div class="pc">
-        <div class="pn" style="color:rgba(77,191,160,.65)">01 · lookup</div>
-        <div class="pname">find</div>
-        <p class="pdesc">Filter, sort, and page through memories. No ranking. You name the scope.</p>
-      </div>
-      <div class="pc">
-        <div class="pn" style="color:rgba(139,110,196,.7)">02 · rank</div>
-        <div class="pname">recall</div>
-        <p class="pdesc">Rank memories by how well they fit the current situation, not only by keyword.</p>
-      </div>
-      <div class="pc">
-        <div class="pn" style="color:rgba(80,144,208,.7)">03 · summarize</div>
-        <div class="pname">aggregate</div>
-        <p class="pdesc">Group memories across a time window and roll them into summaries.</p>
-      </div>
-      <div class="pc">
-        <div class="pn" style="color:rgba(196,96,128,.7)">04 · update</div>
-        <div class="pname">transform</div>
-        <p class="pdesc">Change many memories at once. Dry-run first when you want a preview.</p>
-      </div>
-      <div class="pc">
-        <div class="pn" style="color:rgba(212,148,58,.7)">05 · audit</div>
-        <div class="pname">explain</div>
-        <p class="pdesc">Show why a memory was returned, or why it was not.</p>
-      </div>
-      <div class="pc">
-        <div class="pn" style="color:rgba(255,255,255,.28)">06 · discover</div>
-        <div class="pname">schema</div>
-        <p class="pdesc">Ask the running system what it supports, so tools do not hardcode assumptions.</p>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ALLUVIAL: MEMORY ACROSS TIME -->
 <section class="ss" id="flow" style="padding:120px 0 140px">
@@ -735,179 +618,6 @@ footer a:hover{color:var(--star)}
   </div>
 </section>
 
-<!-- PROMPT → PRIMITIVE MAPPER -->
-<section class="ss" id="in-action" style="padding:120px 0 140px">
-  <div class="wrap">
-    <div class="sr center-copy" style="margin-bottom:72px">
-      <span class="ml" style="display:block">In practice</span>
-      <h2 class="dh">A question in.<br>One operation out.</h2>
-      <p class="bp2">Locus does not invent a personality for the AI. It maps a request onto one of the six operations, and it keeps the difference between a recent fact, a weak guess, and something that has gone out of date.</p>
-    </div>
-
-    <div class="sr" style="display:flex;flex-direction:column;gap:2px;transition-delay:.1s">
-
-      <!-- row 1 -->
-      <div class="mapper-row" style="display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;background:var(--mist);border-radius:3px 3px 0 0;overflow:hidden">
-        <div style="padding:28px 30px;background:var(--nebula)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(255,255,255,.25);margin-bottom:10px;text-transform:uppercase">natural language</div>
-          <p style="font-family:var(--fd);font-style:italic;font-size:18px;color:rgba(255,255,255,.75);line-height:1.45;margin-bottom:10px">"What did we work on last Tuesday?"</p>
-          <p style="font-size:13px;color:var(--text-faint)">User asks an assistant about a past session</p>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;padding:0 20px;background:var(--surface)">
-          <svg width="32" height="32" viewBox="0 0 32 32"><line x1="4" y1="16" x2="26" y2="16" stroke="rgba(255,255,255,.2)" stroke-width="1"/><path d="M20 10L28 16L20 22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="padding:28px 30px;background:var(--nebula);border-left:1px solid var(--mist)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(77,191,160,.6);margin-bottom:10px;text-transform:uppercase">operation</div>
-          <div style="font-family:var(--fd);font-size:22px;color:rgba(77,191,160,.9);margin-bottom:8px">find</div>
-          <div style="font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.3);line-height:1.7">scope: tier=raw<br>filter: date range last Tuesday<br>sort: timestamp desc · limit 10</div>
-        </div>
-      </div>
-
-      <!-- row 2 -->
-      <div class="mapper-row" style="display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;background:var(--mist);overflow:hidden">
-        <div style="padding:28px 30px;background:var(--nebula)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(255,255,255,.25);margin-bottom:10px;text-transform:uppercase">natural language</div>
-          <p style="font-family:var(--fd);font-style:italic;font-size:18px;color:rgba(255,255,255,.75);line-height:1.45;margin-bottom:10px">"Find something relevant to what I'm thinking about right now."</p>
-          <p style="font-size:13px;color:var(--text-faint)">Rank memories by how well they fit what is happening now</p>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;padding:0 20px;background:var(--surface)">
-          <svg width="32" height="32" viewBox="0 0 32 32"><line x1="4" y1="16" x2="26" y2="16" stroke="rgba(255,255,255,.2)" stroke-width="1"/><path d="M20 10L28 16L20 22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="padding:28px 30px;background:var(--nebula);border-left:1px solid var(--mist)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(139,110,196,.6);margin-bottom:10px;text-transform:uppercase">operation</div>
-          <div style="font-family:var(--fd);font-size:22px;color:rgba(139,110,196,.9);margin-bottom:8px">recall</div>
-          <div style="font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.3);line-height:1.7">current_avec: {stability, friction…}<br>scoring: resonanceWeight 1.0<br>fallback_policy: on_empty</div>
-        </div>
-      </div>
-
-      <!-- row 3 -->
-      <div class="mapper-row" style="display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;background:var(--mist);overflow:hidden">
-        <div style="padding:28px 30px;background:var(--nebula)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(255,255,255,.25);margin-bottom:10px;text-transform:uppercase">natural language</div>
-          <p style="font-family:var(--fd);font-style:italic;font-size:18px;color:rgba(255,255,255,.75);line-height:1.45;margin-bottom:10px">"Give me a summary of everything from last month."</p>
-          <p style="font-size:13px;color:var(--text-faint)">Roll a month of sessions into one summary</p>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;padding:0 20px;background:var(--surface)">
-          <svg width="32" height="32" viewBox="0 0 32 32"><line x1="4" y1="16" x2="26" y2="16" stroke="rgba(255,255,255,.2)" stroke-width="1"/><path d="M20 10L28 16L20 22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="padding:28px 30px;background:var(--nebula);border-left:1px solid var(--mist)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(80,144,208,.6);margin-bottom:10px;text-transform:uppercase">operation</div>
-          <div style="font-family:var(--fd);font-size:22px;color:rgba(80,144,208,.9);margin-bottom:8px">aggregate</div>
-          <div style="font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.3);line-height:1.7">group_by: day<br>scope: tier=monthly · last 30d<br>→ composition: daily_rollup</div>
-        </div>
-      </div>
-
-      <!-- row 4 -->
-      <div class="mapper-row" style="display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;background:var(--mist);overflow:hidden">
-        <div style="padding:28px 30px;background:var(--nebula)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(255,255,255,.25);margin-bottom:10px;text-transform:uppercase">natural language</div>
-          <p style="font-family:var(--fd);font-style:italic;font-size:18px;color:rgba(255,255,255,.75);line-height:1.45;margin-bottom:10px">"Why did it surface that memory and not the one from Thursday?"</p>
-          <p style="font-size:13px;color:var(--text-faint)">User wants to understand a retrieval decision</p>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;padding:0 20px;background:var(--surface)">
-          <svg width="32" height="32" viewBox="0 0 32 32"><line x1="4" y1="16" x2="26" y2="16" stroke="rgba(255,255,255,.2)" stroke-width="1"/><path d="M20 10L28 16L20 22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="padding:28px 30px;background:var(--nebula);border-left:1px solid var(--mist)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(212,148,58,.6);margin-bottom:10px;text-transform:uppercase">operation</div>
-          <div style="font-family:var(--fd);font-size:22px;color:rgba(212,148,58,.9);margin-bottom:8px">explain</div>
-          <div style="font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.3);line-height:1.7">→ recall_with_explain<br>returns: stage counts<br>fallback_reason · scoring_profile</div>
-        </div>
-      </div>
-
-      <!-- row 5 -->
-      <div class="mapper-row" style="display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;background:var(--mist);border-radius:0 0 3px 3px;overflow:hidden">
-        <div style="padding:28px 30px;background:var(--nebula)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(255,255,255,.25);margin-bottom:10px;text-transform:uppercase">dev query</div>
-          <p style="font-family:var(--fd);font-style:italic;font-size:18px;color:rgba(255,255,255,.75);line-height:1.45;margin-bottom:10px">"memory_transform · embed_backfill · dry_run=true"</p>
-          <p style="font-size:13px;color:var(--text-faint)">Engineer runs an embedding migration pass safely first</p>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;padding:0 20px;background:var(--surface)">
-          <svg width="32" height="32" viewBox="0 0 32 32"><line x1="4" y1="16" x2="26" y2="16" stroke="rgba(255,255,255,.2)" stroke-width="1"/><path d="M20 10L28 16L20 22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="padding:28px 30px;background:var(--nebula);border-left:1px solid var(--mist)">
-          <div style="font-family:var(--fm);font-size:9px;letter-spacing:.18em;color:rgba(196,96,128,.6);margin-bottom:10px;text-transform:uppercase">operation</div>
-          <div style="font-family:var(--fd);font-size:22px;color:rgba(196,96,128,.9);margin-bottom:8px">transform</div>
-          <div style="font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.3);line-height:1.7">dry_run: true → preview only<br>op: embed_backfill<br>→ then: transform_then_verify</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- AVEC -->
-<section class="ss" id="avec" style="padding:120px 0 140px">
-  <div class="wrap">
-    <div class="tc">
-      <div class="sr">
-        <span class="ml">Confidence</span>
-        <h2 class="dh">Remembered is not<br>the same as true.</h2>
-        <p class="bp2" style="margin-bottom:28px">Locus does not make an AI human. It gives an AI a deliberate way to keep context. A memory can be recent or old, strongly or weakly supported, useful or irrelevant, confirmed, uncertain, or outdated.</p>
-        <p class="bp2" style="margin-bottom:36px;font-size:15px;color:var(--text-faint)">The bars are an AVEC: four scores from 0 to 1 stored with the memory. Recall ranks by how close they are to the current situation. Psi (ψ) is computed from them, so another system can check coherence without the original history.</p>
-        <div style="font-family:var(--fm);font-size:12px;color:var(--text-faint)">
-          <div class="ab"><span style="color:rgba(77,191,160,.7)">stability</span><div class="at"><div class="af" style="width:90%;background:rgba(77,191,160,.4)"></div></div><span>0.90</span></div>
-          <div class="ab"><span style="color:rgba(196,96,128,.7)">friction</span><div class="at"><div class="af" style="width:20%;background:rgba(196,96,128,.4)"></div></div><span>0.20</span></div>
-          <div class="ab"><span style="color:rgba(80,144,208,.7)">logic</span><div class="at"><div class="af" style="width:98%;background:rgba(80,144,208,.4)"></div></div><span>0.98</span></div>
-          <div class="ab"><span style="color:rgba(139,110,196,.7)">autonomy</span><div class="at"><div class="af" style="width:85%;background:rgba(139,110,196,.4)"></div></div><span>0.85</span></div>
-          <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--mist);display:flex;align-items:center;gap:12px">
-            <span style="color:rgba(255,255,255,.35)">ψ coherence</span>
-            <span style="font-size:20px;font-family:var(--fd);font-style:italic;color:rgba(160,128,216,.8)">2.93</span>
-            <span style="margin-left:auto;font-size:12px;letter-spacing:.1em;color:rgba(212,148,58,.55)">computed, not authored</span>
-          </div>
-        </div>
-      </div>
-      <div class="sr" style="transition-delay:.15s">
-        <div class="dc diagram-md">
-          <svg width="100%" viewBox="0 0 400 360" style="display:block">
-            <circle cx="200" cy="180" r="150" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
-            <circle cx="200" cy="180" r="112" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
-            <circle cx="200" cy="180" r="75"  fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
-            <circle cx="200" cy="180" r="37"  fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
-            <line x1="200" y1="30"  x2="200" y2="330" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
-            <line x1="50"  y1="180" x2="350" y2="180" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
-            <polygon points="200,45 230,180 200,327 73,180" fill="rgba(139,110,196,.13)" stroke="rgba(139,110,196,.5)" stroke-width=".75"/>
-            <circle cx="200" cy="45"  r="4" fill="rgba(77,191,160,.85)"/>
-            <circle cx="230" cy="180" r="4" fill="rgba(196,96,128,.85)"/>
-            <circle cx="200" cy="327" r="4" fill="rgba(80,144,208,.85)"/>
-            <circle cx="73"  cy="180" r="4" fill="rgba(139,110,196,.85)"/>
-            <circle cx="200" cy="180" r="6" fill="rgba(139,110,196,.8)"/>
-            <circle cx="200" cy="180" r="6" fill="none" stroke="rgba(160,128,216,.35)" stroke-width="1" style="animation:pr 3s ease-out infinite"/>
-            <text x="200" y="29"  text-anchor="middle" font-family="'JetBrains Mono'" font-size="10" fill="rgba(77,191,160,.6)">stability 0.90</text>
-            <text x="238" y="184" font-family="'JetBrains Mono'" font-size="10" fill="rgba(196,96,128,.6)">friction 0.20</text>
-            <text x="200" y="350" text-anchor="middle" font-family="'JetBrains Mono'" font-size="10" fill="rgba(80,144,208,.6)">logic 0.98</text>
-            <text x="66"  y="172" text-anchor="end" font-family="'JetBrains Mono'" font-size="10" fill="rgba(139,110,196,.6)">autonomy</text>
-            <text x="66"  y="186" text-anchor="end" font-family="'JetBrains Mono'" font-size="10" fill="rgba(139,110,196,.6)">0.85</text>
-            <text x="200" y="184" text-anchor="middle" font-family="'DM Serif Display'" font-style="italic" font-size="13" fill="rgba(255,255,255,.18)">ψ 2.93</text>
-          </svg>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ECOSYSTEM + CTA -->
-<section class="ss" style="padding:100px 0 100px">
-  <div class="wrap sr center-copy">
-    <span class="ml" style="display:block">How the pieces fit</span>
-    <h2 class="dh">STTP is the format.<br>Locus is the memory.</h2>
-    <p class="bp2" style="margin:0 auto 48px">Any agent, tool, or service that speaks STTP can use Locus as its memory. <a href="https://resonantia.me" target="_blank" rel="noopener noreferrer" style="color:var(--teal);text-decoration:none">Resonantia</a> is one product built on that stack.</p>
-    <div class="eco-stack" style="display:inline-flex;flex-direction:column;align-items:stretch;gap:1px;font-family:var(--fm);font-size:11px;color:var(--text-faint);margin-bottom:56px;min-width:360px">
-      <div style="padding:12px 28px;background:var(--nebula);border:1px solid var(--mist2);border-radius:2px 2px 0 0;color:rgba(77,191,160,.6);text-align:center">your app · Resonantia · any STTP agent</div>
-      <div style="padding:12px 28px;background:var(--surface);border:1px solid var(--mist2);text-align:center;color:rgba(139,110,196,.7)">Locus · the memory</div>
-      <div style="padding:12px 28px;background:var(--nebula);border:1px solid var(--mist2);border-radius:0 0 2px 2px;text-align:center;color:rgba(255,255,255,.25)">STTP · the record format</div>
-    </div>
-    <div style="font-family:var(--fm);font-size:12px;color:var(--text-faint);background:var(--nebula);border:1px solid var(--mist2);border-radius:3px;padding:20px 28px;text-align:left;max-width:500px;margin:0 auto 44px">
-      <div style="margin-bottom:8px;font-size:12px;letter-spacing:.1em;color:rgba(255,255,255,.2)">MCP server · one command</div>
-      <span style="color:rgba(255,255,255,.2)">$ </span><span style="color:rgba(77,191,160,.7)">docker run</span> --rm -i \<br>
-      &nbsp;&nbsp;-v "$PWD/locus-data:/data" \<br>
-      &nbsp;&nbsp;<span style="color:rgba(139,110,196,.55)">ghcr.io/entasislabs/locus-mcp:0.1.0</span>
-    </div>
-    <div class="cta-row" style="display:flex;gap:14px;justify-content:center">
-      <a href="quickstart.html" class="btn bp">Get started</a>
-      <a href="https://github.com/entasislabs/locus" class="btn bg" target="_blank" rel="noopener noreferrer">View on GitHub</a>
-    </div>
-  </div>
-</section>
 
 </main>
 <footer>
