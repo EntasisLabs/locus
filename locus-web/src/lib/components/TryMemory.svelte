@@ -124,7 +124,7 @@
 	};
 
 	const samples = [
-		'We decided the parser should accept both strict and tolerant STTP.',
+		'We decided the parser should accept both strict and tolerant modes.',
 		'The homepage demo stays in this browser. Nothing is uploaded.',
 		'Monthly summaries keep the scores even after the writeup gets shorter.'
 	];
@@ -397,7 +397,7 @@
 			<span class="ml">Try it</span>
 			<h2 class="dh">Save a note. Ask for it back.</h2>
 			<p class="try-intro">
-				Type a note, save it, then ask for it back. Everything stays in this browser.
+				Type a note, save it, then ask for it back.
 			</p>
 			<p class="try-privacy">In this browser only. Refreshing the page clears it.</p>
 			{#if status}
