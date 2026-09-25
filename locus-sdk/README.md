@@ -26,6 +26,7 @@ Implemented primitives and services:
 4. memory_transform
 5. memory_explain
 6. memory_schema
+7. memory_reflex
 
 Implemented composition workflows:
 
@@ -47,6 +48,7 @@ This matrix is intended as a fast contract reference for users, maintainers, and
 | memory_transform | selector + operation + dry_run + execution controls | mutation execution summary + failures | Explicit dry-run and bounded batch execution |
 | memory_explain | recall request payload | stage counts + fallback reason + scoring profile | Explain trace derived from the same recall contract |
 | memory_schema | none | supported fields, modes, and operations | Introspection is explicit and versioned |
+| memory_reflex | stimulus (text, role, scope) | bus envelope: action, salience, propositions, gated payload | Same gate for every decider. Low confidence, low salience, or disagreeing propositions do not dispatch |
 
 ## Composition Matrix
 
@@ -57,6 +59,43 @@ This matrix is intended as a fast contract reference for users, maintainers, and
 | transform_then_recall_verify | memory_transform + memory_recall | migration/backfill verification loops |
 | capability_bundle | memory_schema | dynamic client and agent capability discovery |
 | build_content_from_text | manual_compression + composition policy resolver | recursive deterministic content-layer construction from role-tagged text |
+
+## Reactive memory
+
+The primitives above run when the caller already knows the operation. `MemoryReflexService` is the step before that. A host passes a `MemoryStimulus` — the body an event bus would have delivered — and an attached System 1 decider answers five typed questions in one pass:
+
+1. `choice` `action`: ignore, recall, find, persist, explain, or aggregate.
+2. `score` `salience`: how strongly memory has to be touched.
+3. `noul` `references_prior`, `should_persist`, and `needs_system2`.
+
+The service does not subscribe, publish, or open a store. It returns a `MemoryReflex` envelope. Publish `MemoryReflexResponseDto` on the bus you already have. The `topic` is a stable name (`locus.memory.recall`, `locus.memory.escalate`, and the other `locus.memory.*` names) for the host to map. Recall, find, aggregate, and persist payloads are filled only when the gate accepts the decision. `Ignore` and `Escalate` carry no runnable request.
+
+Attach a decider:
+
+1. `HttpSystem1` posts the catalog to `POST /v1/systemone` (Laya `laya-serve`, the Rust `sys1` server, or a Jev-compatible host). Pin `typed-decisions` when that checkpoint matches the workload.
+2. `HeuristicSystem1` answers the same questions with lexical cues. It keeps the primitive usable offline. It is not a calibrated checkpoint.
+3. `request_for` plus `System1Response::parse_wire` plus `apply` when the host already ran Laya (Python, MLX, ONNX) and only wants the gate.
+
+```rust
+let reflex = MemoryReflexService::new(Arc::new(
+    HttpSystem1::new("http://127.0.0.1:8000").with_model("typed-decisions"),
+));
+let envelope = reflex.decide(&stimulus).await?;
+```
+
+Gate defaults:
+
+1. `needs_system2` at or above 0.70 escalates.
+2. Choice or salience confidence below 0.55 escalates.
+3. Normalized salience below 0.34 ignores the stimulus, unless a proposition still says memory matters, which escalates.
+4. Read actions require `references_prior` of at least 0.45.
+5. Persist requires `should_persist` of at least 0.45.
+
+The subscriber on the other side of the bus calls `MemoryRecallService` and the other primitives. The reflex never does.
+
+```bash
+cargo run -p locus-sdk --example memory_reflex
+```
 
 ## Deterministic Compression and Composite Construction
 
