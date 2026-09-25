@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+### Added
+
+- **Reactive memory reflex (schema v4)**: `MemoryReflexService` turns a stimulus into a bus envelope by attaching a System 1 decider. The decider answers `choice` / `score` / `noul` questions (the Laya and Jev `/v1/systemone` contract). The gate dispatches recall, find, persist, explain, or aggregate only when confidence, salience, and the propositions agree. Otherwise the envelope is `ignore` or `escalate` and carries no runnable request.
+- `HttpSystem1` posts that catalog to a Laya, `sys1`, or Jev-compatible endpoint. `HeuristicSystem1` answers the same questions offline. `request_for` + `apply` accepts a forward pass the host already ran.
+- The service does not subscribe, publish, or open a store. `topic` names (`locus.memory.*`) are for the host's own bus. Schema introspection adds `reflex_actions` and `decision_types`.
+
 ## [0.4.0] - 2026-09-22
 
 ### Added

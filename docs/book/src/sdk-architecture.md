@@ -59,8 +59,11 @@ Primary services:
 - `MemoryTransformService`
 - `MemoryCompositionService`
 - `MemorySchemaService`
+- `MemoryReflexService`
 - `ManualCompressionService`
 - AI routing helpers (`ai_router.rs`, `routing_config.rs`)
+
+`MemoryReflexService` attaches a System 1 decider (`choice`, `score`, `noul`) and returns a bus envelope. It does not subscribe, publish, or run the memory primitive. See the SDK README for the gate and the `POST /v1/systemone` adapter.
 
 ### 3.3 Infrastructure Layer
 - `InMemoryAiProviderRegistry`

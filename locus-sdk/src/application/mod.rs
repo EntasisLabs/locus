@@ -14,6 +14,7 @@ pub mod memory_find;
 pub mod memory_graph;
 pub mod memory_lexical;
 pub mod memory_recall;
+pub mod memory_reflex;
 pub mod memory_schema;
 pub mod memory_transform;
 pub mod routing_config;
