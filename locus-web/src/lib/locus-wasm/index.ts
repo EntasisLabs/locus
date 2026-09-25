@@ -1,6 +1,7 @@
 import wasmInit, {
 	initSync,
 	WasmLocusClient,
+	compile_note,
 	compress_text,
 	connect_indxdb_client,
 	connect_mem_surreal_client,
@@ -25,6 +26,7 @@ export {
 	initSync,
 	WasmLocusClient,
 	WasmLocusClient as LocusClient,
+	compile_note,
 	compress_text,
 	connect_indxdb_client,
 	connect_mem_surreal_client,
