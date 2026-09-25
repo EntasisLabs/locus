@@ -31,7 +31,7 @@
 
 <nav>
 	<a href={resolve('/')} class="nl" onclick={() => closeMenu()}>
-		<img src="/brand/locus-lockup-horizontal-white.svg" alt="Locus" />
+		<img src="/brand/locus-symbol-white.svg" alt="Locus" />
 	</a>
 	<button
 		type="button"
@@ -184,10 +184,6 @@
 		nav {
 			padding: 8px 14px;
 			gap: 12px;
-		}
-
-		.nl img {
-			height: 26px;
 		}
 
 		.menu-btn {
