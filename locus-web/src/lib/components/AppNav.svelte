@@ -5,7 +5,9 @@
 </script>
 
 <nav>
-	<a href={resolve('/')} class="nl">Locus</a>
+	<a href={resolve('/')} class="nl">
+		<img src="/brand/locus-lockup-horizontal-white.svg" alt="Locus" />
+	</a>
 	<ul class="na">
 		<li><span class="status-dot" aria-hidden="true"></span></li>
 		<li>
@@ -61,11 +63,15 @@
 	}
 
 	.nl {
-		font-family: 'DM Serif Display', Georgia, serif;
-		font-size: 21px;
-		letter-spacing: 0.01em;
-		color: rgba(255, 255, 255, 0.9);
+		display: flex;
+		align-items: center;
 		text-decoration: none;
+	}
+
+	.nl img {
+		height: 32px;
+		width: auto;
+		display: block;
 	}
 
 	.na {
@@ -125,8 +131,8 @@
 			gap: 12px;
 		}
 
-		.nl {
-			font-size: 19px;
+		.nl img {
+			height: 28px;
 		}
 
 		.na {

@@ -57,7 +57,6 @@
 		content="Locus keeps useful context across time. STTP is the format that organizes it."
 	/>
 	<meta name="twitter:image" content="/locus_final_transparent.png" />
-	<link rel="icon" type="image/png" href="/locus_final_transparent.png" />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 	<link
@@ -72,8 +71,7 @@
 <main>
 	<section class="hero">
 		<div class="hero-logo-wrap">
-			<div class="hero-glow"></div>
-			<img src="/locus_final_transparent.png" alt="Locus" class="hero-logo" />
+			<img src="/brand/locus-lockup-stacked-white.svg" alt="Locus" class="hero-logo" />
 		</div>
 		<h1 class="ht" style="animation-delay:.5s">
 			Typed, compiled,<br />and testable<br />AI memory.
@@ -86,10 +84,12 @@
 		<div class="ha" style="animation-delay:1s">
 			<a href={resolve('/quickstart')} class="btn bp">Get started</a>
 			<a href="#try" class="btn bg">Try it</a>
-			<a href="#how" class="btn bg">How it works</a>
-			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={technicalDocsHref} class="btn bg">Technical docs</a>
-			<a href={githubHref} class="btn bg" target="_blank" rel="noopener noreferrer">GitHub</a>
+			<div class="ha-links">
+				<a href="#how">How it works</a>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href={technicalDocsHref}>Technical docs</a>
+				<a href={githubHref} target="_blank" rel="noopener noreferrer">GitHub</a>
+			</div>
 		</div>
 	</section>
 
@@ -1160,30 +1160,11 @@
 		margin-bottom: 4px;
 	}
 
-	.hero-glow {
-		position: absolute;
-		left: 50%;
-		bottom: 6%;
-		width: 58%;
-		height: 28%;
-		transform: translateX(-50%);
-		background: radial-gradient(
-			ellipse,
-			rgba(255, 255, 255, 0.2) 0%,
-			rgba(139, 110, 196, 0.14) 42%,
-			transparent 72%
-		);
-		filter: blur(16px);
-		pointer-events: none;
-	}
-
 	.hero-logo {
-		width: 300px;
+		width: 280px;
 		height: auto;
 		object-fit: contain;
-		position: relative;
-		z-index: 1;
-		filter: drop-shadow(0 0 40px rgba(139, 110, 196, 0.18));
+		display: block;
 	}
 
 	.hl {
@@ -1227,9 +1208,31 @@
 
 	.ha {
 		display: flex;
-		gap: 14px;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 14px 18px;
 		opacity: 0;
 		animation: fu 1s 0.9s ease forwards;
+	}
+
+	.ha-links {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 8px 18px;
+	}
+
+	.ha-links a {
+		color: var(--text-dim);
+		font-size: 14px;
+		font-weight: 500;
+		text-decoration: none;
+	}
+
+	.ha-links a:hover {
+		color: var(--star);
 	}
 
 	.sr {

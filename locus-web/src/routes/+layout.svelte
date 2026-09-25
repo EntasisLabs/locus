@@ -19,7 +19,9 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href={favicon} type="image/svg+xml" />
+	<link rel="icon" href="/favicon.ico" sizes="any" />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 	<meta name="robots" content="index, follow" />
 	<link rel="canonical" href={canonicalHref} />
 	<meta property="og:site_name" content={siteName} />
