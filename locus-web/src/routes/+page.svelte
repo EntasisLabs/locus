@@ -1682,25 +1682,30 @@
 
 		.hero {
 			min-height: auto;
-			padding: 108px 16px 64px;
+			padding: 72px 20px 40px;
+			justify-content: flex-start;
+		}
+
+		.hero-logo-wrap {
+			margin-bottom: 2px;
 		}
 
 		.hero-logo {
-			width: min(70vw, 260px);
+			width: 180px;
 			height: auto;
 		}
 
 		.ht {
-			font-size: clamp(36px, 11vw, 52px);
-			line-height: 1;
-			margin-bottom: 16px;
+			font-size: clamp(34px, 9.2vw, 44px);
+			line-height: 1.05;
+			margin-bottom: 10px;
 		}
 
 		.hs {
-			font-size: 17px;
-			line-height: 1.64;
+			font-size: 16px;
+			line-height: 1.55;
 			max-width: 34ch;
-			margin-bottom: 30px;
+			margin-bottom: 16px;
 		}
 
 		.ha {
