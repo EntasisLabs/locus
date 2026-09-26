@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-09-26
+
+### Changed
+
+- `version()` DTO now reports `core` 0.5.1 and `sdk` 0.5.0.
+- Dependency alignment: `locus-sdk` 0.5.0. `locus-core-rs` 0.5.1 and `locus-surreal-adapter` 0.1.1 are unchanged. The memory reflex is not exported from the WASM surface in this release.
+
 ## [0.1.2] - 2026-09-22
 
 ### Changed

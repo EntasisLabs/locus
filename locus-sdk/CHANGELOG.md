@@ -6,11 +6,24 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-26
+
 ### Added
 
 - **Reactive memory reflex (schema v4)**: `MemoryReflexService` turns a stimulus into a bus envelope by attaching a System 1 decider. The decider answers `choice` / `score` / `noul` questions (the Laya and Jev `/v1/systemone` contract). The gate dispatches recall, find, persist, explain, or aggregate only when confidence, salience, and the propositions agree. Otherwise the envelope is `ignore` or `escalate` and carries no runnable request.
 - `HttpSystem1` posts that catalog to a Laya, `sys1`, or Jev-compatible endpoint. `HeuristicSystem1` answers the same questions offline. `request_for` + `apply` accepts a forward pass the host already ran.
 - The service does not subscribe, publish, or open a store. `topic` names (`locus.memory.*`) are for the host's own bus. Schema introspection adds `reflex_actions` and `decision_types`.
+
+### Changed
+
+- Memory schema version is `locus-sdk.memory.v4`.
+- Still depends on `locus-core-rs` 0.5.1. Core and `locus-surreal-adapter` are not part of this release.
+
+### Parity
+
+- Find, recall, explain, aggregate, transform, and evict contracts are unchanged. The reflex does not run them.
+- MCP, gateway, and CLI do not expose the reflex in this release. They only retarget the SDK dependency.
+- Validation: `cargo test -p locus-sdk --lib` covers the gate, the offline decider, and a Laya-shaped `/v1/systemone` body.
 
 ## [0.4.0] - 2026-09-22
 
