@@ -1,4 +1,5 @@
-use crate::domain::memory::MemorySchemaResult;
+use crate::domain::memory::{MEMORY_SCHEMA_VERSION, MemorySchemaResult};
+use crate::domain::reflex::MemoryAction;
 
 pub struct MemorySchemaService;
 
@@ -9,7 +10,7 @@ impl MemorySchemaService {
 
     pub fn execute(&self) -> MemorySchemaResult {
         MemorySchemaResult {
-            schema_version: "locus-sdk.memory.v3".to_string(),
+            schema_version: MEMORY_SCHEMA_VERSION.to_string(),
             sort_fields: vec![
                 "timestamp".to_string(),
                 "updated_at".to_string(),
@@ -56,9 +57,15 @@ impl MemorySchemaService {
                 "embed_tag_backfill".to_string(),
                 "reindex_tag_embeddings".to_string(),
             ],
-            evict_operations: vec![
-                "delete_nodes".to_string(),
-                "purge_session".to_string(),
+            evict_operations: vec!["delete_nodes".to_string(), "purge_session".to_string()],
+            reflex_actions: MemoryAction::all()
+                .iter()
+                .map(|action| action.as_str().to_string())
+                .collect(),
+            decision_types: vec![
+                "choice".to_string(),
+                "score".to_string(),
+                "noul".to_string(),
             ],
         }
     }
@@ -79,13 +86,17 @@ mod tests {
         let service = MemorySchemaService::new();
         let schema = service.execute();
 
-        assert_eq!(schema.schema_version, "locus-sdk.memory.v3");
+        assert_eq!(schema.schema_version, "locus-sdk.memory.v4");
+        assert!(schema.reflex_actions.contains(&"recall".to_string()));
+        assert!(schema.decision_types.contains(&"noul".to_string()));
         assert!(schema.sort_fields.contains(&"timestamp".to_string()));
         assert!(schema.group_by_fields.contains(&"session_id".to_string()));
         assert!(schema.fallback_policies.contains(&"on_empty".to_string()));
-        assert!(schema
-            .transform_operations
-            .contains(&"embed_backfill".to_string()));
+        assert!(
+            schema
+                .transform_operations
+                .contains(&"embed_backfill".to_string())
+        );
         assert!(schema.filter_fields.contains(&"has_tag".to_string()));
     }
 
@@ -94,14 +105,8 @@ mod tests {
         let service = MemorySchemaService::new();
         let schema = service.execute();
 
-        assert!(schema
-            .filter_fields
-            .contains(&"tags_contains".to_string()));
-        assert!(schema
-            .filter_fields
-            .contains(&"indexed_tags".to_string()));
-        assert!(schema
-            .filter_fields
-            .contains(&"link_rel".to_string()));
+        assert!(schema.filter_fields.contains(&"tags_contains".to_string()));
+        assert!(schema.filter_fields.contains(&"indexed_tags".to_string()));
+        assert!(schema.filter_fields.contains(&"link_rel".to_string()));
     }
 }

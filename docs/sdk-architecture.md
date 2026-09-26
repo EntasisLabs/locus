@@ -60,6 +60,7 @@ Primary services:
 - `MemoryEvictService`
 - `MemoryCompositionService`
 - `MemorySchemaService`
+- `MemoryReflexService`
 - `ManualCompressionService`
 - AI routing helpers (`ai_router.rs`, `routing_config.rs`)
 
@@ -153,6 +154,20 @@ Schema version: `locus-sdk.memory.v2`.
 - Transport parity: `POST /api/v1/evict`, MCP `evict_nodes`, CLI `locus evict`.
 
 Schema version: `locus-sdk.memory.v3` (adds `evict_operations`: `delete_nodes`, `purge_session`).
+
+### 4.1.3 Memory reflex (v4)
+
+`MemoryReflexService` is the reactive edge in front of the passive primitives. A host submits a `MemoryStimulus` and an attached `System1Decider`. The decider answers one `choice` (`action`), one `score` (`salience`), and three `noul` propositions (`references_prior`, `should_persist`, `needs_system2`) in a single decision pass. The gate then emits a `MemoryReflex` envelope.
+
+The envelope is the bus message. This crate does not subscribe, publish, buffer, or run the chosen primitive. `topic` is a stable name (`locus.memory.recall`, `locus.memory.escalate`, and the other `locus.memory.*` topics) the host maps onto its own bus. Runnable payloads are present only when the gate accepts the decision.
+
+Deciders:
+
+- `HttpSystem1` — `POST /v1/systemone`, the wire shared by Laya, `sys1`, and Jev.
+- `HeuristicSystem1` — offline lexical answers for the same catalog.
+- `request_for` + `apply` — the host already ran a checkpoint and only needs the gate.
+
+Schema version: `locus-sdk.memory.v4` (adds `reflex_actions` and `decision_types`: `choice`, `score`, `noul`).
 
 ### 4.2 Transform and Provider Resolution
 ```mermaid

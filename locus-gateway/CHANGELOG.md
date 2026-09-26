@@ -5,6 +5,13 @@ For historical entries before this split, see ../CHANGELOG.md.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-09-26
+
+### Changed
+
+- Dependency alignment: `locus-sdk` 0.5.0. `locus-core-rs` 0.5.1 and `locus-surreal-adapter` 0.1.1 are unchanged.
+- No new HTTP or gRPC route. The SDK memory reflex stays on the library surface.
+
 ## [0.5.0] - 2026-09-22
 
 ### Changed

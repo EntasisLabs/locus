@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
+use locus_core_rs::domain::models::{AvecState, PsiRange, SttpNode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use locus_core_rs::domain::models::{AvecState, PsiRange, SttpNode};
 
 use crate::application::memory_composition::{
     CompositeInputItem, CompositeNodeFromTextOptions, CompositeNodeFromTextRequest,
@@ -11,12 +11,13 @@ use crate::application::memory_composition::{
 };
 use crate::domain::memory::{
     FallbackPolicy, MemoryAggregateRequest, MemoryAggregateResult, MemoryExplainRequest,
-    MemoryExplainResult, MemoryFilter,
-    MemoryFindRequest, MemoryFindResult, MemoryGroupBy, MemoryPage, MemoryRecallRequest,
-    MemoryRecallResult, MemorySchemaResult, MemoryScope, MemoryScoring, MemorySort,
-    MemoryTransformOperation,
-    MemoryTransformRequest, MemoryTransformResult, MetricRange, NumericStats, RetrievalPath,
-    StrictnessMode,
+    MemoryExplainResult, MemoryFilter, MemoryFindRequest, MemoryFindResult, MemoryGroupBy,
+    MemoryPage, MemoryRecallRequest, MemoryRecallResult, MemorySchemaResult, MemoryScope,
+    MemoryScoring, MemorySort, MemoryTransformOperation, MemoryTransformRequest,
+    MemoryTransformResult, MetricRange, NumericStats, RetrievalPath, StrictnessMode,
+};
+use crate::domain::reflex::{
+    MemoryAction, MemoryPersistHint, MemoryPropositions, MemoryReflex, MemoryReflexKind, ReflexGate,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -807,6 +808,9 @@ pub struct MemorySchemaResponseDto {
     pub fallback_policies: Vec<String>,
     pub strictness_modes: Vec<String>,
     pub transform_operations: Vec<String>,
+    pub evict_operations: Vec<String>,
+    pub reflex_actions: Vec<String>,
+    pub decision_types: Vec<String>,
 }
 
 impl From<MemorySchemaResult> for MemorySchemaResponseDto {
@@ -819,6 +823,112 @@ impl From<MemorySchemaResult> for MemorySchemaResponseDto {
             fallback_policies: value.fallback_policies,
             strictness_modes: value.strictness_modes,
             transform_operations: value.transform_operations,
+            evict_operations: value.evict_operations,
+            reflex_actions: value.reflex_actions,
+            decision_types: value.decision_types,
+        }
+    }
+}
+
+impl From<MemoryRecallRequest> for MemoryRecallRequestDto {
+    fn from(value: MemoryRecallRequest) -> Self {
+        Self {
+            scope: value.scope.into(),
+            filter: value.filter.into(),
+            page: value.page.into(),
+            scoring: value.scoring.into(),
+            current_avec: value.current_avec.map(Into::into),
+            query_text: value.query_text,
+            query_embedding: value.query_embedding,
+            query_tag_embedding: value.query_tag_embedding,
+        }
+    }
+}
+
+impl From<MemoryFindRequest> for MemoryFindRequestDto {
+    fn from(value: MemoryFindRequest) -> Self {
+        Self {
+            scope: value.scope.into(),
+            filter: value.filter.into(),
+            page: value.page.into(),
+            sort: value.sort,
+        }
+    }
+}
+
+impl From<MemoryAggregateRequest> for MemoryAggregateRequestDto {
+    fn from(value: MemoryAggregateRequest) -> Self {
+        Self {
+            scope: value.scope.into(),
+            filter: value.filter.into(),
+            group_by: value.group_by,
+            max_groups: value.max_groups,
+            max_nodes: value.max_nodes,
+        }
+    }
+}
+
+/// Serializable reflex envelope. This is the message a host publishes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MemoryReflexResponseDto {
+    pub schema_version: String,
+    pub stimulus_id: String,
+    pub stimulus_text: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    pub scope: MemoryScopeDto,
+    pub kind: MemoryReflexKind,
+    pub action: MemoryAction,
+    pub topic: String,
+    pub salience: f32,
+    pub salience_label: String,
+    pub salience_confidence: f32,
+    pub confidence: f32,
+    pub propositions: MemoryPropositions,
+    pub gate: ReflexGate,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub companions: Vec<MemoryAction>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recall: Option<MemoryRecallRequestDto>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub find: Option<MemoryFindRequestDto>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aggregate: Option<MemoryAggregateRequestDto>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub persist: Option<MemoryPersistHint>,
+    pub decider_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checkpoint: Option<String>,
+    #[serde(default)]
+    pub metadata: serde_json::Map<String, Value>,
+}
+
+impl From<MemoryReflex> for MemoryReflexResponseDto {
+    fn from(value: MemoryReflex) -> Self {
+        Self {
+            schema_version: value.schema_version,
+            stimulus_id: value.stimulus_id,
+            stimulus_text: value.stimulus_text,
+            role: value.role,
+            scope: value.scope.into(),
+            kind: value.kind,
+            action: value.action,
+            topic: value.topic,
+            salience: value.salience,
+            salience_label: value.salience_label,
+            salience_confidence: value.salience_confidence,
+            confidence: value.confidence,
+            propositions: value.propositions,
+            gate: value.gate,
+            companions: value.companions,
+            recall: value.recall.map(Into::into),
+            find: value.find.map(Into::into),
+            aggregate: value.aggregate.map(Into::into),
+            persist: value.persist,
+            decider_id: value.decider_id,
+            checkpoint: value.checkpoint,
+            metadata: value.metadata,
         }
     }
 }

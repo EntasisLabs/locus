@@ -230,6 +230,8 @@ pub struct MemoryExplainResult {
     pub scoring: MemoryScoring,
 }
 
+pub const MEMORY_SCHEMA_VERSION: &str = "locus-sdk.memory.v4";
+
 #[derive(Debug, Clone, Default)]
 pub struct MemorySchemaResult {
     pub schema_version: String,
@@ -240,6 +242,8 @@ pub struct MemorySchemaResult {
     pub strictness_modes: Vec<String>,
     pub transform_operations: Vec<String>,
     pub evict_operations: Vec<String>,
+    pub reflex_actions: Vec<String>,
+    pub decision_types: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

@@ -4,6 +4,13 @@ All notable changes specific to locus-cli are documented in this file.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-26
+
+### Changed
+
+- Dependency alignment: `locus-sdk` 0.5.0. `locus-core-rs` 0.5.1 and `locus-surreal-adapter` 0.1.1 are unchanged.
+- No new CLI command. The SDK memory reflex stays on the library surface.
+
 ## [0.4.0] - 2026-09-22
 
 ### Changed
