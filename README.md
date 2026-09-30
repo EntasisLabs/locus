@@ -1,127 +1,86 @@
+# Locus
 
-<p align="center">
-	<img width="599" height="534" alt="image" src="https://github.com/user-attachments/assets/6f5121a9-1102-4a84-bf40-bded0f79012e" />
-</p>
+Typed memory for agents: store context, recall it later, and explain continuity across sessions.
 
+Locus is a set of composable Rust crates, not a UI product. The same memory behavior is available in-process ([locus-sdk](locus-sdk/README.md)), over stdio ([locus-mcp](locus-mcp/README.md)), over HTTP and gRPC ([locus-gateway](locus-gateway/README.md)), and from a terminal ([locus-cli](locus-cli/README.md)).
 
----
-# Locus - **Intelligence requires a place to stand.**
-
-Language models are stateless by default, existing in a vacuum of the "now." To move beyond fleeting chat sessions and into enduring agency, information requires a stable environment.
-
-In the ancient **Method of Loci**, memory was mastered by anchoring ideas to physical landmarks turning abstract thoughts into a navigable palace.
-
-**Locus** is the architectural realization of that palace for the STTP protocol.
-
-It is the infrastructure of "where." By providing a standalone implementation layer for memory operations, Locus ensures that context is no longer a transient variable, but a persistent coordinate. Whether accessed via a gateway, a terminal, or an embedded surface, the memory remains spatially consistent and protocol-aligned.
-
-We build Locus because for an agent to reason, it must first remember; and to remember, it must have a place to return to.
-
----
-
-How this connects to STTP:
-
-- **The Spatial Anchor:** Just as the Method of Loci uses _loci_ (places) to store data, Locus uses the STTP protocol to define the "geometry" of memory—making context retrievable through structural navigation rather than just keyword searching.
-- **Spatio-Temporal Continuity:** By decoupling the memory layer, we ensure that the "Spatio" (the location of the data) and the "Temporal" (the persistence over time) are preserved regardless of which model or interface is interacting with it.
-- **Infrastructure over Magic:** Locus does not offer "vague magic." It offers the raw, visible machinery of a memory palace, giving both developers and agents a living system to reason within.
-
-
+**STTP** is the typed intermediate representation each memory node is written in: four ordered layers (provenance, envelope, content, metrics) that are parsed and validated before storage. **AVEC** is the state vector on that node (`stability`, `friction`, `logic`, `autonomy`, and `psi`, their sum). Recall ranks stored nodes against the caller's current AVEC, with optional semantic signals. Protocol spec: [docs/sttp_typed_ir_language_spec.md](docs/sttp_typed_ir_language_spec.md).
 
 Licensed under [Apache-2.0](LICENSE).
 
-## Who This Is For
+## Install and run
 
-Locus is useful if you are one of the following:
+Tags match crate versions in `Cargo.toml` on this branch. Replace a tag when you pin a different release. Mount a volume when host state should survive the container, and keep dev and production data paths separate.
 
-1. Platform engineer needing deployable memory services over HTTP/gRPC or MCP.
-2. Application engineer embedding memory primitives directly in Rust code.
-3. AI tooling engineer integrating persistent context retrieval into model workflows.
-4. Non-technical and semi-technical users exploring AI agents who want simple memory setup with minimal infrastructure overhead.
-5. Release manager owning independent component version lines and artifacts.
-
-Locus is not a product UI and not a single opinionated deployment framework. It is infrastructure you can compose.
-
-For non-technical users, the intended entry path is:
-
-1. Start with MCP using containerized defaults.
-2. Use prebuilt images and standard tool flows first.
-3. Move to CLI Skills workflows as that surface is added.
-
-## Why This Moment Matters
-
-AI usage is shifting from prompt-only chat sessions to always-on agent workflows.
-
-In that shift, memory and reusable action surfaces become foundational:
-
-1. Memory keeps continuity across sessions, tools, and models.
-2. Skills convert one-off prompt behavior into repeatable operational actions.
-3. Lightweight local-first setup lowers the barrier for non-technical adoption.
-
-Locus is being shaped for that direction: strong memory first, with MCP today and CLI Skills support as the next usability layer.
-
-## What Ships In This Repository
-
-Workspace crates:
-
-1. [locus-core-rs/README.md](locus-core-rs/README.md): parser/validator, domain contracts, storage abstractions, retrieval services, sync-ready mechanics.
-2. [locus-sdk/README.md](locus-sdk/README.md): primitive-first SDK and composition workflows.
-3. [locus-mcp/README.md](locus-mcp/README.md): stdio MCP server exposing memory tools.
-4. [locus-gateway/README.md](locus-gateway/README.md): deployable Rust gateway with HTTP + gRPC.
-5. [locus-cli/README.md](locus-cli/README.md): operator-friendly SDK-backed CLI for common memory workflows.
-
-Operational docs:
-
-1. [docs/README.md](docs/README.md)
-2. [docs/architecture.md](docs/architecture.md)
-3. [docs/deployment.md](docs/deployment.md)
-4. [docs/operations.md](docs/operations.md)
-5. [docs/integration.md](docs/integration.md)
-6. [docs/examples.md](docs/examples.md)
-7. [docs/troubleshooting.md](docs/troubleshooting.md)
-8. [docs/versioning.md](docs/versioning.md)
-9. [docs/security.md](docs/security.md)
-10. [docs/sttp_typed_ir_language_spec.md](docs/sttp_typed_ir_language_spec.md)
-
-## Technical Docs Site (mdBook + rustdoc)
-
-Locus now supports a generated technical docs site that combines narrative guides and API reference.
-
-Build from repo root:
+### MCP image — `locus-mcp` 0.4.1
 
 ```bash
-./docs/build-technical-docs.sh
+docker run --rm -i -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-mcp:0.4.1
 ```
 
-Generated output:
+### Gateway image — `locus-gateway` 0.5.1
 
-1. `docs/technical/book/index.html` (mdBook guide set)
-2. `docs/technical/api/index.html` (workspace rustdoc)
-3. `docs/technical/index.html` (combined entrypoint)
+```bash
+docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-gateway:0.5.1
+```
 
-Recommended first technical pages:
+HTTP listens on `8080`. gRPC listens on `8081`.
 
-1. `docs/book/src/environment-setup.md` (tooling and environment baseline)
-2. `docs/book/src/deployment.md` (runtime profiles and release readiness)
-3. `docs/book/src/integration.md` (contract-safe migration and rollout gates)
+### SDK — `locus-sdk` 0.5.0
 
-Requirements:
+Published on crates.io:
 
-1. `mdbook` installed (`cargo install mdbook`)
-2. `mdbook-mermaid` installed (`cargo install mdbook-mermaid`)
-3. Standard Rust toolchain for `cargo doc`
+```toml
+locus-sdk = "0.5.0"
+```
 
-## Start Path By Goal
+From this repository, run the System 1 envelope example:
 
-If you are deciding where to begin:
+```bash
+cargo run -p locus-sdk --example memory_reflex
+```
 
-1. I need a Rust API now: start with [locus-core-rs/README.md](locus-core-rs/README.md) and [locus-sdk/README.md](locus-sdk/README.md).
-2. I need memory tools in an MCP client: start with [locus-mcp/README.md](locus-mcp/README.md).
-3. I need a network host for apps/services: start with [locus-gateway/README.md](locus-gateway/README.md).
-4. I want terminal-first workflows without writing service code: start with [locus-cli/README.md](locus-cli/README.md).
-5. I am new to infra and want simple setup: start with the image-based quick runs in this README, then [locus-mcp/README.md](locus-mcp/README.md).
-6. I need operational and release policy: start with [docs/deployment.md](docs/deployment.md), [docs/operations.md](docs/operations.md), and [docs/versioning.md](docs/versioning.md).
+### CLI — `locus-cli` 0.4.1
 
-## Support Matrix (Baseline)
+From this repository:
+
+```bash
+cargo run -p locus-cli -- --help
+```
+
+Release archives for MCP, Gateway, and CLI are built with the component `build.sh` scripts. Commands are in [Build, tags, and release](#build-tags-and-release-process).
+
+## What ships
+
+Workspace crates (versions from `Cargo.toml`):
+
+1. [locus-core-rs](locus-core-rs/README.md) `0.5.1`: parser/validator, domain contracts, storage abstractions, retrieval services, sync-ready mechanics.
+2. [locus-sdk](locus-sdk/README.md) `0.5.0`: primitive-first SDK, composition workflows, and `MemoryReflex`.
+3. [locus-surreal-adapter](locus-surreal-adapter) `0.1.1`: SurrealDB runtime client for hosts and WASM consumers.
+4. [locus-mcp](locus-mcp/README.md) `0.4.1`: stdio MCP server exposing memory tools.
+5. [locus-gateway](locus-gateway/README.md) `0.5.1`: deployable Rust gateway with HTTP + gRPC.
+6. [locus-cli](locus-cli/README.md) `0.4.1`: operator-facing SDK-backed CLI for common memory workflows.
+7. [locus-wasm](locus-wasm) `0.1.3`: WebAssembly bindings for STTP parsing and in-browser memory. [locus-web](locus-web) builds that bundle (`npm run build:wasm` from `locus-web`). `locus-wasm` is git-tagged, not published to crates.io.
+
+**MemoryReflex** (`locus-sdk` 0.5.0) is the System 1 bus envelope. `MemoryReflexService` takes a `MemoryStimulus` and an attached decider. The decider answers one `choice` (`action`), one `score` (`salience`), and three `noul` propositions (`references_prior`, `should_persist`, `needs_system2`) in a single pass. The service returns a `MemoryReflex` envelope for the host to publish. Recall, find, aggregate, and persist payloads are filled only when the gate accepts the decision. `Ignore` and `Escalate` carry no runnable request.
+
+```bash
+cargo run -p locus-sdk --example memory_reflex
+```
+
+CLI Skills are not in this repository. MCP is the entry point when you do not want to write service code.
+
+## Pick a path
+
+| Goal | Start |
+| --- | --- |
+| Memory tools in an MCP client | [locus-mcp/README.md](locus-mcp/README.md), or the image command above |
+| In-process Rust API | [locus-sdk/README.md](locus-sdk/README.md) and [locus-core-rs/README.md](locus-core-rs/README.md) |
+| HTTP or gRPC host for apps and services | [locus-gateway/README.md](locus-gateway/README.md) |
+| Terminal workflows | [locus-cli/README.md](locus-cli/README.md) |
+| Release policy and operations | [docs/versioning.md](docs/versioning.md), [docs/deployment.md](docs/deployment.md), [docs/operations.md](docs/operations.md) |
+
+## Support matrix
 
 | Area | Baseline |
 | --- | --- |
@@ -132,64 +91,15 @@ If you are deciding where to begin:
 | Storage modes | In-memory and SurrealDB v3 |
 | Docs tooling | mdbook and mdbook-mermaid |
 
-## Runtime Strategy
+Published images first, then release binaries, then source builds.
 
-Recommended adoption order is:
-
-1. Published images for immediate use.
-2. Release binaries for platform-specific deployment.
-3. Source builds for development and migration work.
-
-This keeps first usage simple while preserving full control for teams that need custom builds.
-
-## Skills And CLI Direction
-
-Locus is expanding toward Skills-style CLI workflows for easier automation composition.
-
-Planned intent:
-
-1. Keep memory operations accessible for users who do not want to write service code.
-2. Support reusable task patterns that can run repeatedly with stable memory context.
-3. Preserve parity between MCP-based flows and future CLI Skills flows.
-
-Current status:
-
-1. MCP is production-ready as the easiest non-code entry point.
-2. CLI Skills support is the next adoption layer and is being added with the same contract-first approach.
-
-## Quick Start
-
-From repository root:
+## From this repository
 
 ```bash
 cargo check --workspace
 cargo test --workspace
 cargo check --examples -p locus-sdk
 ```
-
-## Fast Run Modes
-
-### Run With Published Images
-
-MCP server:
-
-```bash
-docker run --rm -i -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-mcp:0.4.1
-```
-
-Gateway:
-
-```bash
-docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-gateway:0.5.1
-```
-
-Notes:
-
-1. Replace tags with the release you intend to run.
-2. Use mounted storage for persistent host state.
-3. Keep dev and production data paths separate.
-
-### Run Release Binary Builds
 
 MCP multi-target archives:
 
@@ -204,8 +114,6 @@ Gateway multi-target archives:
 ```
 
 Both scripts support `--publish` to upload packaged artifacts to the matching namespaced GitHub release tag.
-
-### Build From Source (Dev)
 
 Run MCP locally:
 
@@ -222,6 +130,7 @@ cargo run --manifest-path locus-gateway/Cargo.toml
 Run SDK examples:
 
 ```bash
+cargo run -p locus-sdk --example memory_reflex
 cargo run -p locus-sdk --example provider_registry_setup
 cargo run -p locus-sdk --example memory_composition
 cargo run -p locus-sdk --example recursive_composite_pipeline
@@ -233,9 +142,9 @@ Run CLI help:
 cargo run -p locus-cli -- --help
 ```
 
-## SDK, MCP, And Gateway At A Practical Level
+## SDK, MCP, and Gateway
 
-## SDK Usage Summary
+### SDK usage summary
 
 Use [locus-sdk/README.md](locus-sdk/README.md) when you want transport-agnostic memory behavior in-process.
 
@@ -247,6 +156,7 @@ Core primitives:
 4. `memory_transform`: controlled mutation/backfill workflows.
 5. `memory_explain`: visibility into recall decisions.
 6. `memory_schema`: runtime capability introspection.
+7. `memory_reflex`: System 1 bus envelope (`MemoryReflex`) from a stimulus. The service does not open a store.
 
 Composition workflows:
 
@@ -262,10 +172,11 @@ Typical SDK integration sequence:
 2. Add `memory_explain` when auditable reasoning is required.
 3. Add composition workflows only for recurring multi-step operations.
 4. Keep scoring and fallback policy explicit in request payloads.
+5. Use `memory_reflex` when a host should decide the operation before calling a primitive.
 
-### MCP Usage Summary
+### MCP usage summary
 
-Use [locus-mcp/README.md](locus-mcp/README.md) when memory should be exposed through stdio tools to assistants/agents.
+Use [locus-mcp/README.md](locus-mcp/README.md) when memory should be exposed through stdio tools to assistants and agents.
 
 Primary tools:
 
@@ -284,7 +195,7 @@ Common MCP flow:
 4. Inspect node inventory if needed.
 5. Roll up historical windows when timeline density grows.
 
-### Gateway Usage Summary
+### Gateway usage summary
 
 Use [locus-gateway/README.md](locus-gateway/README.md) when memory needs to be consumed by services over HTTP/gRPC.
 
@@ -302,9 +213,9 @@ Gateway behavior emphasis:
 2. Tenant-aware scoping with default backward-compatible behavior.
 3. Sync-ready storage support without forcing sync policy decisions.
 
-## End-To-End Interaction Examples
+## End-to-end examples
 
-### Gateway Health + Calibrate + Store + Context
+### Gateway health, calibrate, store, context
 
 ```bash
 curl -s http://127.0.0.1:8080/health
@@ -339,7 +250,7 @@ curl -s -X POST http://127.0.0.1:8080/api/v1/context \
 	}'
 ```
 
-### SDK Example Execution
+### SDK example execution
 
 ```bash
 cargo run -p locus-sdk --example memory_composition
@@ -352,7 +263,13 @@ What this gives you:
 3. Capability bundle output.
 4. Transform-then-recall verification path.
 
-### MCP Example Operational Flow
+```bash
+cargo run -p locus-sdk --example memory_reflex
+```
+
+What this gives you: sample stimuli turned into `MemoryReflex` envelopes and printed from a local channel. Recall and persist fields are present only on `Dispatch`.
+
+### MCP example operational flow
 
 For an MCP-capable assistant client:
 
@@ -362,18 +279,104 @@ For an MCP-capable assistant client:
 4. Call `list_nodes` when inventory review is needed.
 5. Call `create_monthly_rollup` for timeline compaction.
 
-## Build, Tags, And Release Process
+## Technical docs site
 
-Locus uses Instrumenta-style namespaced component release lines.
+Build the mdBook guide and workspace rustdoc from the repo root:
 
-### Tag Prefixes
+```bash
+./docs/build-technical-docs.sh
+```
+
+Generated output:
+
+1. `docs/technical/book/index.html` (mdBook guide set)
+2. `docs/technical/api/index.html` (workspace rustdoc)
+3. `docs/technical/index.html` (combined entrypoint)
+
+Recommended first technical pages:
+
+1. `docs/book/src/environment-setup.md` (tooling and environment baseline)
+2. `docs/book/src/deployment.md` (runtime profiles and release readiness)
+3. `docs/book/src/integration.md` (contract-safe migration and rollout gates)
+
+Requirements:
+
+1. `mdbook` installed (`cargo install mdbook`)
+2. `mdbook-mermaid` installed (`cargo install mdbook-mermaid`)
+3. Standard Rust toolchain for `cargo doc`
+
+## Operational guardrails
+
+Production-facing guidance:
+
+1. Keep provider endpoints, credentials, and tokens externalized.
+2. Use explicit tenant/session scoping in all host integrations.
+3. Keep retrieval fallback policy explicit, not implicit.
+4. Validate parser and validator strict-profile compatibility on generated nodes.
+5. Run dry-run mutation paths before applying large transforms.
+
+Release readiness checks:
+
+1. Workspace compile and tests pass.
+2. SDK examples compile/run in CI smoke path.
+3. Host compatibility checks pass for MCP and Gateway contracts.
+4. Changelog and migration notes are updated.
+5. Version policy review is complete for the target release line.
+
+## Repository layout
+
+```text
+locus/
+	locus-core-rs/           # domain contracts, parser/validator, storage, retrieval, sync-ready mechanics
+	locus-sdk/               # primitives, composition workflows, MemoryReflex, provider adapters
+	locus-surreal-adapter/   # SurrealDB runtime client for hosts and WASM
+	locus-wasm/              # WASM bindings for STTP parsing and in-browser memory
+	locus-mcp/               # stdio MCP host
+	locus-gateway/           # HTTP + gRPC host
+	locus-cli/               # operator-facing SDK-backed CLI
+	locus-web/               # browser app; builds the locus-wasm bundle
+	docs/                    # architecture, deployment, integration, operations, examples, security
+```
+
+## Documentation map
+
+Use docs by concern rather than reading in strict order:
+
+1. [docs/architecture.md](docs/architecture.md): boundaries, layering, design intent.
+2. [docs/deployment.md](docs/deployment.md): environment profiles and deployment guidance.
+3. [docs/operations.md](docs/operations.md): runtime operations and maintenance practices.
+4. [docs/integration.md](docs/integration.md): migration and contract compatibility guidance.
+5. [docs/examples.md](docs/examples.md): runnable SDK examples and expected coverage.
+6. [docs/troubleshooting.md](docs/troubleshooting.md): failure-mode triage and recovery.
+7. [docs/versioning.md](docs/versioning.md): SemVer and compatibility policy.
+8. [docs/security.md](docs/security.md): security posture and handling discipline.
+9. [docs/sttp_typed_ir_language_spec.md](docs/sttp_typed_ir_language_spec.md): typed IR protocol reference.
+10. [docs/sttp_document_builder.md](docs/sttp_document_builder.md): fluent canonical node construction (shallow content merge).
+11. [docs/sdk-architecture.md](docs/sdk-architecture.md): SDK layering, including `MemoryReflexService`.
+
+Index: [docs/README.md](docs/README.md).
+
+## Why the repository is structured this way
+
+One architectural boundary is intentional and enforced:
+
+1. Core and SDK own reusable memory behavior.
+2. Hosts own transport, deployment, and policy.
+
+This allows teams to adopt a minimal surface first and grow into broader deployment shapes without rewriting memory logic.
+
+## Build, tags, and release process
+
+Version policy: [docs/versioning.md](docs/versioning.md). Locus uses Instrumenta-style namespaced component release lines. The matrix and commands below are the orchestration this repository runs.
+
+### Tag prefixes
 
 1. `locus-core-rs/v...`
 2. `locus-sdk/v...`
 3. `locus-mcp/v...`
 4. `locus-gateway/v...`
 
-### Artifact Matrix
+### Artifact matrix
 
 | Component | Artifact Type | Build Command | Publish Action |
 | --- | --- | --- | --- |
@@ -387,7 +390,7 @@ Locus uses Instrumenta-style namespaced component release lines.
 | `locus-mcp` | Docker image | `./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:X.Y.Z` | `docker push ghcr.io/entasislabs/locus-mcp:X.Y.Z` |
 | `locus-gateway` | Docker image | `./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:X.Y.Z` | `docker push ghcr.io/entasislabs/locus-gateway:X.Y.Z` |
 
-### Master Orchestration Script
+### Master orchestration script
 
 Use the root-level wrapper to orchestrate component release and image scripts in one place:
 
@@ -420,7 +423,7 @@ Common patterns:
 ./build.sh --mode images --stack services --mcp-version 0.4.1 --gateway-version 0.5.1
 ```
 
-### Suggested Release Sequence
+### Suggested release sequence
 
 ```bash
 # Full preflight + optional builds (see ./scripts/release.sh --help)
@@ -463,61 +466,7 @@ docker push ghcr.io/entasislabs/locus-mcp:0.4.1
 docker push ghcr.io/entasislabs/locus-gateway:0.5.1
 ```
 
-## Operational Guardrails
-
-Production-facing guidance:
-
-1. Keep provider endpoints, credentials, and tokens externalized.
-2. Use explicit tenant/session scoping in all host integrations.
-3. Keep retrieval fallback policy explicit, not implicit.
-4. Validate parser and validator strict-profile compatibility on generated nodes.
-5. Run dry-run mutation paths before applying large transforms.
-
-Release readiness checks:
-
-1. Workspace compile and tests pass.
-2. SDK examples compile/run in CI smoke path.
-3. Host compatibility checks pass for MCP and Gateway contracts.
-4. Changelog and migration notes are updated.
-5. Version policy review is complete for the target release line.
-
-## Repository Layout
-
-```text
-locus/
-	locus-core-rs/      # domain contracts, parser/validator, storage, retrieval, sync-ready mechanics
-	locus-sdk/       # primitives, composition workflows, provider adapters/registry
-	locus-mcp/       # stdio MCP host
-	locus-gateway/   # HTTP + gRPC host
-	locus-cli/       # operator-facing SDK-backed CLI for memory workflows
-	docs/            # architecture, deployment, integration, operations, examples, security
-```
-
-## Documentation Map (Detailed)
-
-Use docs by concern rather than reading in strict order:
-
-1. [docs/architecture.md](docs/architecture.md): boundaries, layering, design intent.
-2. [docs/deployment.md](docs/deployment.md): environment profiles and deployment guidance.
-3. [docs/operations.md](docs/operations.md): runtime operations and maintenance practices.
-4. [docs/integration.md](docs/integration.md): migration and contract compatibility guidance.
-5. [docs/examples.md](docs/examples.md): runnable SDK examples and expected coverage.
-6. [docs/troubleshooting.md](docs/troubleshooting.md): failure-mode triage and recovery.
-7. [docs/versioning.md](docs/versioning.md): SemVer and compatibility policy.
-8. [docs/security.md](docs/security.md): security posture and handling discipline.
-9. [docs/sttp_typed_ir_language_spec.md](docs/sttp_typed_ir_language_spec.md): typed IR protocol reference.
-10. [docs/sttp_document_builder.md](docs/sttp_document_builder.md): fluent canonical node construction (shallow content merge).
-
-## Why The Repository Is Structured This Way
-
-One architectural boundary is intentional and enforced:
-
-1. Core and SDK own reusable memory behavior.
-2. Hosts own transport, deployment, and policy.
-
-This allows teams to adopt a minimal surface first and grow into broader deployment shapes without rewriting memory logic.
-
-## Release Notes And Change History
+## Release notes and change history
 
 Crate-level release notes:
 
@@ -528,6 +477,8 @@ Crate-level release notes:
 5. [locus-cli/CHANGELOG.md](locus-cli/CHANGELOG.md)
 
 Release helper: [scripts/release.sh](scripts/release.sh)
+
+The name is Latin for "place," from the Method of Loci. That is the name only.
 
 ## Contributing
 
@@ -542,7 +493,7 @@ When making changes:
 3. Include migration notes for any contract-impacting changes.
 4. Add tests for behavior changes in retrieval, parsing, or transforms.
 
-## Community And Governance
+## Community and governance
 
 For public collaboration standards and disclosure policy:
 
