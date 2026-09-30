@@ -5,6 +5,7 @@ use locus_core_rs::parsing::SttpNodeParser;
 use wasm_bindgen::prelude::*;
 
 mod client;
+mod compile;
 mod dto;
 mod json;
 
@@ -21,7 +22,11 @@ pub fn version() -> Result<JsValue, JsValue> {
 }
 
 #[wasm_bindgen]
-pub fn parse_sttp(raw: &str, session_id: &str, profile: Option<String>) -> Result<JsValue, JsValue> {
+pub fn parse_sttp(
+    raw: &str,
+    session_id: &str,
+    profile: Option<String>,
+) -> Result<JsValue, JsValue> {
     let result = match resolve_profile(profile.as_deref()) {
         ParseProfile::Strict => {
             SttpNodeParser::with_profile(ParseProfile::Strict).try_parse_strict(raw, session_id)
@@ -50,6 +55,14 @@ pub fn memory_schema() -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn compress_text(request: JsValue) -> Result<JsValue, JsValue> {
     client::compress_text_value(request)
+}
+
+/// Compile plain text into a canonical STTP record for the homepage demo.
+#[wasm_bindgen]
+pub fn compile_note(text: &str, session_id: &str) -> Result<JsValue, JsValue> {
+    let compiled =
+        compile::compile_note(text, session_id).map_err(|err| JsValue::from_str(&err))?;
+    json::to_value(&compiled)
 }
 
 fn resolve_profile(profile: Option<&str>) -> ParseProfile {
