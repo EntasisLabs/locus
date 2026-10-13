@@ -8,10 +8,10 @@ use clap::{Parser, Subcommand, ValueEnum};
 use locus_core_rs::domain::models::{AvecState, MonthlyRollupRequest, SttpNode};
 use locus_core_rs::{
     CalibrationService, InMemoryNodeStore, InMemorySemanticIndexStore, MonthlyRollupService,
-    MoodCatalogService, NodeStore, NodeStoreInitializer, NodeValidator,
-    SemanticIndexStore, SemanticIndexStoreInitializer, StoreContextService, SttpNodeParser,
-    SurrealDbEndpointsSettings, SurrealDbNodeStore, SurrealDbRuntimeOptions,
-    SurrealDbSemanticIndexStore, SurrealDbSettings, TreeSitterValidator,
+    MoodCatalogService, NodeStore, NodeStoreInitializer, NodeValidator, SemanticIndexStore,
+    SemanticIndexStoreInitializer, StoreContextService, SttpNodeParser, SurrealDbEndpointsSettings,
+    SurrealDbNodeStore, SurrealDbRuntimeOptions, SurrealDbSemanticIndexStore, SurrealDbSettings,
+    TreeSitterValidator,
 };
 use locus_sdk::application::memory_evict::MemoryEvictService;
 use locus_sdk::application::memory_find::MemoryFindService;
@@ -22,6 +22,7 @@ use locus_sdk::domain::graph::MemoryGraphRequest;
 use locus_sdk::domain::memory::{
     MemoryFilter, MemoryFindRequest, MemoryPage, MemoryRecallRequest, MemoryScope,
 };
+use locus_sqlite_adapter::{SqliteDatabase, SqliteNodeStore, SqliteSemanticIndexStore};
 use locus_surreal_adapter::RuntimeSurrealDbClient;
 use serde_json::{Value, json};
 
@@ -32,11 +33,16 @@ const TENANT_SCOPE_SEPARATOR: &str = "::session:";
 #[derive(Copy, Clone, Debug, ValueEnum)]
 enum StorageMode {
     InMemory,
+    Sqlite,
     Surreal,
 }
 
 #[derive(Parser, Debug)]
-#[command(name = "locus-cli", version, about = "SDK-backed CLI for Locus memory operations")]
+#[command(
+    name = "locus-cli",
+    version,
+    about = "SDK-backed CLI for Locus memory operations"
+)]
 struct Cli {
     #[arg(long, env = "LOCUS_STORAGE", default_value = "surreal")]
     storage: StorageMode,
@@ -70,6 +76,13 @@ struct Cli {
 
     #[arg(long, env = "LOCUS_SURREAL_PASSWORD")]
     surreal_password: Option<String>,
+
+    #[arg(
+        long,
+        env = "LOCUS_SQLITE_PATH",
+        default_value = "data/locus-cli.sqlite"
+    )]
+    sqlite_path: String,
 
     #[arg(long, help = "Pretty-print JSON output")]
     pretty: bool,
@@ -258,14 +271,7 @@ async fn main() -> Result<()> {
             let session_id = scope_session_id(&tenant, &session_id);
             let result = services
                 .calibration
-                .calibrate_async(
-                    &session_id,
-                    stability,
-                    friction,
-                    logic,
-                    autonomy,
-                    &trigger,
-                )
+                .calibrate_async(&session_id, stability, friction, logic, autonomy, &trigger)
                 .await?;
 
             json!({
@@ -317,11 +323,7 @@ async fn main() -> Result<()> {
             let from_utc = parse_utc_optional(from_utc.as_deref(), "from_utc")?;
             let to_utc = parse_utc_optional(to_utc.as_deref(), "to_utc")?;
             let tiers = normalize_tiers(tiers);
-            let indexed_tags = if tags.is_empty() {
-                None
-            } else {
-                Some(tags)
-            };
+            let indexed_tags = if tags.is_empty() { None } else { Some(tags) };
 
             let request = MemoryRecallRequest {
                 scope: MemoryScope {
@@ -379,13 +381,11 @@ async fn main() -> Result<()> {
             link_rel,
         } => {
             let requested_limit = limit.unwrap_or(50).clamp(1, 200);
-            let indexed_tags = if tags.is_empty() {
-                None
-            } else {
-                Some(tags)
-            };
+            let indexed_tags = if tags.is_empty() { None } else { Some(tags) };
 
-            let scoped_session = session_id.as_deref().map(|id| scope_session_id(&tenant, id));
+            let scoped_session = session_id
+                .as_deref()
+                .map(|id| scope_session_id(&tenant, id));
             let result = services
                 .memory_find
                 .execute(&MemoryFindRequest {
@@ -425,12 +425,10 @@ async fn main() -> Result<()> {
             target_prefix,
             tags,
         } => {
-            let scoped_session = session_id.as_deref().map(|id| scope_session_id(&tenant, id));
-            let indexed_tags = if tags.is_empty() {
-                None
-            } else {
-                Some(tags)
-            };
+            let scoped_session = session_id
+                .as_deref()
+                .map(|id| scope_session_id(&tenant, id));
+            let indexed_tags = if tags.is_empty() { None } else { Some(tags) };
 
             let result = services
                 .memory_graph
@@ -498,11 +496,7 @@ async fn main() -> Result<()> {
                 bail!("provide --sync-key, --node-id, --tags/--link-rel, or --purge-session");
             };
 
-            let indexed_tags = if tags.is_empty() {
-                None
-            } else {
-                Some(tags)
-            };
+            let indexed_tags = if tags.is_empty() { None } else { Some(tags) };
 
             let result = services
                 .memory_evict
@@ -637,8 +631,7 @@ async fn main() -> Result<()> {
     if cli.pretty {
         println!(
             "{}",
-            serde_json::to_string_pretty(&output)
-                .context("failed to render pretty JSON output")?
+            serde_json::to_string_pretty(&output).context("failed to render pretty JSON output")?
         );
     } else {
         println!("{}", serde_json::to_string(&output)?);
@@ -658,62 +651,82 @@ async fn build_services(cli: &Cli) -> Result<Services> {
         storage_namespace,
         storage_database,
     ) = match cli.storage {
-            StorageMode::InMemory => {
-                let store = Arc::new(InMemoryNodeStore::new());
-                let semantic_index = Arc::new(InMemorySemanticIndexStore::new());
-                let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
-                let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
-                    semantic_index.clone();
-                let node_store: Arc<dyn NodeStore> = store;
-                let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
-                (
-                    node_store,
-                    semantic_trait,
-                    initializer,
-                    semantic_initializer,
-                    "in-memory",
-                    None,
-                    None,
-                    None,
+        StorageMode::InMemory => {
+            let store = Arc::new(InMemoryNodeStore::new());
+            let semantic_index = Arc::new(InMemorySemanticIndexStore::new());
+            let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+            let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
+                semantic_index.clone();
+            let node_store: Arc<dyn NodeStore> = store;
+            let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
+            (
+                node_store,
+                semantic_trait,
+                initializer,
+                semantic_initializer,
+                "in-memory",
+                None,
+                None,
+                None,
+            )
+        }
+        StorageMode::Sqlite => {
+            let db = Arc::new(SqliteDatabase::open(&cli.sqlite_path)?);
+            let semantic_index = Arc::new(SqliteSemanticIndexStore::new(db.clone()));
+            let store = Arc::new(SqliteNodeStore::new(db));
+            let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+            let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
+                semantic_index.clone();
+            let node_store: Arc<dyn NodeStore> = store;
+            let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
+            (
+                node_store,
+                semantic_trait,
+                initializer,
+                semantic_initializer,
+                "sqlite",
+                Some(cli.sqlite_path.clone()),
+                None,
+                None,
+            )
+        }
+        StorageMode::Surreal => {
+            let settings = surreal_settings_from_cli(cli);
+            let runtime = surreal_runtime_from_cli(cli, &settings)?;
+
+            let client = Arc::new(
+                RuntimeSurrealDbClient::connect(
+                    &runtime,
+                    settings.user.as_deref(),
+                    settings.password.as_deref(),
                 )
-            }
-            StorageMode::Surreal => {
-                let settings = surreal_settings_from_cli(cli);
-                let runtime = surreal_runtime_from_cli(cli, &settings)?;
+                .await?,
+            );
 
-                let client = Arc::new(
-                    RuntimeSurrealDbClient::connect(
-                        &runtime,
-                        settings.user.as_deref(),
-                        settings.password.as_deref(),
-                    )
-                    .await?,
-                );
+            let semantic_index = Arc::new(SurrealDbSemanticIndexStore::new(client.clone()));
+            let store = Arc::new(SurrealDbNodeStore::new(client));
+            let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+            let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
+                semantic_index.clone();
+            let node_store: Arc<dyn NodeStore> = store;
+            let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
 
-                let semantic_index = Arc::new(SurrealDbSemanticIndexStore::new(client.clone()));
-                let store = Arc::new(SurrealDbNodeStore::new(client));
-                let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
-                let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
-                    semantic_index.clone();
-                let node_store: Arc<dyn NodeStore> = store;
-                let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
-
-                (
-                    node_store,
-                    semantic_trait,
-                    initializer,
-                    semantic_initializer,
-                    if runtime.use_remote {
-                        "surreal-remote"
-                    } else {
-                        "surreal-embedded"
-                    },
-                    Some(runtime.endpoint),
-                    Some(runtime.namespace),
-                    Some(runtime.database),
-                )
-            }
-        };
+            (
+                node_store,
+                semantic_trait,
+                initializer,
+                semantic_initializer,
+                if runtime.use_remote {
+                    "surreal-remote"
+                } else {
+                    "surreal-embedded"
+                },
+                Some(runtime.endpoint),
+                Some(runtime.namespace),
+                Some(runtime.database),
+            )
+        }
+    };
 
     initializer.initialize_async().await?;
     semantic_initializer.initialize_async().await?;
@@ -728,11 +741,14 @@ async fn build_services(cli: &Cli) -> Result<Services> {
             SttpNodeParser::new(),
         )
         .with_semantic_index(semantic_index.clone()),
-        memory_find: MemoryFindService::new(store.clone()).with_semantic_index(semantic_index.clone()),
+        memory_find: MemoryFindService::new(store.clone())
+            .with_semantic_index(semantic_index.clone()),
         memory_recall: MemoryRecallService::new(store.clone())
             .with_semantic_index(semantic_index.clone()),
-        memory_graph: MemoryGraphService::new(store.clone()).with_semantic_index(semantic_index.clone()),
-        memory_evict: MemoryEvictService::new(store.clone()).with_semantic_index(semantic_index.clone()),
+        memory_graph: MemoryGraphService::new(store.clone())
+            .with_semantic_index(semantic_index.clone()),
+        memory_evict: MemoryEvictService::new(store.clone())
+            .with_semantic_index(semantic_index.clone()),
         moods: MoodCatalogService::new(),
         monthly_rollup: MonthlyRollupService::new(store, validator)
             .with_semantic_index(semantic_index),
@@ -772,7 +788,10 @@ fn surreal_settings_from_cli(cli: &Cli) -> SurrealDbSettings {
     settings
 }
 
-fn surreal_runtime_from_cli(cli: &Cli, settings: &SurrealDbSettings) -> Result<SurrealDbRuntimeOptions> {
+fn surreal_runtime_from_cli(
+    cli: &Cli,
+    settings: &SurrealDbSettings,
+) -> Result<SurrealDbRuntimeOptions> {
     let mut args = Vec::new();
     if cli.remote {
         args.push("--remote".to_string());
@@ -788,11 +807,7 @@ fn normalize_tiers(tiers: Vec<String>) -> Option<Vec<String>> {
         .filter(|tier| !tier.is_empty())
         .collect::<Vec<_>>();
 
-    if tiers.is_empty() {
-        None
-    } else {
-        Some(tiers)
-    }
+    if tiers.is_empty() { None } else { Some(tiers) }
 }
 
 fn resolve_tenant(value: Option<&str>) -> Result<String> {

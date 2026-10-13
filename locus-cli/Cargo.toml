@@ -15,6 +15,7 @@ chrono = { version = "0.4", features = ["clock", "serde"] }
 clap = { version = "4", features = ["derive", "env"] }
 locus-core-rs = { version = "0.5.1", path = "../locus-core-rs", features = ["surreal-runtime"] }
 locus-sdk = { version = "0.5.0", path = "../locus-sdk" }
+locus-sqlite-adapter = { version = "0.1.0", path = "../locus-sqlite-adapter" }
 locus-surreal-adapter = { version = "0.1.1", path = "../locus-surreal-adapter" }
 serde_json = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

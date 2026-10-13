@@ -1,0 +1,20 @@
+[package]
+name = "locus-sqlite-adapter"
+version = "0.1.0"
+edition = "2024"
+description = "SQLite NodeStore and semantic index for Locus hosts"
+license = "Apache-2.0"
+readme = "README.md"
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["clock", "serde"] }
+locus-core-rs = { version = "0.5.1", path = "../locus-core-rs" }
+rusqlite = { version = "0.37", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }

@@ -23,9 +23,10 @@ mod shared;
 mod tools;
 
 use composition::{
-    RuntimeSurrealDbClient, build_embedding_provider, init_logging, load_surreal_settings,
-    resolve_parser_profile, runtime_args,
+    McpStorage, RuntimeSurrealDbClient, build_embedding_provider, init_logging,
+    load_surreal_settings, resolve_parser_profile, resolve_storage, runtime_args, sqlite_path,
 };
+use locus_sqlite_adapter::{SqliteDatabase, SqliteNodeStore, SqliteSemanticIndexStore};
 
 pub(crate) use shared::{
     avec_to_json, expanded_limit, filter_nodes_by_context_keywords, infer_store_error_code,
@@ -437,66 +438,76 @@ async fn main() -> Result<()> {
     init_logging();
 
     let args = std::env::args().collect::<Vec<_>>();
-    let use_in_memory = std::env::var("LOCUS_MCP_IN_MEMORY")
-        .map(|value| {
-            let normalized = value.trim().to_ascii_lowercase();
-            normalized == "1" || normalized == "true" || normalized == "yes"
-        })
-        .unwrap_or(false)
-        || std::env::var("LOCUS_MCP_STORAGE")
-            .map(|value| value.eq_ignore_ascii_case("inmemory"))
-            .unwrap_or(false)
-        || args
-            .iter()
-            .any(|arg| arg.eq_ignore_ascii_case("--in-memory"));
-
-    let (store, semantic_index, initializer, semantic_initializer) = if use_in_memory {
-        let store = Arc::new(InMemoryNodeStore::new());
-        let semantic_index = Arc::new(InMemorySemanticIndexStore::new());
-        let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
-        let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> = semantic_index.clone();
-        let node_store: Arc<dyn NodeStore> = store;
-        let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
-        (
-            node_store,
-            semantic_trait,
-            initializer,
-            semantic_initializer,
-        )
-    } else {
-        let settings = load_surreal_settings(&args)?;
-        let runtime_args = runtime_args(&args);
-        let runtime = SurrealDbRuntimeOptions::from_args(&runtime_args, &settings, Some(".locus-mcp"))?;
-
-        let client = Arc::new(
-            RuntimeSurrealDbClient::connect(
-                &runtime,
-                settings.user.as_deref(),
-                settings.password.as_deref(),
+    let (store, semantic_index, initializer, semantic_initializer) = match resolve_storage(&args) {
+        McpStorage::InMemory => {
+            let store = Arc::new(InMemoryNodeStore::new());
+            let semantic_index = Arc::new(InMemorySemanticIndexStore::new());
+            let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+            let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
+                semantic_index.clone();
+            let node_store: Arc<dyn NodeStore> = store;
+            let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
+            (
+                node_store,
+                semantic_trait,
+                initializer,
+                semantic_initializer,
             )
-            .await?,
-        );
-        let semantic_index = Arc::new(SurrealDbSemanticIndexStore::new(client.clone()));
-        let store = Arc::new(SurrealDbNodeStore::new(client));
-        let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
-        let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> = semantic_index.clone();
-        let node_store: Arc<dyn NodeStore> = store;
-        let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
+        }
+        McpStorage::Sqlite => {
+            let db = Arc::new(SqliteDatabase::open(sqlite_path(&args))?);
+            let semantic_index = Arc::new(SqliteSemanticIndexStore::new(db.clone()));
+            let store = Arc::new(SqliteNodeStore::new(db));
+            let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+            let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
+                semantic_index.clone();
+            let node_store: Arc<dyn NodeStore> = store;
+            let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
+            tracing::info!(path = %sqlite_path(&args), "configured SQLite runtime");
+            (
+                node_store,
+                semantic_trait,
+                initializer,
+                semantic_initializer,
+            )
+        }
+        McpStorage::Surreal => {
+            let settings = load_surreal_settings(&args)?;
+            let runtime_args = runtime_args(&args);
+            let runtime =
+                SurrealDbRuntimeOptions::from_args(&runtime_args, &settings, Some(".locus-mcp"))?;
 
-        tracing::info!(
-            mode = if runtime.use_remote { "remote" } else { "embedded" },
-            endpoint = %runtime.endpoint,
-            namespace = %runtime.namespace,
-            database = %runtime.database,
-            "configured SurrealDB runtime"
-        );
+            let client = Arc::new(
+                RuntimeSurrealDbClient::connect(
+                    &runtime,
+                    settings.user.as_deref(),
+                    settings.password.as_deref(),
+                )
+                .await?,
+            );
+            let semantic_index = Arc::new(SurrealDbSemanticIndexStore::new(client.clone()));
+            let store = Arc::new(SurrealDbNodeStore::new(client));
+            let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+            let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> =
+                semantic_index.clone();
+            let node_store: Arc<dyn NodeStore> = store;
+            let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
 
-        (
-            node_store,
-            semantic_trait,
-            initializer,
-            semantic_initializer,
-        )
+            tracing::info!(
+                mode = if runtime.use_remote { "remote" } else { "embedded" },
+                endpoint = %runtime.endpoint,
+                namespace = %runtime.namespace,
+                database = %runtime.database,
+                "configured SurrealDB runtime"
+            );
+
+            (
+                node_store,
+                semantic_trait,
+                initializer,
+                semantic_initializer,
+            )
+        }
     };
 
     initializer.initialize_async().await?;
@@ -528,9 +539,8 @@ async fn main() -> Result<()> {
         store.clone(),
         embedding_provider.clone(),
     ));
-    let mut monthly_rollup =
-        MonthlyRollupService::new(store.clone(), validator.clone())
-            .with_semantic_index(semantic_index.clone());
+    let mut monthly_rollup = MonthlyRollupService::new(store.clone(), validator.clone())
+        .with_semantic_index(semantic_index.clone());
     if let Some(provider) = embedding_provider.clone() {
         monthly_rollup = monthly_rollup.with_embedding_provider(provider);
     }

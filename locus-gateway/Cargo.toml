@@ -27,6 +27,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 locus-core-rs = { version = "0.5.1", path = "../locus-core-rs", features = ["surreal-runtime"] }
 locus-sdk = { version = "0.5.0", path = "../locus-sdk" }
+locus-sqlite-adapter = { version = "0.1.0", path = "../locus-sqlite-adapter" }
 locus-surreal-adapter = { version = "0.1.1", path = "../locus-surreal-adapter" }
 
 [build-dependencies]

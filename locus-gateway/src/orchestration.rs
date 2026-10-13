@@ -3,8 +3,8 @@ use std::sync::Arc;
 use anyhow::{Result, anyhow};
 use axum::http::HeaderValue;
 use locus_core_rs::application::services::{
-    CalibrationService, ContextQueryService, MonthlyRollupService,
-    MoodCatalogService, RekeyScopeService, StoreContextService,
+    CalibrationService, ContextQueryService, MonthlyRollupService, MoodCatalogService,
+    RekeyScopeService, StoreContextService,
 };
 use locus_core_rs::application::validation::TreeSitterValidator;
 use locus_core_rs::domain::contracts::{
@@ -19,6 +19,7 @@ use locus_core_rs::storage::{
 #[cfg(feature = "local-embedding")]
 use locus_sdk::infrastructure::embeddings::LocalEmbeddingProvider;
 use locus_sdk::infrastructure::embeddings::OllamaEmbeddingProvider;
+use locus_sqlite_adapter::{SqliteDatabase, SqliteNodeStore, SqliteSemanticIndexStore};
 use locus_surreal_adapter::RuntimeSurrealDbClient;
 use tracing::{error, info};
 
@@ -80,6 +81,12 @@ async fn build_state_with_backend(
 ) -> Result<AppState> {
     match backend {
         GatewayBackend::InMemory => build_in_memory_state_with_args(options).await,
+        GatewayBackend::Sqlite => {
+            let options = options.ok_or_else(|| {
+                anyhow!("SQLite backend selected, but no gateway runtime options were provided.")
+            })?;
+            build_sqlite_state(options).await
+        }
         GatewayBackend::Surreal => {
             let options = options.ok_or_else(|| {
                 anyhow!("Surreal backend selected, but no gateway runtime options were provided.")
@@ -133,14 +140,17 @@ fn build_services(
             .with_semantic_index(semantic_index.clone()),
         ),
         None => Arc::new(
-            StoreContextService::new(store_trait.clone(), validator.clone(), SttpNodeParser::new())
-                .with_semantic_index(semantic_index.clone()),
+            StoreContextService::new(
+                store_trait.clone(),
+                validator.clone(),
+                SttpNodeParser::new(),
+            )
+            .with_semantic_index(semantic_index.clone()),
         ),
     };
 
-    let mut monthly_rollup =
-        MonthlyRollupService::new(store_trait.clone(), validator.clone())
-            .with_semantic_index(semantic_index.clone());
+    let mut monthly_rollup = MonthlyRollupService::new(store_trait.clone(), validator.clone())
+        .with_semantic_index(semantic_index.clone());
     if let Some(provider) = embedding_provider.as_ref() {
         monthly_rollup = monthly_rollup.with_embedding_provider(provider.clone());
     }
@@ -212,6 +222,33 @@ async fn build_surreal_state(args: &GatewayArgs) -> Result<AppState> {
 
     let semantic_index = Arc::new(SurrealDbSemanticIndexStore::new(client.clone()));
     let store = Arc::new(SurrealDbNodeStore::new(client));
+
+    let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
+    initializer.initialize_async().await?;
+
+    let semantic_initializer: Arc<dyn SemanticIndexStoreInitializer> = semantic_index.clone();
+    semantic_initializer.initialize_async().await?;
+
+    let store_trait: Arc<dyn NodeStore> = store;
+    let semantic_trait: Arc<dyn SemanticIndexStore> = semantic_index;
+    let validator: Arc<dyn NodeValidator> = Arc::new(TreeSitterValidator);
+    let embedding_provider = build_embedding_provider(Some(args))?;
+    let avec_scorer = build_avec_scorer(Some(args));
+
+    Ok(build_services(
+        store_trait,
+        semantic_trait,
+        validator,
+        embedding_provider,
+        avec_scorer,
+    ))
+}
+
+async fn build_sqlite_state(args: &GatewayArgs) -> Result<AppState> {
+    info!(backend = "sqlite", path = %args.sqlite_path, "SQLite backend requested");
+    let db = Arc::new(SqliteDatabase::open(&args.sqlite_path)?);
+    let semantic_index = Arc::new(SqliteSemanticIndexStore::new(db.clone()));
+    let store = Arc::new(SqliteNodeStore::new(db));
 
     let initializer: Arc<dyn NodeStoreInitializer> = store.clone();
     initializer.initialize_async().await?;
