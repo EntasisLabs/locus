@@ -332,6 +332,7 @@ locus/
 	locus-sdk/               # primitives, composition workflows, MemoryReflex, provider adapters
 	locus-surreal-adapter/   # SurrealDB runtime client for hosts and WASM
 	locus-sqlite-adapter/    # SQLite node store and semantic index
+	locus-durable-object/    # Cloudflare Durable Object store for one SQLite database
 	locus-wasm/              # WASM bindings for STTP parsing and in-browser memory
 	locus-mcp/               # stdio MCP host
 	locus-gateway/           # HTTP + gRPC host
