@@ -15,14 +15,15 @@ For prerequisite tooling and baseline readiness checks, see `Environment Setup`.
 ## Supported Runtime Modes
 
 1. Embedded/local development mode.
-2. Remote SurrealDB mode.
-3. Hybrid host mode where gateway and MCP share the same underlying Locus behavior.
+2. SQLite file mode.
+3. Remote SurrealDB mode.
+4. Hybrid host mode where gateway and MCP share the same underlying Locus behavior.
 
 ## Environment Matrix
 
 | Environment | Storage Mode | Host Profile | Primary Goal |
 | --- | --- | --- | --- |
-| Local Development | In-memory or embedded Surreal | single-process | fast iteration and debugging |
+| Local Development | In-memory, SQLite, or embedded Surreal | single-process | fast iteration and debugging |
 | CI Validation | In-memory plus deterministic fixtures | test-only jobs | regression detection and compatibility checks |
 | Staging | Remote SurrealDB with isolated tenant space | gateway plus mcp parity checks | release verification and migration rehearsal |
 | Production | Remote SurrealDB with restricted access | managed gateway and mcp deployments | reliability, auditability, and scale |

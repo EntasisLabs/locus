@@ -56,7 +56,18 @@ pub(crate) struct GatewayArgs {
     #[arg(long, env = "LOCUS_SURREAL_PASSWORD", default_value = "root")]
     pub(crate) surreal_password: String,
 
-    #[arg(long, env = "LOCUS_GATEWAY_EMBEDDINGS_ENABLED", default_value_t = false)]
+    #[arg(
+        long,
+        env = "LOCUS_GATEWAY_SQLITE_PATH",
+        default_value = "data/locus-gateway.sqlite"
+    )]
+    pub(crate) sqlite_path: String,
+
+    #[arg(
+        long,
+        env = "LOCUS_GATEWAY_EMBEDDINGS_ENABLED",
+        default_value_t = false
+    )]
     pub(crate) embeddings_enabled: bool,
 
     #[arg(
@@ -113,6 +124,7 @@ pub(crate) struct GatewayArgs {
 #[derive(Debug, Clone, ValueEnum)]
 pub(crate) enum GatewayBackend {
     InMemory,
+    Sqlite,
     Surreal,
 }
 

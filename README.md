@@ -57,10 +57,11 @@ Workspace crates (versions from `Cargo.toml`):
 1. [locus-core-rs](locus-core-rs/README.md) `0.5.1`: parser/validator, domain contracts, storage abstractions, retrieval services, sync-ready mechanics.
 2. [locus-sdk](locus-sdk/README.md) `0.5.0`: primitive-first SDK, composition workflows, and `MemoryReflex`.
 3. [locus-surreal-adapter](locus-surreal-adapter) `0.1.1`: SurrealDB runtime client for hosts and WASM consumers.
-4. [locus-mcp](locus-mcp/README.md) `0.4.1`: stdio MCP server exposing memory tools.
-5. [locus-gateway](locus-gateway/README.md) `0.5.1`: deployable Rust gateway with HTTP + gRPC.
-6. [locus-cli](locus-cli/README.md) `0.4.1`: operator-facing SDK-backed CLI for common memory workflows.
-7. [locus-wasm](locus-wasm) `0.1.3`: WebAssembly bindings for STTP parsing and in-browser memory. [locus-web](locus-web) builds that bundle (`npm run build:wasm` from `locus-web`). `locus-wasm` is git-tagged, not published to crates.io.
+4. [locus-sqlite-adapter](locus-sqlite-adapter/README.md) `0.1.0`: SQLite node store and semantic index for file-backed hosts.
+5. [locus-mcp](locus-mcp/README.md) `0.4.1`: stdio MCP server exposing memory tools.
+6. [locus-gateway](locus-gateway/README.md) `0.5.1`: deployable Rust gateway with HTTP + gRPC.
+7. [locus-cli](locus-cli/README.md) `0.4.1`: operator-facing SDK-backed CLI for common memory workflows.
+8. [locus-wasm](locus-wasm) `0.1.3`: WebAssembly bindings for STTP parsing and in-browser memory. [locus-web](locus-web) builds that bundle (`npm run build:wasm` from `locus-web`). `locus-wasm` is git-tagged, not published to crates.io.
 
 **MemoryReflex** (`locus-sdk` 0.5.0) is the System 1 bus envelope. `MemoryReflexService` takes a `MemoryStimulus` and an attached decider. The decider answers one `choice` (`action`), one `score` (`salience`), and three `noul` propositions (`references_prior`, `should_persist`, `needs_system2`) in a single pass. The service returns a `MemoryReflex` envelope for the host to publish. Recall, find, aggregate, and persist payloads are filled only when the gate accepts the decision. `Ignore` and `Escalate` carry no runnable request.
 
@@ -88,7 +89,7 @@ CLI Skills are not in this repository. MCP is the entry point when you do not wa
 | Cargo | Included with stable toolchain |
 | Host OS | Linux, macOS, Windows (WSL2 recommended) |
 | Container runtime | Docker Engine or compatible |
-| Storage modes | In-memory and SurrealDB v3 |
+| Storage modes | In-memory, SQLite, and SurrealDB v3 |
 | Docs tooling | mdbook and mdbook-mermaid |
 
 Published images first, then release binaries, then source builds.
@@ -330,6 +331,7 @@ locus/
 	locus-core-rs/           # domain contracts, parser/validator, storage, retrieval, sync-ready mechanics
 	locus-sdk/               # primitives, composition workflows, MemoryReflex, provider adapters
 	locus-surreal-adapter/   # SurrealDB runtime client for hosts and WASM
+	locus-sqlite-adapter/    # SQLite node store and semantic index
 	locus-wasm/              # WASM bindings for STTP parsing and in-browser memory
 	locus-mcp/               # stdio MCP host
 	locus-gateway/           # HTTP + gRPC host

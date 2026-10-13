@@ -10,6 +10,37 @@ use tracing::info;
 
 pub(crate) use locus_surreal_adapter::RuntimeSurrealDbClient;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum McpStorage {
+    InMemory,
+    Sqlite,
+    Surreal,
+}
+
+pub(crate) fn resolve_storage(args: &[String]) -> McpStorage {
+    let forced_memory = env_flag("LOCUS_MCP_IN_MEMORY")
+        || args
+            .iter()
+            .any(|arg| arg.eq_ignore_ascii_case("--in-memory"));
+    if forced_memory {
+        return McpStorage::InMemory;
+    }
+
+    match env_or_arg("LOCUS_MCP_STORAGE", args, "--storage")
+        .map(|value| value.to_ascii_lowercase())
+        .as_deref()
+    {
+        Some("sqlite") => McpStorage::Sqlite,
+        Some("inmemory") | Some("in-memory") | Some("memory") => McpStorage::InMemory,
+        _ => McpStorage::Surreal,
+    }
+}
+
+pub(crate) fn sqlite_path(args: &[String]) -> String {
+    env_or_arg("LOCUS_MCP_SQLITE_PATH", args, "--sqlite-path")
+        .unwrap_or_else(|| "data/locus-mcp.sqlite".to_string())
+}
+
 #[derive(Debug, Clone)]
 enum EmbeddingsProviderKind {
     Ollama,
@@ -85,7 +116,9 @@ pub(crate) fn runtime_args(args: &[String]) -> Vec<String> {
     runtime_args
 }
 
-pub(crate) fn build_embedding_provider(args: &[String]) -> Result<Option<Arc<dyn EmbeddingProvider>>> {
+pub(crate) fn build_embedding_provider(
+    args: &[String],
+) -> Result<Option<Arc<dyn EmbeddingProvider>>> {
     let embeddings_enabled = env_flag("LOCUS_MCP_EMBEDDINGS_ENABLED")
         || args
             .iter()

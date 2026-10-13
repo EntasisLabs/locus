@@ -15,6 +15,7 @@ schemars = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 locus-core-rs = { version = "0.5.1", path = "../locus-core-rs", features = ["surreal-runtime"] }
+locus-sqlite-adapter = { version = "0.1.0", path = "../locus-sqlite-adapter" }
 locus-surreal-adapter = { version = "0.1.1", path = "../locus-surreal-adapter" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"

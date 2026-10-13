@@ -16,10 +16,10 @@ use tower_http::cors::{Any, CorsLayer};
 use tracing::{error, info};
 use tracing_subscriber::EnvFilter;
 
+use locus_core_rs::domain::contracts::EmbeddingProvider;
 use locus_core_rs::domain::models::{
     self as core_models, ConfidenceBandSummary, MonthlyRollupRequest, NumericRange, PsiRange,
 };
-use locus_core_rs::domain::contracts::EmbeddingProvider;
 use locus_sdk::application::memory_evict::MemoryEvictService;
 use locus_sdk::application::memory_find::MemoryFindService;
 use locus_sdk::application::memory_graph::{MemoryGraphService, graph_node_id};
@@ -28,8 +28,8 @@ use locus_sdk::application::memory_transform::MemoryTransformService;
 use locus_sdk::domain::evict::{MemoryEvictMode, MemoryEvictRequest, MemoryEvictResult};
 use locus_sdk::domain::graph::MemoryGraphRequest;
 use locus_sdk::domain::memory::{
-    FallbackPolicy, MemoryFilter, MemoryFindRequest, MemoryPage, MemoryRecallRequest,
-    MemoryScope, MemoryScoring, MemoryTransformOperation, MemoryTransformRequest,
+    FallbackPolicy, MemoryFilter, MemoryFindRequest, MemoryPage, MemoryRecallRequest, MemoryScope,
+    MemoryScoring, MemoryTransformOperation, MemoryTransformRequest,
 };
 use locus_sdk::infrastructure::registry::InMemoryAiProviderRegistry;
 use locus_sdk::infrastructure::sttp_native::embedding_provider_adapter::SttpEmbeddingProviderAdapter;
@@ -40,9 +40,9 @@ use crate::constants::{
 };
 use crate::gateway_args::GatewayArgs;
 use crate::http_models::*;
-use crate::orchestration::{build_state, parse_cors_allowed_origins, shutdown_signal};
 #[cfg(test)]
 use crate::orchestration::build_in_memory_state;
+use crate::orchestration::{build_state, parse_cors_allowed_origins, shutdown_signal};
 use crate::providers::resolve_query_embedding;
 use crate::tenant::{
     display_session_id, normalize_node_for_tenant, normalize_tenant_value, resolve_grpc_tenant,
@@ -649,12 +649,8 @@ async fn evict_handler(
     let mode = resolve_evict_mode(&request)?;
 
     let purge_session = matches!(mode, MemoryEvictMode::PurgeSession);
-    let include_calibration = request
-        .include_calibration
-        .unwrap_or(purge_session);
-    let include_checkpoints = request
-        .include_checkpoints
-        .unwrap_or(purge_session);
+    let include_calibration = request.include_calibration.unwrap_or(purge_session);
+    let include_checkpoints = request.include_checkpoints.unwrap_or(purge_session);
 
     let result = evict_service(&state)
         .execute(&MemoryEvictRequest {
@@ -689,7 +685,9 @@ async fn evict_handler(
     Ok(Json(to_evict_dto(result)))
 }
 
-fn resolve_evict_mode(request: &EvictHttpRequest) -> Result<MemoryEvictMode, (StatusCode, Json<ErrorResponse>)> {
+fn resolve_evict_mode(
+    request: &EvictHttpRequest,
+) -> Result<MemoryEvictMode, (StatusCode, Json<ErrorResponse>)> {
     if request.purge_session.unwrap_or(false) {
         return Ok(MemoryEvictMode::PurgeSession);
     }
@@ -704,7 +702,11 @@ fn resolve_evict_mode(request: &EvictHttpRequest) -> Result<MemoryEvictMode, (St
         };
     }
 
-    if request.sync_keys.as_ref().is_some_and(|keys| !keys.is_empty()) {
+    if request
+        .sync_keys
+        .as_ref()
+        .is_some_and(|keys| !keys.is_empty())
+    {
         return Ok(MemoryEvictMode::BySyncKeys);
     }
     if request.node_ids.as_ref().is_some_and(|ids| !ids.is_empty()) {
@@ -1169,7 +1171,10 @@ fn build_gateway_provider_registry(
 ) -> Arc<InMemoryAiProviderRegistry> {
     let mut registry = InMemoryAiProviderRegistry::new();
     if let Some(provider) = provider {
-        registry.register(SttpEmbeddingProviderAdapter::new("gateway-embedding", provider));
+        registry.register(SttpEmbeddingProviderAdapter::new(
+            "gateway-embedding",
+            provider,
+        ));
     }
     Arc::new(registry)
 }
@@ -1829,6 +1834,7 @@ mod tests {
             surreal_database: "locus_gateway".to_string(),
             surreal_user: "root".to_string(),
             surreal_password: "root".to_string(),
+            sqlite_path: "data/locus-gateway.sqlite".to_string(),
             embeddings_enabled: false,
             embeddings_provider: EmbeddingsProviderKind::Ollama,
             embeddings_endpoint: "http://127.0.0.1:11434/api/embeddings".to_string(),
