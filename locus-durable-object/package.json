@@ -1,0 +1,8 @@
+{
+  "name": "locus-durable-object",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/store.test.ts"
+  }
+}
