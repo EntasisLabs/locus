@@ -5,6 +5,16 @@ For historical entries before this split, see ../CHANGELOG.md.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-13
+
+### Added
+
+- SQLite file storage via `LOCUS_GATEWAY_BACKEND=sqlite` and `LOCUS_GATEWAY_SQLITE_PATH` (default `data/locus-gateway.sqlite`).
+
+### Changed
+
+- Dependency alignment: `locus-sqlite-adapter` 0.1.0. `locus-core-rs` 0.5.1, `locus-sdk` 0.5.0, and `locus-surreal-adapter` 0.1.1 are unchanged.
+
 ## [0.5.1] - 2026-09-26
 
 ### Changed

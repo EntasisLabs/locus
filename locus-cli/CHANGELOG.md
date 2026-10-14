@@ -4,6 +4,16 @@ All notable changes specific to locus-cli are documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-13
+
+### Added
+
+- SQLite file storage via `LOCUS_STORAGE=sqlite` and `LOCUS_SQLITE_PATH` (default `data/locus-cli.sqlite`).
+
+### Changed
+
+- Dependency alignment: `locus-sqlite-adapter` 0.1.0. `locus-core-rs` 0.5.1, `locus-sdk` 0.5.0, and `locus-surreal-adapter` 0.1.1 are unchanged.
+
 ## [0.4.1] - 2026-09-26
 
 ### Changed

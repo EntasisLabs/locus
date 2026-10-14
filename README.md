@@ -12,16 +12,16 @@ Licensed under [Apache-2.0](LICENSE).
 
 Tags match crate versions in `Cargo.toml` on this branch. Replace a tag when you pin a different release. Mount a volume when host state should survive the container, and keep dev and production data paths separate.
 
-### MCP image — `locus-mcp` 0.4.1
+### MCP image — `locus-mcp` 0.5.0
 
 ```bash
-docker run --rm -i -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-mcp:0.4.1
+docker run --rm -i -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-mcp:0.5.0
 ```
 
-### Gateway image — `locus-gateway` 0.5.1
+### Gateway image — `locus-gateway` 0.6.0
 
 ```bash
-docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-gateway:0.5.1
+docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/entasislabs/locus-gateway:0.6.0
 ```
 
 HTTP listens on `8080`. gRPC listens on `8081`.
@@ -40,7 +40,7 @@ From this repository, run the System 1 envelope example:
 cargo run -p locus-sdk --example memory_reflex
 ```
 
-### CLI — `locus-cli` 0.4.1
+### CLI — `locus-cli` 0.5.0
 
 From this repository:
 
@@ -58,10 +58,12 @@ Workspace crates (versions from `Cargo.toml`):
 2. [locus-sdk](locus-sdk/README.md) `0.5.0`: primitive-first SDK, composition workflows, and `MemoryReflex`.
 3. [locus-surreal-adapter](locus-surreal-adapter) `0.1.1`: SurrealDB runtime client for hosts and WASM consumers.
 4. [locus-sqlite-adapter](locus-sqlite-adapter/README.md) `0.1.0`: SQLite node store and semantic index for file-backed hosts.
-5. [locus-mcp](locus-mcp/README.md) `0.4.1`: stdio MCP server exposing memory tools.
-6. [locus-gateway](locus-gateway/README.md) `0.5.1`: deployable Rust gateway with HTTP + gRPC.
-7. [locus-cli](locus-cli/README.md) `0.4.1`: operator-facing SDK-backed CLI for common memory workflows.
+5. [locus-mcp](locus-mcp/README.md) `0.5.0`: stdio MCP server exposing memory tools.
+6. [locus-gateway](locus-gateway/README.md) `0.6.0`: deployable Rust gateway with HTTP + gRPC.
+7. [locus-cli](locus-cli/README.md) `0.5.0`: operator-facing SDK-backed CLI for common memory workflows.
 8. [locus-wasm](locus-wasm) `0.1.3`: WebAssembly bindings for STTP parsing and in-browser memory. [locus-web](locus-web) builds that bundle (`npm run build:wasm` from `locus-web`). `locus-wasm` is git-tagged, not published to crates.io.
+
+[locus-durable-object](locus-durable-object/README.md) `0.1.0` is the Cloudflare Worker store for one SQLite database. It is git-tagged with the release and is not published to npm.
 
 **MemoryReflex** (`locus-sdk` 0.5.0) is the System 1 bus envelope. `MemoryReflexService` takes a `MemoryStimulus` and an attached decider. The decider answers one `choice` (`action`), one `score` (`salience`), and three `noul` propositions (`references_prior`, `should_persist`, `needs_system2`) in a single pass. The service returns a `MemoryReflex` envelope for the host to publish. Recall, find, aggregate, and persist payloads are filled only when the gate accepts the decision. `Ignore` and `Escalate` carry no runnable request.
 
@@ -376,8 +378,13 @@ Version policy: [docs/versioning.md](docs/versioning.md). Locus uses Instrumenta
 
 1. `locus-core-rs/v...`
 2. `locus-sdk/v...`
-3. `locus-mcp/v...`
-4. `locus-gateway/v...`
+3. `locus-surreal-adapter/v...`
+4. `locus-sqlite-adapter/v...`
+5. `locus-wasm/v...`
+6. `locus-mcp/v...`
+7. `locus-gateway/v...`
+8. `locus-cli/v...`
+9. `locus-durable-object/v...`
 
 ### Artifact matrix
 
@@ -386,6 +393,8 @@ Version policy: [docs/versioning.md](docs/versioning.md). Locus uses Instrumenta
 | `locus-core-rs` | crates.io package | `./locus-core-rs/publish-crates.sh` | add `--publish` for actual crates.io publish |
 | `locus-sdk` | crates.io package | `./locus-sdk/publish-crates.sh` | add `--publish` for actual crates.io publish |
 | `locus-surreal-adapter` | crates.io package | `./locus-surreal-adapter/publish-crates.sh` | publish after core, before sdk |
+| `locus-sqlite-adapter` | crates.io package | `./locus-sqlite-adapter/publish-crates.sh` | publish after core, before sdk |
+| `locus-durable-object` | Worker sources | `npm test` in `locus-durable-object` | git tag only; not published to npm |
 | `locus-wasm` | browser WASM bundle | `cd locus-web && npm run build:wasm` | git tag only; not published to crates.io |
 | `locus-mcp` | multi-platform archives | `./locus-mcp/build.sh` | `./locus-mcp/build.sh --publish` |
 | `locus-gateway` | multi-platform archives | `./locus-gateway/build.sh` | `./locus-gateway/build.sh --publish` |
@@ -408,22 +417,22 @@ Or invoke `./build.sh` directly with explicit versions:
 ```bash
 ./build.sh --mode release \
   --targets core,mcp,gateway,cli \
-  --mcp-version 0.4.1 \
-  --gateway-version 0.5.1 \
-  --cli-version 0.4.1
+  --mcp-version 0.5.0 \
+  --gateway-version 0.6.0 \
+  --cli-version 0.5.0
 ```
 
 Common patterns:
 
 ```bash
 # Release artifacts/checks only
-./build.sh --mode release --mcp-version 0.4.1 --gateway-version 0.5.1 --cli-version 0.4.1
+./build.sh --mode release --mcp-version 0.5.0 --gateway-version 0.6.0 --cli-version 0.5.0
 
 # Release artifacts/checks and publish outputs to GitHub/crates.io targets
-./build.sh --mode release --mcp-version 0.4.1 --gateway-version 0.5.1 --cli-version 0.4.1 --publish
+./build.sh --mode release --mcp-version 0.5.0 --gateway-version 0.6.0 --cli-version 0.5.0 --publish
 
 # Build and tag only service images (mcp + gateway)
-./build.sh --mode images --stack services --mcp-version 0.4.1 --gateway-version 0.5.1
+./build.sh --mode images --stack services --mcp-version 0.5.0 --gateway-version 0.6.0
 ```
 
 ### Suggested release sequence
@@ -438,6 +447,7 @@ cargo test -p locus-core-rs -p locus-sdk -p locus-gateway -p locus-mcp -p locus-
 
 ./locus-core-rs/publish-crates.sh --publish
 ./locus-surreal-adapter/publish-crates.sh --publish
+./locus-sqlite-adapter/publish-crates.sh --publish
 ./locus-sdk/publish-crates.sh --publish
 
 ./locus-mcp/build.sh --publish
@@ -445,28 +455,27 @@ cargo test -p locus-core-rs -p locus-sdk -p locus-gateway -p locus-mcp -p locus-
 ./locus-cli/build.sh --publish
 
 cd locus-web && npm ci && npm run build:wasm
+npm test --prefix locus-durable-object
 
-git tag locus-core-rs/v0.5.1
-git tag locus-sdk/v0.5.0
-git tag locus-surreal-adapter/v0.1.1
-git tag locus-wasm/v0.1.3
-git tag locus-mcp/v0.4.1
-git tag locus-gateway/v0.5.1
-git tag locus-cli/v0.4.1
+# Core 0.5.1, SDK 0.5.0, Surreal 0.1.1, and WASM 0.1.3 are unchanged.
+# Tag the components this release line actually bumps.
+git tag locus-sqlite-adapter/v0.1.0
+git tag locus-mcp/v0.5.0
+git tag locus-gateway/v0.6.0
+git tag locus-cli/v0.5.0
+git tag locus-durable-object/v0.1.0
 git push origin \
-  locus-core-rs/v0.5.1 \
-  locus-sdk/v0.5.0 \
-  locus-surreal-adapter/v0.1.1 \
-  locus-wasm/v0.1.3 \
-  locus-mcp/v0.4.1 \
-  locus-gateway/v0.5.1 \
-  locus-cli/v0.4.1
+  locus-sqlite-adapter/v0.1.0 \
+  locus-mcp/v0.5.0 \
+  locus-gateway/v0.6.0 \
+  locus-cli/v0.5.0 \
+  locus-durable-object/v0.1.0
 
-./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.4.1
-docker push ghcr.io/entasislabs/locus-mcp:0.4.1
+./locus-mcp/build-image.sh ghcr.io/entasislabs/locus-mcp:0.5.0
+docker push ghcr.io/entasislabs/locus-mcp:0.5.0
 
-./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:0.5.1
-docker push ghcr.io/entasislabs/locus-gateway:0.5.1
+./locus-gateway/build-image.sh ghcr.io/entasislabs/locus-gateway:0.6.0
+docker push ghcr.io/entasislabs/locus-gateway:0.6.0
 ```
 
 ## Release notes and change history
@@ -478,6 +487,8 @@ Crate-level release notes:
 3. [locus-gateway/CHANGELOG.md](locus-gateway/CHANGELOG.md)
 4. [locus-mcp/CHANGELOG.md](locus-mcp/CHANGELOG.md)
 5. [locus-cli/CHANGELOG.md](locus-cli/CHANGELOG.md)
+6. [locus-sqlite-adapter/CHANGELOG.md](locus-sqlite-adapter/CHANGELOG.md)
+7. [locus-durable-object/CHANGELOG.md](locus-durable-object/CHANGELOG.md)
 
 Release helper: [scripts/release.sh](scripts/release.sh)
 
