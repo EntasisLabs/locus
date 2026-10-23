@@ -44,11 +44,11 @@ serde_json = "1"
 locus-core-rs = { version = "0.5.1", path = "../locus-core-rs" }
 thiserror = "2"
 tokenizers = { version = "0.21", optional = true }
-tokio = { version = "1", features = ["rt-multi-thread", "sync"], optional = true }
+tokio = { version = "1.53.3", features = ["rt-multi-thread", "sync"], optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
 getrandom_04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
+tokio = { version = "1.53.3", features = ["macros", "rt-multi-thread", "sync"] }
