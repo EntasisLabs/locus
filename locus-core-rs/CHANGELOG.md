@@ -5,6 +5,12 @@ For historical entries before this split, see ../CHANGELOG.md.
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-10-23
+
+### Changed
+
+- Minimum `tokio` version is 1.53.3, so dependents cannot resolve the RUSTSEC-2026-0386 range.
+
 ## [0.5.1] - 2026-08-25
 
 ### Added

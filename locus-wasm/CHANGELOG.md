@@ -6,6 +6,10 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+### Changed
+
+- `version()` DTO reports `core` 0.5.2 and `sdk` 0.5.1.
+
 ## [0.1.3] - 2026-09-26
 
 ### Changed

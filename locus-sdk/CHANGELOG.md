@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-23
+
+### Changed
+
+- Minimum `tokio` version is 1.53.3 (optional dependency and dev-dependency), so dependents cannot resolve the RUSTSEC-2026-0386 range.
+- Dependency alignment: `locus-core-rs` 0.5.2.
+
 ## [0.5.0] - 2026-09-26
 
 ### Added

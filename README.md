@@ -26,12 +26,12 @@ docker run --rm -p 8080:8080 -p 8081:8081 -v "$PWD/locus-data:/data" ghcr.io/ent
 
 HTTP listens on `8080`. gRPC listens on `8081`.
 
-### SDK — `locus-sdk` 0.5.0
+### SDK — `locus-sdk` 0.5.1
 
 Published on crates.io:
 
 ```toml
-locus-sdk = "0.5.0"
+locus-sdk = "0.5.1"
 ```
 
 From this repository, run the System 1 envelope example:
@@ -54,8 +54,8 @@ Release archives for MCP, Gateway, and CLI are built with the component `build.s
 
 Workspace crates (versions from `Cargo.toml`):
 
-1. [locus-core-rs](locus-core-rs/README.md) `0.5.1`: parser/validator, domain contracts, storage abstractions, retrieval services, sync-ready mechanics.
-2. [locus-sdk](locus-sdk/README.md) `0.5.0`: primitive-first SDK, composition workflows, and `MemoryReflex`.
+1. [locus-core-rs](locus-core-rs/README.md) `0.5.2`: parser/validator, domain contracts, storage abstractions, retrieval services, sync-ready mechanics.
+2. [locus-sdk](locus-sdk/README.md) `0.5.1`: primitive-first SDK, composition workflows, and `MemoryReflex`.
 3. [locus-surreal-adapter](locus-surreal-adapter) `0.1.1`: SurrealDB runtime client for hosts and WASM consumers.
 4. [locus-sqlite-adapter](locus-sqlite-adapter/README.md) `0.1.0`: SQLite node store and semantic index for file-backed hosts.
 5. [locus-mcp](locus-mcp/README.md) `0.5.0`: stdio MCP server exposing memory tools.
@@ -65,7 +65,7 @@ Workspace crates (versions from `Cargo.toml`):
 
 [locus-durable-object](locus-durable-object/README.md) `0.1.0` is the Cloudflare Worker store for one SQLite database. It is git-tagged with the release and is not published to npm.
 
-**MemoryReflex** (`locus-sdk` 0.5.0) is the System 1 bus envelope. `MemoryReflexService` takes a `MemoryStimulus` and an attached decider. The decider answers one `choice` (`action`), one `score` (`salience`), and three `noul` propositions (`references_prior`, `should_persist`, `needs_system2`) in a single pass. The service returns a `MemoryReflex` envelope for the host to publish. Recall, find, aggregate, and persist payloads are filled only when the gate accepts the decision. `Ignore` and `Escalate` carry no runnable request.
+**MemoryReflex** (`locus-sdk` 0.5.1) is the System 1 bus envelope. `MemoryReflexService` takes a `MemoryStimulus` and an attached decider. The decider answers one `choice` (`action`), one `score` (`salience`), and three `noul` propositions (`references_prior`, `should_persist`, `needs_system2`) in a single pass. The service returns a `MemoryReflex` envelope for the host to publish. Recall, find, aggregate, and persist payloads are filled only when the gate accepts the decision. `Ignore` and `Escalate` carry no runnable request.
 
 ```bash
 cargo run -p locus-sdk --example memory_reflex
